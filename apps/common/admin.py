@@ -1,9 +1,10 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from apps.common.models import ContactMessage, SiteSettings, StaticPage
 
-admin.site.site_header = format_html(
+# static markup with no interpolated values
+admin.site.site_header = mark_safe(
     'مدیریت فروشگاه <a href="/dashboard/" style="font-size:0.6em;font-weight:normal;'
     'color:#a5d1e1;margin-inline-start:1rem;text-decoration:none">→ داشبورد آمار</a>'
 )

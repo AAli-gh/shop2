@@ -17,7 +17,7 @@ class Cart(models.Model):
         verbose_name_plural = _("carts")
         constraints = [
             models.CheckConstraint(
-                check=Q(user__isnull=False, session_key__isnull=True)
+                condition=Q(user__isnull=False, session_key__isnull=True)
                 | Q(user__isnull=True, session_key__isnull=False),
                 name="cart_single_owner",
             ),

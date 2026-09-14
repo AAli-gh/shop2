@@ -27,7 +27,7 @@ class Coupon(models.Model):
         verbose_name_plural = _("coupons")
         constraints = [
             models.CheckConstraint(
-                check=Q(kind="percent", value__lte=100) | Q(kind="fixed"),
+                condition=Q(kind="percent", value__lte=100) | Q(kind="fixed"),
                 name="coupon_percent_value_max_100",
             ),
         ]

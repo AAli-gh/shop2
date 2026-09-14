@@ -1,8 +1,10 @@
 {% extends "base.html" %}
-{% load persian %}
+{% load persian seo %}
 {% block title %}
     {% if current_q %}جستجوی «{{ current_q }}»{% elif current_brand_name %}{{ current_brand_name }}{% else %}محصولات{% endif %} | {{ site_settings.store_name }}
 {% endblock %}
+
+{% block seo %}{% json_ld_listing_breadcrumbs current_category current_brand_name %}{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb mb-5" aria-label="مسیر صفحه">

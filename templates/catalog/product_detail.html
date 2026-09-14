@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load persian %}
+{% load persian seo %}
 {% block title %}{{ product.name }} | {{ site_settings.store_name }}{% endblock %}
 
 {% block seo %}
@@ -7,9 +7,11 @@
 <meta property="og:title" content="{{ product.name }} — {{ site_settings.store_name }}">
 <meta property="og:type" content="product">
 <meta property="og:description" content="{{ product.description|default:product.name|truncatechars:160 }}">
-<meta property="og:price:amount" content="{{ product.effective_price }}">
+{# prices are stored in Toman; IRR (Rial) is the ISO currency, so ×10 #}
+<meta property="og:price:amount" content="{% widthratio product.effective_price 1 10 %}">
 <meta property="og:price:currency" content="IRR">
-{% if product.image %}<meta property="og:image" content="{{ request.build_absolute_uri }}{{ product.image.url }}">{% endif %}
+{% if product.image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}">{% endif %}
+{% json_ld_product product %}
 {% endblock %}
 
 {% block content %}
