@@ -6,8 +6,19 @@ from apps.common.lastvisited import LAST_VISITED_LIMIT  # noqa: F401  (keep modu
 
 
 def _send(user_email: str, subject: str, template: str, context: dict) -> None:
+    if not user_email:
+        return  # phone-login accounts have no email; they get the SMS instead
     body = render_to_string(template, context)
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
+
+
+def _sms(order, text: str) -> None:
+    user = order.user
+    if user.phone and user.phone_verified:
+        from apps.common import sms
+        from apps.common.services import get_settings
+
+        sms.notify(user.phone, f"{get_settings().store_name}: {text}")
 
 
 def order_placed(order) -> None:
@@ -17,6 +28,7 @@ def order_placed(order) -> None:
         "orders/emails/order_placed.txt",
         {"order": order},
     )
+    _sms(order, f"سفارش {order.order_number} ثبت شد. مبلغ: {order.total:,} تومان")
 
 
 def order_status_changed(order) -> None:
@@ -26,6 +38,7 @@ def order_status_changed(order) -> None:
         "orders/emails/order_status.txt",
         {"order": order},
     )
+    _sms(order, f"وضعیت سفارش {order.order_number}: {order.get_status_display()}")
 
 
 def restock_available(product) -> int:

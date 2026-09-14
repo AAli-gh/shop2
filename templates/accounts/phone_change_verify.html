@@ -1,0 +1,16 @@
+{% extends "accounts/_account_layout.html" %}
+{% block title %}تأیید شماره موبایل | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><a href="{% url 'accounts:phone_change' %}">شماره موبایل</a>
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">تأیید</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-4 text-lg sm:text-xl">تأیید شماره موبایل</h1>
+    <div class="max-w-md">
+        {% include "accounts/partials/otp_verify_form.html" with submit_label="ثبت شماره" %}
+    </div>
+</div>
+{% endblock %}

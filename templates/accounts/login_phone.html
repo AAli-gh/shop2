@@ -1,0 +1,22 @@
+{% extends "accounts/_auth_layout.html" %}
+{% block title %}ورود یا ثبت‌نام | {{ site_settings.store_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="text-2xl font-bold">ورود یا ثبت‌نام</h1>
+<p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">شماره موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود.</p>
+
+<form method="post" class="mt-8 space-y-5">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include "partials/field.html" with field=form.phone %}
+    <button type="submit" class="btn btn-primary h-12 w-full">دریافت کد تأیید</button>
+</form>
+
+<div class="my-8 flex items-center gap-3 text-xs text-gray-400 dark:text-mist-dim">
+    <span class="h-px flex-1 bg-gray-100 dark:bg-cedar/60"></span>یا<span class="h-px flex-1 bg-gray-100 dark:bg-cedar/60"></span>
+</div>
+<a href="{% url 'accounts:login_email' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="btn btn-ghost w-full">
+    {% include "partials/icon.html" with name="mail" %}
+    ورود با ایمیل و گذرواژه
+</a>
+{% endblock %}

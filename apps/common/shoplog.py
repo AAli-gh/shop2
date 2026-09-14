@@ -7,35 +7,35 @@ logger = logging.getLogger("shop")
 def order_placed(order) -> None:
     logger.info(
         "ORDER_PLACED order=%s user=%s total=%s items=%s",
-        order.order_number, order.user.email, order.total, order.items.count(),
+        order.order_number, order.user, order.total, order.items.count(),
     )
 
 
 def order_status_changed(order, old_status: str = "") -> None:
     logger.info(
         "ORDER_STATUS order=%s user=%s %s -> %s",
-        order.order_number, order.user.email, old_status, order.status,
+        order.order_number, order.user, old_status, order.status,
     )
 
 
 def order_cancelled(order) -> None:
-    logger.info("ORDER_CANCELLED order=%s user=%s refund=%s", order.order_number, order.user.email, order.total)
+    logger.info("ORDER_CANCELLED order=%s user=%s refund=%s", order.order_number, order.user, order.total)
 
 
 def payment_verified(order, ref: str) -> None:
-    logger.info("PAYMENT_OK order=%s user=%s ref=%s amount=%s", order.order_number, order.user.email, ref, order.total)
+    logger.info("PAYMENT_OK order=%s user=%s ref=%s amount=%s", order.order_number, order.user, ref, order.total)
 
 
 def payment_failed(order) -> None:
-    logger.warning("PAYMENT_FAIL order=%s user=%s", order.order_number, order.user.email)
+    logger.warning("PAYMENT_FAIL order=%s user=%s", order.order_number, order.user)
 
 
 def user_registered(user) -> None:
-    logger.info("USER_REGISTERED email=%s", user.email)
+    logger.info("USER_REGISTERED user=%s", user)
 
 
 def user_verified(user) -> None:
-    logger.info("USER_VERIFIED email=%s", user.email)
+    logger.info("USER_VERIFIED user=%s", user)
 
 
 def product_imported(created: int, updated: int, errors: int, filename: str) -> None:
@@ -43,7 +43,7 @@ def product_imported(created: int, updated: int, errors: int, filename: str) -> 
 
 
 def review_submitted(review) -> None:
-    logger.info("REVIEW_SUBMITTED product=%s user=%s rating=%s", review.product_id, review.user.email, review.rating)
+    logger.info("REVIEW_SUBMITTED product=%s user=%s rating=%s", review.product_id, review.user, review.rating)
 
 
 def newsletter_subscribed(email: str) -> None:
@@ -51,13 +51,13 @@ def newsletter_subscribed(email: str) -> None:
 
 
 def order_expired(order) -> None:
-    logger.info("ORDER_EXPIRED order=%s user=%s", order.order_number, order.user.email)
+    logger.info("ORDER_EXPIRED order=%s user=%s", order.order_number, order.user)
 
 
 def refund_required(order) -> None:
     logger.warning(
         "REFUND_REQUIRED order=%s user=%s amount=%s ref=%s",
-        order.order_number, order.user.email, order.total - order.wallet_used, order.payment_ref,
+        order.order_number, order.user, order.total - order.wallet_used, order.payment_ref,
     )
 
 

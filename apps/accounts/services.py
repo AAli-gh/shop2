@@ -51,10 +51,9 @@ def verify_token(token_str: str) -> bool:
     return True
 
 
-def update_profile(*, user: User, name: str, phone: str) -> User:
+def update_profile(*, user: User, name: str) -> User:
     user.name = name
-    user.phone = phone
-    user.save(update_fields=["name", "phone"])
+    user.save(update_fields=["name"])
     return user
 
 

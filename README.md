@@ -100,6 +100,15 @@ location / {
 
 روی ویندوز: `schedule_expire_orders.bat` (دستور schtasks داخل فایل).
 
+**ورود با موبایل (پیامک)** — صفحه `/accounts/login/` با کد یک‌بارمصرف؛ ورود با ایمیل در `/accounts/login/email/`. در توسعه پیامک‌ها به‌جای ارسال در `sent_sms/` نوشته می‌شوند. برای SMS.ir در پنل یک قالب Verify با پارامتر `CODE` بسازید و در `.env` بگذارید:
+
+```env
+SMS_BACKEND=apps.common.sms.SmsIrBackend
+SMSIR_API_KEY=...
+SMSIR_OTP_TEMPLATE_ID=...
+SMSIR_LINE_NUMBER=...   # برای پیامک وضعیت سفارش
+```
+
 ## نکات مهم
 
 - **قیمت‌ها:** تومان صحیح (بدون اعشار). اسنپ‌شات قیمت در `OrderItem`.

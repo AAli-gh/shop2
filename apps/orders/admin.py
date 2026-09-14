@@ -78,7 +78,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="مشتری")
     def user_link(self, obj):
-        return format_html('<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user.email)
+        return format_html('<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user)
 
     @admin.display(description="وضعیت")
     def status_badge(self, obj):
@@ -161,7 +161,7 @@ class OrderAdmin(admin.ModelAdmin):
         writer.writerow(["شماره سفارش", "ایمیل", "وضعیت", "جمع کالا", "تخفیف", "ارسال", "جمع کل", "تاریخ"])
         for o in queryset.select_related("user"):
             writer.writerow([
-                o.order_number, o.user.email, o.get_status_display(),
+                o.order_number, o.user, o.get_status_display(),
                 o.items_subtotal, o.discount_amount, o.shipping_cost, o.total,
                 timezone.localtime(o.created_at).strftime("%Y/%m/%d %H:%M"),
             ])

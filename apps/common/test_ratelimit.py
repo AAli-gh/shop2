@@ -19,12 +19,12 @@ def test_can_be_switched_off():
 def test_login_guessing_is_capped_per_account_even_across_ips(client):
     for i in range(8):
         resp = client.post(
-            "/accounts/login/", {"username": "victim@example.com", "password": f"wrong{i}"},
+            "/accounts/login/email/", {"username": "victim@example.com", "password": f"wrong{i}"},
             REMOTE_ADDR=f"10.0.0.{i}",
         )
         assert resp.status_code == 200
     resp = client.post(
-        "/accounts/login/", {"username": "victim@example.com", "password": "again"}, REMOTE_ADDR="10.0.0.99",
+        "/accounts/login/email/", {"username": "victim@example.com", "password": "again"}, REMOTE_ADDR="10.0.0.99",
     )
     assert resp.status_code == 429
     assert resp["Retry-After"] == "600"
@@ -34,15 +34,15 @@ def test_login_guessing_is_capped_per_account_even_across_ips(client):
 @pytest.mark.django_db
 def test_login_is_capped_per_ip(client):
     for i in range(20):
-        client.post("/accounts/login/", {"username": f"u{i}@example.com", "password": "x"}, REMOTE_ADDR="10.1.1.1")
-    resp = client.post("/accounts/login/", {"username": "new@example.com", "password": "x"}, REMOTE_ADDR="10.1.1.1")
+        client.post("/accounts/login/email/", {"username": f"u{i}@example.com", "password": "x"}, REMOTE_ADDR="10.1.1.1")
+    resp = client.post("/accounts/login/email/", {"username": "new@example.com", "password": "x"}, REMOTE_ADDR="10.1.1.1")
     assert resp.status_code == 429
 
 
 @pytest.mark.django_db
 def test_login_page_itself_is_never_limited(client):
     for _ in range(30):
-        assert client.get("/accounts/login/").status_code == 200
+        assert client.get("/accounts/login/email/").status_code == 200
 
 
 @pytest.mark.django_db

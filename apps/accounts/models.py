@@ -6,12 +6,13 @@ from django.utils.translation import gettext_lazy as _
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("email is required")
-        email = self.normalize_email(email)
+    def create_user(self, email=None, password=None, **extra_fields):
+        # phone-login accounts have no email; one of the two identities is required
+        if not email and not extra_fields.get("phone"):
+            raise ValueError("email or phone is required")
+        email = self.normalize_email(email) if email else None
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+        user.set_password(password)  # None -> unusable password (phone-only accounts)
         user.save(using=self._db)
         return user
 
@@ -27,9 +28,11 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = None
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(_("email address"), unique=True, null=True, blank=True)
     name = models.CharField(_("full name"), max_length=120, blank=True)
-    phone = models.CharField(_("phone number"), max_length=15, blank=True)
+    # canonical 09xxxxxxxxx; it identifies the account for SMS login only once phone_verified
+    phone = models.CharField(_("phone number"), max_length=15, unique=True, null=True, blank=True)
+    phone_verified = models.BooleanField(_("phone verified"), default=False)
     email_verified = models.BooleanField(_("email verified"), default=False)
 
     USERNAME_FIELD = "email"
@@ -42,7 +45,7 @@ class User(AbstractUser):
         verbose_name_plural = _("users")
 
     def __str__(self):
-        return self.email
+        return self.email or self.phone or f"user-{self.pk}"
 
 
 class Address(models.Model):
@@ -65,6 +68,30 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.city} - {self.address_line[:40]}"
+
+
+class PhoneOTP(models.Model):
+    """A one-time SMS code. Only a keyed hash of the code is stored."""
+
+    class Purpose(models.TextChoices):
+        LOGIN = "login", _("login")
+        CHANGE_PHONE = "change", _("change phone")
+
+    phone = models.CharField(_("phone number"), max_length=15, db_index=True)
+    purpose = models.CharField(_("purpose"), max_length=10, choices=Purpose.choices)
+    code_hash = models.CharField(_("code hash"), max_length=64)
+    attempts = models.PositiveSmallIntegerField(_("attempts"), default=0)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    expires_at = models.DateTimeField(_("expires at"))
+    consumed_at = models.DateTimeField(_("consumed at"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("SMS code")
+        verbose_name_plural = _("SMS codes")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.phone} ({self.purpose})"
 
 
 class EmailVerificationToken(models.Model):

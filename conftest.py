@@ -8,3 +8,13 @@ def _isolated_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _sms_outbox(settings):
+    """Never write or send real SMS from tests; messages land in LocmemSmsBackend.outbox."""
+    from apps.common.sms import LocmemSmsBackend
+
+    settings.SMS_BACKEND = "apps.common.sms.LocmemSmsBackend"
+    LocmemSmsBackend.outbox.clear()
+    yield LocmemSmsBackend.outbox

@@ -1,0 +1,22 @@
+{% load persian %}
+{% comment %}Code entry + resend. Needs: form, phone, otp_length, resend_in, resend_url, change_url, submit_label.{% endcomment %}
+<p class="text-sm leading-7 text-gray-500 dark:text-mist-dim">
+    کد {{ otp_length|fa_digits }} رقمی به شماره
+    <bdi class="font-bold text-gray-900 dark:text-glacier">{{ phone|fa_digits }}</bdi>
+    پیامک شد.
+    <a href="{{ change_url }}" class="link">ویرایش شماره</a>
+</p>
+
+<form method="post" class="mt-6 space-y-5">
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.code %}
+    <button type="submit" class="btn btn-primary h-12 w-full">{{ submit_label }}</button>
+</form>
+
+<form method="post" action="{{ resend_url }}" class="mt-5 text-center text-sm">
+    {% csrf_token %}
+    <button type="submit" id="otp-resend" data-wait="{{ resend_in }}" {% if resend_in %}disabled{% endif %}
+            class="link disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline dark:disabled:text-mist-dim">
+        ارسال دوباره کد<span id="otp-countdown">{% if resend_in %} ({{ resend_in|fa_digits }} ثانیه){% endif %}</span>
+    </button>
+</form>

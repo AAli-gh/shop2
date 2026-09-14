@@ -7,7 +7,7 @@
         موجود شد؟ خبرم کن
     </span>
     <input type="email" name="email" placeholder="ایمیل شما" required
-           value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+           value="{% if user.is_authenticated %}{{ user.email|default:'' }}{% endif %}"
            dir="ltr" class="input h-10 flex-1">
     <button type="submit" class="btn btn-primary h-10">ثبت</button>
 </form>

@@ -74,6 +74,25 @@ document.body.addEventListener("htmx:responseError", (e) => {
   setTimeout(() => toast.remove(), 6000);
 });
 
+// SMS code resend: count down data-wait seconds, then enable the button
+(function () {
+  const btn = document.getElementById("otp-resend");
+  const label = document.getElementById("otp-countdown");
+  if (!btn || !label) return;
+  const faDigits = (n) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+  let left = parseInt(btn.dataset.wait, 10) || 0;
+  (function tick() {
+    if (left <= 0) {
+      btn.disabled = false;
+      label.textContent = "";
+      return;
+    }
+    label.textContent = ` (${faDigits(left)} ثانیه)`;
+    left -= 1;
+    setTimeout(tick, 1000);
+  })();
+})();
+
 // Global HTMX config
 document.body.addEventListener("htmx:configRequest", (e) => {
   e.detail.headers["X-CSRFToken"] = document.body.getAttribute("data-csrf") ||

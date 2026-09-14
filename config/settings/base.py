@@ -145,6 +145,20 @@ RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)
 # request.META key holding the real client IP when behind a proxy that sets it, e.g. HTTP_X_REAL_IP
 RATELIMIT_IP_HEADER = env("RATELIMIT_IP_HEADER", default="")
 
+# ---------------------------------------------------------------- SMS / phone login
+SMS_BACKEND = env("SMS_BACKEND", default="apps.common.sms.FileSmsBackend")
+SMS_FILE_PATH = BASE_DIR / "sent_sms"  # FileSmsBackend output (development)
+SMSIR = {
+    "API_KEY": env("SMSIR_API_KEY", default=""),
+    "LINE_NUMBER": env("SMSIR_LINE_NUMBER", default=""),
+    "OTP_TEMPLATE_ID": env.int("SMSIR_OTP_TEMPLATE_ID", default=0),
+    "OTP_PARAMETER": env("SMSIR_OTP_PARAMETER", default="CODE"),
+}
+OTP_LENGTH = 5
+OTP_TTL_SECONDS = env.int("OTP_TTL_SECONDS", default=120)
+OTP_RESEND_SECONDS = env.int("OTP_RESEND_SECONDS", default=60)
+OTP_MAX_ATTEMPTS = 5
+
 # ---------------------------------------------------------------- drf
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

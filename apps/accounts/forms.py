@@ -69,13 +69,38 @@ class StyledPasswordChangeForm(PasswordChangeForm):
 
 
 class ProfileForm(forms.Form):
+    # the phone number is a login identity, so it only changes through SMS verification
     name = forms.CharField(
         label="نام و نام خانوادگی", max_length=120, required=False,
         widget=forms.TextInput(attrs={"class": INPUT}),
     )
+
+
+class PhoneForm(forms.Form):
     phone = forms.CharField(
-        label="شماره موبایل", max_length=15, required=False,
-        widget=forms.TextInput(attrs={"class": INPUT, "dir": "ltr"}),
+        label="شماره موبایل", max_length=20,
+        widget=forms.TextInput(attrs={
+            "class": INPUT, "dir": "ltr", "inputmode": "tel", "autocomplete": "tel",
+            "placeholder": "09123456789", "autofocus": True,
+        }),
+    )
+
+    def clean_phone(self):
+        from apps.accounts.otp import normalize_phone
+
+        phone = normalize_phone(self.cleaned_data["phone"])
+        if phone is None:
+            raise forms.ValidationError("شماره موبایل معتبر نیست (مثلاً ۰۹۱۲۳۴۵۶۷۸۹).")
+        return phone
+
+
+class OtpCodeForm(forms.Form):
+    code = forms.CharField(
+        label="کد تأیید", max_length=10,
+        widget=forms.TextInput(attrs={
+            "class": INPUT + " text-center text-lg font-bold tracking-[0.5em]", "dir": "ltr",
+            "inputmode": "numeric", "autocomplete": "one-time-code", "autofocus": True,
+        }),
     )
 
 

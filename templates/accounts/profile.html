@@ -18,8 +18,15 @@
             {% csrf_token %}
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
+                    <label class="label">شماره موبایل</label>
+                    <div class="flex gap-2">
+                        <input type="text" value="{{ user.phone|default:'' }}" placeholder="ثبت نشده" disabled dir="ltr" class="input cursor-not-allowed opacity-70">
+                        <a href="{% url 'accounts:phone_change' %}" class="btn btn-ghost shrink-0">{% if user.phone and user.phone_verified %}تغییر{% else %}ثبت{% endif %}</a>
+                    </div>
+                </div>
+                <div>
                     <label class="label">ایمیل</label>
-                    <input type="email" value="{{ user.email }}" disabled dir="ltr" class="input cursor-not-allowed opacity-70">
+                    <input type="email" value="{{ user.email|default:'' }}" placeholder="ثبت نشده" disabled dir="ltr" class="input cursor-not-allowed opacity-70">
                 </div>
                 {% for field in form %}
                     {% include "partials/field.html" %}

@@ -1,0 +1,9 @@
+{% extends "accounts/_auth_layout.html" %}
+{% block title %}کد تأیید | {{ site_settings.store_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="text-2xl font-bold">کد تأیید را وارد کنید</h1>
+<div class="mt-2">
+    {% include "accounts/partials/otp_verify_form.html" with submit_label="ورود" %}
+</div>
+{% endblock %}

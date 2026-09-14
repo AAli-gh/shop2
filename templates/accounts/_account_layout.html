@@ -13,10 +13,10 @@
 <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
     <aside class="card p-3 lg:sticky lg:top-6 lg:p-4">
         <div class="mb-3 hidden items-center gap-3 border-b border-gray-100 pb-4 lg:flex dark:border-cedar/60">
-            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-bold text-brand-600 dark:bg-ember dark:text-river">{{ user.name|default:user.email|first|upper }}</span>
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-bold text-brand-600 dark:bg-ember dark:text-river">{{ user.name|default:user.email|default:"ک"|first|upper }}</span>
             <div class="min-w-0">
                 <p class="truncate text-sm font-bold">{{ user.name|default:"کاربر گرامی" }}</p>
-                <p class="truncate text-xs text-gray-400 dark:text-mist-dim" dir="ltr">{{ user.email }}</p>
+                <p class="truncate text-xs text-gray-400 dark:text-mist-dim" dir="ltr">{{ user.phone|default:user.email }}</p>
             </div>
         </div>
         <ul class="no-scrollbar flex gap-1 overflow-x-auto text-sm lg:flex-col">

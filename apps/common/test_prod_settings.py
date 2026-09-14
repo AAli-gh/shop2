@@ -18,8 +18,14 @@ PROD_ENV = {
     "EMAIL_HOST": "smtp.example.com",
     "PAYMENT_GATEWAY": "apps.payments.gateways.ZarinPalGateway",
     "ZARINPAL_MERCHANT_ID": "00000000-0000-0000-0000-000000000000",
+    "SMS_BACKEND": "apps.common.sms.SmsIrBackend",
+    "SMSIR_API_KEY": "test-key",
+    "SMSIR_OTP_TEMPLATE_ID": "123456",
 }
-OWNED_PREFIXES = ("DJANGO_", "EMAIL_", "PAYMENT_", "ZARINPAL_", "ALLOW_MOCK", "SITE_URL", "CACHE_URL", "RATELIMIT_")
+OWNED_PREFIXES = (
+    "DJANGO_", "EMAIL_", "PAYMENT_", "ZARINPAL_", "ALLOW_MOCK", "ALLOW_FAKE", "SITE_URL", "CACHE_URL",
+    "RATELIMIT_", "SMS_", "SMSIR_",
+)
 
 
 def run_python(args, **overrides):
@@ -69,6 +75,8 @@ def test_security_values():
         ({"DJANGO_ALLOWED_HOSTS": None}, "DJANGO_ALLOWED_HOSTS"),
         ({"EMAIL_HOST": None}, "EMAIL_HOST"),
         ({"PAYMENT_GATEWAY": "apps.payments.gateways.MockGateway"}, "MockGateway"),
+        ({"SMS_BACKEND": "apps.common.sms.FileSmsBackend"}, "ALLOW_FAKE_SMS"),
+        ({"SMSIR_OTP_TEMPLATE_ID": None}, "SMSIR_OTP_TEMPLATE_ID"),
     ],
 )
 def test_unsafe_configuration_refuses_to_start(overrides, expected_in_error):

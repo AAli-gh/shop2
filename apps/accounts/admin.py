@@ -7,9 +7,9 @@ from apps.accounts.models import Address, User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     ordering = ["-date_joined"]
-    list_display = ("email", "name", "phone", "email_verified", "is_staff", "date_joined")
+    list_display = ("__str__", "name", "phone", "phone_verified", "email_verified", "is_staff", "date_joined")
     search_fields = ("email", "name", "phone")
-    list_filter = ("is_staff", "is_superuser", "is_active", "email_verified")
+    list_filter = ("is_staff", "is_superuser", "is_active", "phone_verified", "email_verified")
     actions = ["verify_emails"]
 
     @admin.action(description="تأیید دستی ایمیل انتخاب‌شده‌ها")
@@ -20,8 +20,8 @@ class UserAdmin(BaseUserAdmin):
         self.message_user(request, f"{updated} حساب تأیید و فعال شد.")
 
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
-        ("اطلاعات شخصی", {"fields": ("name", "phone")}),
+        (None, {"fields": ("email", "phone", "phone_verified", "password")}),
+        ("اطلاعات شخصی", {"fields": ("name",)}),
         (
             "دسترسی‌ها",
             {
@@ -45,4 +45,4 @@ class UserAdmin(BaseUserAdmin):
 class AddressAdmin(admin.ModelAdmin):
     list_display = ("user", "full_name", "city", "phone", "is_default")
     list_filter = ("is_default", "city")
-    search_fields = ("user__email", "full_name", "phone")
+    search_fields = ("user__email", "user__phone", "full_name", "phone")

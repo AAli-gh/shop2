@@ -23,7 +23,7 @@ class CartAdmin(admin.ModelAdmin):
     def owner(self, obj):
         if obj.user:
             return format_html(
-                '<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user.email
+                '<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user
             )
         return f"مهمان (session {obj.session_key or '—'})"
 

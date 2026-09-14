@@ -7,7 +7,7 @@ value stops the process at startup instead of running an insecure site.
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401,F403
-from .base import BASE_DIR, PAYMENT_GATEWAY, SECRET_KEY, env
+from .base import BASE_DIR, PAYMENT_GATEWAY, SECRET_KEY, SMS_BACKEND, SMSIR, env
 
 DEBUG = False
 
@@ -26,6 +26,14 @@ if PAYMENT_GATEWAY.endswith(".MockGateway") and not env.bool("ALLOW_MOCK_GATEWAY
         "PAYMENT_GATEWAY is the MockGateway simulator, which lets anyone mark orders paid. "
         "Configure a real gateway, or set ALLOW_MOCK_GATEWAY=True for a staging server."
     )
+
+if SMS_BACKEND.endswith((".FileSmsBackend", ".LocmemSmsBackend")) and not env.bool("ALLOW_FAKE_SMS", default=False):
+    raise ImproperlyConfigured(
+        "SMS_BACKEND does not send real messages, so nobody could sign in by phone. "
+        "Use apps.common.sms.SmsIrBackend, or set ALLOW_FAKE_SMS=True for a staging server."
+    )
+if SMS_BACKEND.endswith(".SmsIrBackend") and not (SMSIR["API_KEY"] and SMSIR["OTP_TEMPLATE_ID"]):
+    raise ImproperlyConfigured("SmsIrBackend needs SMSIR_API_KEY and SMSIR_OTP_TEMPLATE_ID.")
 
 # ---------------------------------------------------------------- HTTPS (behind nginx)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

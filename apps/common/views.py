@@ -28,7 +28,7 @@ def contact(request):
             messages.success(request, "پیام شما ثبت شد. به‌زودی پاسخ می‌دهیم.")
             return redirect("common:contact")
     else:
-        initial = {"email": request.user.email} if request.user.is_authenticated else {}
+        initial = {"email": request.user.email or ""} if request.user.is_authenticated else {}
         form = ContactForm(initial=initial)
     return render(
         request, "pages/contact.html", {"form": form, "settings_obj": get_settings()}

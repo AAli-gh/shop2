@@ -1,0 +1,22 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}شماره موبایل | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">شماره موبایل</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-2 text-lg sm:text-xl">{% if user.phone and user.phone_verified %}تغییر شماره موبایل{% else %}ثبت شماره موبایل{% endif %}</h1>
+    <p class="mb-6 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+        {% if user.phone and user.phone_verified %}شماره فعلی: <bdi class="font-bold">{{ user.phone|fa_digits }}</bdi>. {% endif %}
+        برای ثبت شماره جدید، کد تأیید به آن پیامک می‌شود و از آن پس می‌توانید با همین شماره وارد شوید.
+    </p>
+    <form method="post" class="max-w-md space-y-5">
+        {% csrf_token %}
+        {% include "partials/field.html" with field=form.phone %}
+        <button type="submit" class="btn btn-primary">ارسال کد تأیید</button>
+    </form>
+</div>
+{% endblock %}
