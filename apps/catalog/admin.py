@@ -4,6 +4,8 @@ from datetime import datetime
 from django.contrib import admin
 from django.http import HttpResponse
 
+from apps.common.admin_jalali import jalali_column
+
 from apps.catalog.models import (
     Attribute,
     Banner,
@@ -65,7 +67,7 @@ class ProductAdmin(admin.ModelAdmin):
         ("مشخصات کالا", {"fields": ("country", "warranty", "energy_class", "weight_kg", "requires_install"),
                          "classes": ("collapse",)}),
         ("موجودی", {"fields": ("stock", "sold_count", "is_active")}),
-        ("تاریخ‌ها", {"fields": ("created_at", "updated_at")}),
+        ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali")}),
     )
     list_display = ("name", "brand", "category", "price", "sale_price", "stock", "warranty", "sold_count", "is_featured", "is_active")
     list_filter = ("is_active", "is_featured", "brand", "category", "requires_install")
@@ -73,8 +75,11 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ("price", "sale_price", "stock", "is_featured", "is_active")
     autocomplete_fields = ("brand", "category")
     inlines = [ProductImageInline, ProductAttributeValueInline]
-    readonly_fields = ("created_at", "updated_at", "sold_count")
+    readonly_fields = ("created_jalali", "updated_jalali", "sold_count")
     actions = ["activate_selected", "deactivate_selected", "export_csv"]
+
+    created_jalali = jalali_column("created_at", "تاریخ ثبت")
+    updated_jalali = jalali_column("updated_at", "آخرین تغییر")
 
     @admin.action(description="فعال‌سازی محصولات انتخاب‌شده")
     def activate_selected(self, request, queryset):
@@ -126,6 +131,8 @@ class BannerAdmin(admin.ModelAdmin):
 
 @admin.register(RestockNotification)
 class RestockNotificationAdmin(admin.ModelAdmin):
-    list_display = ("product", "email", "notified", "created_at")
+    list_display = ("product", "email", "notified", "created_jalali")
     list_filter = ("notified",)
     search_fields = ("email", "product__name")
+
+    created_jalali = jalali_column("created_at", "تاریخ درخواست")

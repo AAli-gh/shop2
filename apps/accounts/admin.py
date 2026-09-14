@@ -2,14 +2,22 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from apps.accounts.models import Address, User
+from apps.common.admin_jalali import jalali_column, jalali_date_filter
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     ordering = ["-date_joined"]
-    list_display = ("__str__", "name", "phone", "phone_verified", "email_verified", "is_staff", "date_joined")
+    list_display = ("__str__", "name", "phone", "phone_verified", "email_verified", "is_staff", "joined_jalali")
     search_fields = ("email", "name", "phone")
-    list_filter = ("is_staff", "is_superuser", "is_active", "phone_verified", "email_verified")
+    list_filter = (
+        "is_staff", "is_superuser", "is_active", "phone_verified", "email_verified",
+        jalali_date_filter("date_joined", "تاریخ عضویت"),
+    )
+    readonly_fields = ("last_login_jalali", "joined_jalali")
+
+    joined_jalali = jalali_column("date_joined", "تاریخ عضویت")
+    last_login_jalali = jalali_column("last_login", "آخرین ورود")
     actions = ["verify_emails"]
 
     @admin.action(description="تأیید دستی ایمیل انتخاب‌شده‌ها")
@@ -34,7 +42,7 @@ class UserAdmin(BaseUserAdmin):
                 ),
             },
         ),
-        ("تاریخ‌ها", {"fields": ("last_login", "date_joined")}),
+        ("تاریخ‌ها", {"fields": ("last_login_jalali", "joined_jalali")}),
     )
     add_fieldsets = (
         (None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),

@@ -112,6 +112,26 @@ class ShippingAddress(models.Model):
         return f"{self.full_name} - {self.city}"
 
 
+class OrderNote(models.Model):
+    """Internal staff note on an order. Never shown to the customer."""
+
+    order = models.ForeignKey(Order, related_name="notes", on_delete=models.CASCADE, verbose_name=_("order"))
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="+", verbose_name=_("author"),
+    )
+    body = models.TextField(_("note"), max_length=2000)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("internal note")
+        verbose_name_plural = _("internal notes")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.body[:60]
+
+
 class ReturnRequest(models.Model):
     """A customer's request to send back items from a delivered order."""
 
@@ -147,6 +167,9 @@ class ReturnRequest(models.Model):
     staff_note = models.TextField(
         _("reply to customer"), blank=True, help_text="در صفحه سفارش مشتری و پیام اطلاع‌رسانی نمایش داده می‌شود",
     )
+    # set once when staff complete the request
+    refund_amount = models.BigIntegerField(_("refunded to wallet"), default=0, help_text=_("in Toman"))
+    restocked = models.BooleanField(_("returned to stock"), default=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 

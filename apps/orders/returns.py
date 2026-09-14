@@ -3,9 +3,11 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import F, Sum, Value
+from django.db.models.functions import Greatest
 from django.utils import timezone
 
+from apps.catalog.models import Product
 from apps.orders.models import Order, ReturnRequest, ReturnRequestItem
 
 
@@ -93,8 +95,58 @@ def _create(*, order, quantities, reason, resolution, description, image):
     return return_request
 
 
+def suggested_refund(return_request: ReturnRequest) -> int:
+    """Value of the returned units minus their share of the order discount. Shipping is not refunded."""
+    order = return_request.order
+    value = sum(
+        item.order_item.unit_price * item.quantity
+        for item in return_request.items.select_related("order_item")
+    )
+    if order.discount_amount and order.items_subtotal:
+        value -= order.discount_amount * value // order.items_subtotal
+    return max(value, 0)
+
+
+def complete_return(*, return_request: ReturnRequest, refund_to_wallet: bool, restock: bool,
+                    staff_note: str | None = None) -> ReturnRequest:
+    """Finish a request whose goods have arrived: optionally credit the wallet and put units back on sale."""
+    from apps.wallet.services import charge_from_order_refund
+
+    with transaction.atomic():
+        current = ReturnRequest.objects.select_for_update().select_related("order__user").get(pk=return_request.pk)
+        if current.status != ReturnRequest.Status.RECEIVED:
+            raise ReturnError("فقط درخواستی که کالای آن به فروشگاه رسیده قابل تکمیل است.")
+
+        amount = suggested_refund(current) if refund_to_wallet else 0
+        if amount:
+            charge_from_order_refund(user=current.order.user, order=current.order, amount=amount)
+        if restock:
+            for item in current.items.select_related("order_item"):
+                if item.order_item.product_id:
+                    Product.objects.filter(pk=item.order_item.product_id).update(
+                        stock=F("stock") + item.quantity,
+                        sold_count=Greatest(F("sold_count") - item.quantity, Value(0)),
+                    )
+
+        current.status = ReturnRequest.Status.COMPLETED
+        current.refund_amount = amount
+        current.restocked = restock
+        if staff_note is not None:
+            current.staff_note = staff_note
+        current.save(update_fields=["status", "refund_amount", "restocked", "staff_note", "updated_at"])
+
+    from apps.common import shoplog
+    from apps.orders.emails import return_status_changed
+
+    shoplog.return_status_changed(current, ReturnRequest.Status.RECEIVED)
+    return_status_changed(current)
+    return current
+
+
 def set_return_status(*, return_request: ReturnRequest, status: str, staff_note: str | None = None) -> ReturnRequest:
     """Move a request along its workflow and tell the customer."""
+    if status == ReturnRequest.Status.COMPLETED:
+        raise ReturnError("برای تکمیل مرجوعی از دکمه «تکمیل مرجوعی» استفاده کنید تا بازگشت وجه و موجودی ثبت شود.")
     with transaction.atomic():
         current = ReturnRequest.objects.select_for_update().select_related("order__user").get(pk=return_request.pk)
         if status not in ALLOWED_TRANSITIONS.get(current.status, set()):

@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load persian %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">خانه</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:orders_returnrequest_changelist' %}">{{ opts.verbose_name_plural }}</a>
+    &rsaquo; <a href="{{ change_url }}">{{ original }}</a>
+    &rsaquo; تکمیل
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <p>سفارش <strong dir="ltr">{{ original.order.order_number }}</strong> · مشتری: {{ original.order.user }} · درخواست مشتری: <strong>{{ original.get_resolution_display }}</strong></p>
+
+    <table style="margin: 1em 0; min-width: 420px">
+        <thead><tr><th>کالا</th><th>تعداد مرجوعی</th><th>مبلغ واحد (تومان)</th></tr></thead>
+        <tbody>
+            {% for item in items %}
+                <tr><td>{{ item.order_item.product_name }}</td><td>{{ item.quantity }}</td><td>{{ item.order_item.unit_price|price }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form method="post">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" name="refund_to_wallet" {% if refund_default %}checked{% endif %}>
+                    برگشت <strong>{{ suggested_refund|price }} تومان</strong> به کیف پول مشتری
+                </label>
+                <div class="help">
+                    مبلغ کالاهای مرجوعی منهای سهم آن‌ها از تخفیف سفارش؛ هزینه ارسال برگشت داده نمی‌شود.
+                    اگر وجه را به حساب بانکی مشتری برمی‌گردانید یا کالا تعویض می‌شود، این گزینه را بردارید.
+                </div>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" name="restock" checked>
+                    برگشت کالاها به موجودی انبار
+                </label>
+                <div class="help">اگر کالا معیوب است و قابل فروش دوباره نیست، این گزینه را بردارید.</div>
+            </div>
+            <div class="form-row">
+                <label for="staff_note">پاسخ به مشتری (اختیاری)</label>
+                <textarea name="staff_note" id="staff_note" rows="3" cols="60">{{ original.staff_note }}</textarea>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" class="default" value="تکمیل مرجوعی">
+            <a href="{{ change_url }}" class="closelink">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

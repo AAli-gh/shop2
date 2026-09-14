@@ -65,7 +65,30 @@ def return_status_changed(return_request) -> None:
         "orders/emails/return_status.txt",
         {"return_request": return_request, "order": order, "site_url": settings.SITE_URL.rstrip("/")},
     )
-    _sms(order, f"درخواست مرجوعی سفارش {order.order_number}: {return_request.get_status_display()}")
+    text = f"درخواست مرجوعی سفارش {order.order_number}: {return_request.get_status_display()}"
+    if return_request.refund_amount:
+        text += f". {return_request.refund_amount:,} تومان به کیف پول شما برگشت داده شد."
+    _sms(order, text)
+
+
+def order_paid_staff(order) -> None:
+    """Tell the shop managers a paid order is waiting to be prepared (SMS and email)."""
+    from apps.common import sms
+    from apps.common.services import get_settings
+
+    text = f"سفارش جدید {order.order_number}: {order.total:,} تومان، {order.items.count()} قلم"
+    store = get_settings().store_name
+    for phone in settings.ORDER_NOTIFY_PHONES:
+        sms.notify(phone, f"{store}: {text}")
+
+    recipients = settings.ORDER_NOTIFY_EMAILS or [email for _, email in settings.ADMINS]
+    if recipients:
+        send_mail(
+            f"سفارش جدید پرداخت‌شده — {order.order_number}",
+            f"{text}\nمشتری: {order.user}\n"
+            f"مشاهده: {settings.SITE_URL.rstrip('/')}/admin/orders/order/{order.pk}/change/",
+            settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True,
+        )
 
 
 def restock_available(product) -> int:

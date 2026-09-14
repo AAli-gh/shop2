@@ -1,6 +1,8 @@
 {% autoescape off %}
 کاربر گرامی، وضعیت درخواست مرجوعی سفارش {{ order.order_number }} به «{{ return_request.get_status_display }}» تغییر کرد.
-{% if return_request.staff_note %}
+{% if return_request.refund_amount %}
+مبلغ {{ return_request.refund_amount }} تومان به کیف پول شما برگشت داده شد.
+{% endif %}{% if return_request.staff_note %}
 پاسخ فروشگاه:
 {{ return_request.staff_note }}
 {% endif %}

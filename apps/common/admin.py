@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
+from apps.common.admin_jalali import jalali_column, jalali_date_filter
 from apps.common.models import ContactMessage, SiteSettings, StaticPage
 
 # static markup with no interpolated values
@@ -32,10 +33,12 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "subject", "is_read", "created_at")
-    list_filter = ("is_read",)
+    list_display = ("name", "email", "subject", "is_read", "created_jalali")
+    list_filter = ("is_read", jalali_date_filter("created_at", "تاریخ"))
     search_fields = ("name", "email", "subject")
-    readonly_fields = ("name", "email", "subject", "body", "created_at")
+    readonly_fields = ("name", "email", "subject", "body", "created_jalali")
+
+    created_jalali = jalali_column("created_at", "تاریخ")
     list_editable = ("is_read",)
     actions = ["mark_unread"]
 
@@ -46,6 +49,8 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.register(StaticPage)
 class StaticPageAdmin(admin.ModelAdmin):
-    list_display = ("title", "key", "updated_at")
+    list_display = ("title", "key", "updated_jalali")
     search_fields = ("title", "body")
-    readonly_fields = ("updated_at",)
+    readonly_fields = ("updated_jalali",)
+
+    updated_jalali = jalali_column("updated_at", "آخرین ویرایش")

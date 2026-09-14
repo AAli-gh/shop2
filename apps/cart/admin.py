@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 
 from apps.cart.models import Cart, CartItem
+from apps.common.admin_jalali import jalali_column
 
 
 class CartItemInline(admin.TabularInline):
@@ -16,8 +17,10 @@ class CartItemInline(admin.TabularInline):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ("id", "owner", "items_count", "updated_ago", "updated_at")
+    list_display = ("id", "owner", "items_count", "updated_ago", "updated_jalali")
     inlines = [CartItemInline]
+
+    updated_jalali = jalali_column("updated_at", "آخرین تغییر")
 
     @admin.display(description="مالک")
     def owner(self, obj):

@@ -193,6 +193,9 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
             order.status = Order.Status.PAID
             order.payment_ref = "WALLET"
             order.save(update_fields=["wallet_used", "status", "payment_ref"])
+            from apps.orders.emails import order_paid_staff
+
+            transaction.on_commit(lambda: order_paid_staff(order))
 
     from apps.common import shoplog
     from apps.orders.emails import order_placed
@@ -321,6 +324,10 @@ def transition_status(*, order: Order, new_status: str) -> Order:
     from apps.orders.emails import order_status_changed
 
     shoplog.order_status_changed(order, old_status)
+    if new_status == Order.Status.PAID:
+        from apps.orders.emails import order_paid_staff
+
+        transaction.on_commit(lambda: order_paid_staff(order))
     if new_status == Order.Status.CANCELLED:
         shoplog.order_cancelled(order)
         if needs_manual_refund(order):

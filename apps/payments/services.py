@@ -91,6 +91,9 @@ def _mark_paid(order: Order, ref: str) -> Order:
     order.save(update_fields=["status", "payment_ref", "updated_at"])
     shoplog.payment_verified(order, ref)
     order_status_changed(order)
+    from apps.orders.emails import order_paid_staff
+
+    transaction.on_commit(lambda: order_paid_staff(order))
     return order
 
 

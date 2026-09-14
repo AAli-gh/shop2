@@ -2,16 +2,22 @@ import csv
 from datetime import datetime
 
 from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils import timezone
 
+from apps.accounts.otp import normalize_phone
+from apps.common.admin_jalali import jalali_column, jalali_date_filter
 from apps.orders.models import (
-    Order, OrderItem, ReturnRequest, ReturnRequestItem, ShippingAddress, ShippingMethod,
+    Order, OrderItem, OrderNote, ReturnRequest, ReturnRequestItem, ShippingAddress, ShippingMethod,
 )
-from apps.orders.returns import ReturnError, set_return_status
+from apps.orders.returns import ReturnError, complete_return, set_return_status, suggested_refund
 from apps.orders.services import OrderError, needs_manual_refund, transition_status
+
+_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 
 
 @admin.register(ShippingMethod)
@@ -45,6 +51,25 @@ class ShippingAddressInline(admin.StackedInline):
         return False
 
 
+class OrderNoteInline(admin.TabularInline):
+    """Staff-only notes; existing notes are kept as a read-only history."""
+
+    model = OrderNote
+    extra = 1
+    fields = ("body", "author", "created_jalali")
+    readonly_fields = ("author", "created_jalali")
+    verbose_name = "یادداشت داخلی (مشتری نمی‌بیند)"
+    verbose_name_plural = "یادداشت‌های داخلی (مشتری نمی‌بیند)"
+
+    created_jalali = jalali_column("created_at", "زمان")
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 STATUS_COLORS = {
     Order.Status.PENDING_PAYMENT: "#b45309",
     Order.Status.PAID: "#1d4ed8",
@@ -58,18 +83,49 @@ STATUS_COLORS = {
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        "order_number", "user_link", "status_badge", "total",
-        "coupon_code", "created_at",
+        "order_number", "user_link", "customer_name", "status_badge", "total",
+        "coupon_code", "created_jalali",
     )
-    list_filter = ("status",)
-    search_fields = ("order_number", "user__email")
-    date_hierarchy = "created_at"
+    list_filter = ("status", jalali_date_filter("created_at", "تاریخ ثبت"))
+    # order number, customer email/mobile/name, or the name/phone on the shipping address
+    search_fields = (
+        "order_number", "user__email", "user__phone", "user__name",
+        "shipping_address__full_name", "shipping_address__phone",
+    )
+    search_help_text = "شماره سفارش، موبایل، نام یا ایمیل مشتری"
     readonly_fields = (
         "order_number", "user", "items_subtotal", "discount_amount",
         "shipping_cost", "total", "coupon", "coupon_code", "payment_ref",
-        "created_at", "updated_at", "delivered_at", "invoice_link",
+        "created_jalali", "updated_jalali", "delivered_jalali", "invoice_link",
     )
-    inlines = [OrderItemInline, ShippingAddressInline]
+    inlines = [OrderNoteInline, OrderItemInline, ShippingAddressInline]
+
+    created_jalali = jalali_column("created_at", "تاریخ ثبت")
+    updated_jalali = jalali_column("updated_at", "آخرین تغییر")
+    delivered_jalali = jalali_column("delivered_at", "تاریخ تحویل")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user", "shipping_address")
+
+    def get_search_results(self, request, queryset, search_term):
+        # Persian/Arabic digits and +98 numbers still find the stored 09xxxxxxxxx mobile
+        term = search_term.translate(_DIGITS).strip()
+        return super().get_search_results(request, queryset, normalize_phone(term) or term)
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, OrderNote) and instance.author_id is None:
+                instance.author = request.user
+            instance.save()
+        for obj in formset.deleted_objects:
+            obj.delete()
+        formset.save_m2m()
+
+    @admin.display(description="نام گیرنده")
+    def customer_name(self, obj):
+        address = getattr(obj, "shipping_address", None)
+        return address.full_name if address else "—"
     actions = ["mark_shipped", "mark_processing", "mark_delivered", "export_csv"]
 
     fieldsets = (
@@ -77,7 +133,7 @@ class OrderAdmin(admin.ModelAdmin):
         ("مشخصات سفارش", {"fields": ("order_number", "user", "payment_ref", "invoice_link")}),
         ("ارسال بار", {"fields": ("tracking_code", "shipping_note"), "description": "کد رهگیری مرسوله — پس از ثبت، وضعیت را به «ارسال شد» تغییر دهید تا به مشتری ایمیل شود."}),
         ("مالی (فقط‌خواندنی)", {"fields": ("items_subtotal", "discount_amount", "shipping_cost", "total", "coupon", "coupon_code")}),
-        ("تاریخ‌ها", {"fields": ("created_at", "updated_at", "delivered_at")}),
+        ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali", "delivered_jalali")}),
     )
 
     @admin.display(description="فاکتور")
@@ -195,19 +251,79 @@ class ReturnRequestItemInline(admin.TabularInline):
 
 @admin.register(ReturnRequest)
 class ReturnRequestAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "order_link", "reason", "resolution", "status", "created_at")
-    list_filter = ("status", "reason", "resolution")
+    list_display = ("__str__", "order_link", "reason", "resolution", "status", "created_jalali")
+    list_filter = ("status", "reason", "resolution", jalali_date_filter("created_at", "تاریخ ثبت"))
     search_fields = ("order__order_number", "order__user__email", "order__user__phone")
-    readonly_fields = ("order_link", "reason", "resolution", "description", "photo", "created_at", "updated_at")
+    readonly_fields = (
+        "order_link", "reason", "resolution", "description", "photo", "completion",
+        "created_jalali", "updated_jalali",
+    )
     fieldsets = (
-        ("بررسی (مسیر: در انتظار ← تأیید/رد، تأیید ← دریافت کالا/رد، دریافت ← انجام شد)", {"fields": ("status", "staff_note")}),
+        ("بررسی (مسیر: در انتظار ← تأیید/رد، تأیید ← دریافت کالا/رد، دریافت کالا ← دکمه تکمیل)", {"fields": ("status", "staff_note", "completion")}),
         ("درخواست مشتری", {"fields": ("order_link", "reason", "resolution", "description", "photo")}),
-        ("تاریخ‌ها", {"fields": ("created_at", "updated_at")}),
+        ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali")}),
     )
     inlines = [ReturnRequestItemInline]
 
+    created_jalali = jalali_column("created_at", "تاریخ ثبت")
+    updated_jalali = jalali_column("updated_at", "آخرین تغییر")
+
     def has_add_permission(self, request):
         return False
+
+    def get_urls(self):
+        custom = [
+            path("<int:pk>/complete/", self.admin_site.admin_view(self.complete_view), name="orders_returnrequest_complete"),
+        ]
+        return custom + super().get_urls()
+
+    @admin.display(description="تکمیل")
+    def completion(self, obj):
+        if obj.status == ReturnRequest.Status.RECEIVED:
+            return format_html(
+                '<a class="button" href="{}">تکمیل مرجوعی (بازگشت وجه و موجودی)</a>',
+                reverse("admin:orders_returnrequest_complete", args=[obj.pk]),
+            )
+        if obj.status == ReturnRequest.Status.COMPLETED:
+            refund = f"{obj.refund_amount:,} تومان به کیف پول" if obj.refund_amount else "بدون بازگشت به کیف پول"
+            stock = "کالا به انبار برگشت" if obj.restocked else "بدون برگشت به انبار"
+            return f"{refund} · {stock}"
+        return "پس از «کالا دریافت شد» فعال می‌شود."
+
+    def complete_view(self, request, pk):
+        return_request = get_object_or_404(ReturnRequest.objects.select_related("order__user"), pk=pk)
+        if not self.has_change_permission(request, return_request):
+            raise PermissionDenied
+        change_url = reverse("admin:orders_returnrequest_change", args=[pk])
+        if return_request.status != ReturnRequest.Status.RECEIVED:
+            messages.error(request, "فقط درخواستی که کالای آن به فروشگاه رسیده قابل تکمیل است.")
+            return redirect(change_url)
+
+        if request.method == "POST":
+            try:
+                completed = complete_return(
+                    return_request=return_request,
+                    refund_to_wallet=request.POST.get("refund_to_wallet") == "on",
+                    restock=request.POST.get("restock") == "on",
+                    staff_note=request.POST.get("staff_note", "").strip() or None,
+                )
+            except ReturnError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, f"مرجوعی تکمیل شد: {self.completion(completed)}. به مشتری اطلاع داده شد.")
+                return redirect(change_url)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "original": return_request,
+            "title": f"تکمیل {return_request}",
+            "items": return_request.items.select_related("order_item"),
+            "suggested_refund": suggested_refund(return_request),
+            "refund_default": return_request.resolution == ReturnRequest.Resolution.REFUND,
+            "change_url": change_url,
+        }
+        return render(request, "admin/orders/returnrequest/complete.html", context)
 
     @admin.display(description="سفارش")
     def order_link(self, obj):

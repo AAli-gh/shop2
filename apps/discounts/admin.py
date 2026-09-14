@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
 
+from apps.common.admin_jalali import jalali_column
 from apps.discounts.models import Coupon
 
 
@@ -9,8 +10,10 @@ from apps.discounts.models import Coupon
 class CouponAdmin(admin.ModelAdmin):
     list_display = (
         "code", "kind", "value", "min_order_amount",
-        "valid_to", "usage_display", "health", "is_active",
+        "valid_to_jalali", "usage_display", "health", "is_active",
     )
+
+    valid_to_jalali = jalali_column("valid_to", "پایان اعتبار")
     list_filter = ("kind", "is_active")
     search_fields = ("code",)
     readonly_fields = ("used_count",)

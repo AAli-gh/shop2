@@ -141,6 +141,9 @@ ORDER_PAYMENT_TIMEOUT_MINUTES = env.int("ORDER_PAYMENT_TIMEOUT_MINUTES", default
 ORDER_PAYMENT_GRACE_MINUTES = env.int("ORDER_PAYMENT_GRACE_MINUTES", default=15)
 # days after delivery a customer can open a return request (7 = statutory withdrawal period for online purchases)
 RETURN_WINDOW_DAYS = env.int("RETURN_WINDOW_DAYS", default=7)
+# managers alerted when an order is paid: SMS numbers, and emails (empty = ADMINS)
+ORDER_NOTIFY_PHONES = env.list("ORDER_NOTIFY_PHONES", default=[])
+ORDER_NOTIFY_EMAILS = env.list("ORDER_NOTIFY_EMAILS", default=[])
 
 # ---------------------------------------------------------------- rate limiting
 RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)

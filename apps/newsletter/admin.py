@@ -3,16 +3,19 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.urls import path
 
+from apps.common.admin_jalali import jalali_column
 from apps.newsletter.models import Campaign, Subscriber
 from apps.newsletter.services import send_campaign, verified_emails
 
 
 @admin.register(Subscriber)
 class SubscriberAdmin(admin.ModelAdmin):
-    list_display = ("email", "name", "is_verified", "created_at")
+    list_display = ("email", "name", "is_verified", "created_jalali")
     list_filter = ("is_verified",)
     search_fields = ("email", "name")
-    readonly_fields = ("unsub_token", "verify_token", "created_at")
+    readonly_fields = ("unsub_token", "verify_token", "created_jalali")
+
+    created_jalali = jalali_column("created_at", "تاریخ عضویت")
     actions = ["export_emails"]
 
     @admin.action(description="کپی ایمیل‌های انتخاب‌شده (نمایش در پیام)")
@@ -23,9 +26,12 @@ class SubscriberAdmin(admin.ModelAdmin):
 
 @admin.register(Campaign)
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ("subject", "status", "sent_count", "sent_at", "created_at", "preview_link")
-    readonly_fields = ("status", "sent_count", "sent_at", "created_at")
+    list_display = ("subject", "status", "sent_count", "sent_jalali", "created_jalali", "preview_link")
+    readonly_fields = ("status", "sent_count", "sent_jalali", "created_jalali")
     actions = ["send_now"]
+
+    sent_jalali = jalali_column("sent_at", "زمان ارسال")
+    created_jalali = jalali_column("created_at", "تاریخ ساخت")
 
     @admin.display(description="پیش‌نمایش")
     def preview_link(self, obj):
