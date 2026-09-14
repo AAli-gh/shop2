@@ -12,6 +12,12 @@ def _send(user_email: str, subject: str, template: str, context: dict) -> None:
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
 
 
+def _admin_link(url_name: str, pk) -> str:
+    from django.urls import reverse
+
+    return settings.SITE_URL.rstrip("/") + reverse(url_name, args=[pk])
+
+
 def _sms(order, text: str) -> None:
     user = order.user
     if user.phone and user.phone_verified:
@@ -52,7 +58,7 @@ def return_requested(return_request) -> None:
         f"دلیل: {return_request.get_reason_display()}\n"
         f"درخواست مشتری: {return_request.get_resolution_display()}\n{lines}\n\n"
         f"{return_request.description}\n\n"
-        f"بررسی: {settings.SITE_URL.rstrip('/')}/admin/orders/returnrequest/{return_request.pk}/change/",
+        f"بررسی: {_admin_link('admin:orders_returnrequest_change', return_request.pk)}",
         fail_silently=True,
     )
 
@@ -86,7 +92,7 @@ def order_paid_staff(order) -> None:
         send_mail(
             f"سفارش جدید پرداخت‌شده — {order.order_number}",
             f"{text}\nمشتری: {order.user}\n"
-            f"مشاهده: {settings.SITE_URL.rstrip('/')}/admin/orders/order/{order.pk}/change/",
+            f"مشاهده: {_admin_link('admin:orders_order_change', order.pk)}",
             settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True,
         )
 

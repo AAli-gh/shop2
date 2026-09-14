@@ -14,5 +14,4 @@ urlpatterns = [
     path("dashboard/", views_staff.dashboard, name="dashboard"),
     path("logs/", views_staff.logs_view, name="logs"),
     path("logs/download/", views_staff.logs_download, name="logs_download"),
-    path("import-products/", views_staff.import_products, name="import_products"),
 ]

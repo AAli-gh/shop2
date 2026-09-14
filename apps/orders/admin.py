@@ -147,7 +147,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="مشتری")
     def user_link(self, obj):
-        return format_html('<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user)
+        return format_html('<a href="{}">{}</a>', reverse("admin:accounts_user_change", args=[obj.user_id]), obj.user)
 
     @admin.display(description="وضعیت")
     def status_badge(self, obj):

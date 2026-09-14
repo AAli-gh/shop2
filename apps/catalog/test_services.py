@@ -2,7 +2,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 
-from apps.catalog.importer import import_products
+from apps.catalog.importer import run_import
 from apps.catalog.models import Category, Product
 from apps.catalog.services import (
     best_sellers,
@@ -73,11 +73,14 @@ def test_discount_properties(db):
     assert p.effective_price == 750
 
 
+def _csv(text):
+    return BytesIO(text.encode("utf-8"))
+
+
 def test_import_creates_products(db):
-    f = SimpleUploadedFile("p.csv", CSV_SAMPLE.encode("utf-8"))
-    result = import_products(BytesIO(f.read()), "p.csv")
-    assert result["created"] == 3
-    assert result["errors"] == []
+    report = run_import(_csv(CSV_SAMPLE), "p.csv", commit=True)
+    assert report.created == 3
+    assert report.errors == []
     p = Product.objects.get(slug="a")
     assert p.price == 1_200_000
     assert p.sale_price == 990_000
@@ -87,33 +90,28 @@ def test_import_creates_products(db):
 
 
 def test_import_updates_existing(db, products):
-    f = SimpleUploadedFile("p.csv", CSV_SAMPLE.encode("utf-8"))
-    result = import_products(BytesIO(f.read()), "p.csv")
-    assert result["created"] == 0
-    assert result["updated"] == 3
+    report = run_import(_csv(CSV_SAMPLE), "p.csv", commit=True)
+    assert report.created == 0
+    assert report.updated == 3
     a = Product.objects.get(slug="a")
     assert a.price == 1_200_000
     assert a.sale_price == 990_000
 
 
 def test_import_persian_digits_and_separators(db):
-    csv_data = "name,price,category,stock\nدستی، ۲,۱۲۳٬۴۵۶,گ،,۳\n"
-    f = SimpleUploadedFile("fa.csv", csv_data.encode("utf-8"))
-    result = import_products(BytesIO(f.read()), "fa.csv")
-    assert result["errors"] == []
-    assert result["created"] == 1
+    report = run_import(_csv("name,price,category,stock\nدستی، ۲,۱۲۳٬۴۵۶,گ،,۳\n"), "fa.csv", commit=True)
+    assert report.errors == []
+    assert report.created == 1
     p = Product.objects.first()
     assert p.price == 123456
     assert p.stock == 3
 
 
 def test_import_rejects_sale_ge_price(db):
-    csv_data = "name,price,category,sale_price\nx,100,c,150\n"
-    f = SimpleUploadedFile("bad.csv", csv_data.encode("utf-8"))
-    result = import_products(BytesIO(f.read()), "bad.csv")
-    assert result["created"] == 0
-    assert len(result["errors"]) == 1
-    assert "کمتر" in result["errors"][0]["error"]
+    report = run_import(_csv("name,price,category,sale_price\nx,100,c,150\n"), "bad.csv", commit=True)
+    assert report.created == 0
+    assert len(report.errors) == 1
+    assert "کمتر" in report.errors[0].message
 
 
 def test_import_xlsx(db):
@@ -127,6 +125,6 @@ def test_import_xlsx(db):
     wb.save(buf)
     buf.seek(0)
     f = SimpleUploadedFile("p.xlsx", buf.read())
-    result = import_products(f, "p.xlsx")
-    assert result["created"] == 1
+    report = run_import(f, "p.xlsx", commit=True)
+    assert report.created == 1
     assert Product.objects.get(slug="محصول-اکسل").stock == 7

@@ -1,0 +1,8 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    {% if import_url %}
+        <li><a href="{{ import_url }}">ورود گروهی از Excel</a></li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

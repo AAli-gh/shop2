@@ -7,8 +7,8 @@
     <h1 class="page-title">داشبورد مدیریت</h1>
     <div class="flex flex-wrap gap-2">
         <a href="/logs/" class="btn btn-sm btn-ghost">لاگ رویدادها</a>
-        <a href="/import-products/" class="btn btn-sm btn-ghost">واردات محصولات</a>
-        <a href="/admin/" class="btn btn-sm btn-primary">پنل مدیریت</a>
+        <a href="{% url 'admin:catalog_product_import' %}" class="btn btn-sm btn-ghost">ورود گروهی محصولات</a>
+        <a href="{% url 'admin:index' %}" class="btn btn-sm btn-primary">پنل مدیریت</a>
     </div>
 </div>
 

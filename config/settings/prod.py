@@ -88,3 +88,7 @@ else:
 
 # nginx passes the client address here (proxy_set_header X-Real-IP $remote_addr)
 RATELIMIT_IP_HEADER = env("RATELIMIT_IP_HEADER", default="HTTP_X_REAL_IP")
+
+# ---------------------------------------------------------------- admin
+# password + SMS code; every staff account needs a verified mobile (deploy/README.md, step 6)
+ADMIN_2FA_ENABLED = env.bool("ADMIN_2FA_ENABLED", default=True)

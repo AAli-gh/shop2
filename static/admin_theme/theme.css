@@ -520,3 +520,138 @@ a.pending-card:hover {
         padding-right: 1rem;
     }
 }
+
+/* ------------------------------------------------------------------ admin sign-in code step */
+.login .login-hint {
+    color: var(--body-quiet-color);
+    margin: 0 0 1rem;
+}
+
+.login .otp-input {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    text-align: center;
+    width: 100%;
+}
+
+.login .login-secondary {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.login .link-button {
+    background: none;
+    border: 0;
+    color: var(--link-fg);
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+/* ------------------------------------------------------------------ product import */
+.import-page .module {
+    margin-bottom: 1.25rem;
+}
+
+.import-summary,
+.import-help {
+    padding-bottom: 0.75rem;
+}
+
+.import-summary p,
+.import-help ul {
+    margin: 0.75rem 1rem 0;
+}
+
+.import-help ul {
+    line-height: 2;
+    padding-inline-start: 1.25rem;
+}
+
+.import-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.75rem 1rem 0;
+}
+
+.import-count,
+.import-chip {
+    background: var(--darkened-bg);
+    border-radius: 999px;
+    display: inline-block;
+    font-weight: 700;
+    padding: 0.35rem 0.9rem;
+}
+
+.import-chip {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+}
+
+.import-count.is-create,
+.import-chip.is-create {
+    background: color-mix(in srgb, #16a34a 16%, transparent);
+    color: #15803d;
+}
+
+.import-count.is-update,
+.import-chip.is-update {
+    background: var(--selected-row);
+    color: var(--link-fg);
+}
+
+.import-count.is-error,
+.import-chip.is-error {
+    background: color-mix(in srgb, #dc2626 14%, transparent);
+    color: #b91c1c;
+}
+
+.import-note {
+    color: var(--body-quiet-color);
+}
+
+.import-table-wrap {
+    max-height: 32rem;
+    overflow: auto;
+}
+
+.import-table {
+    width: 100%;
+}
+
+.import-table tr.is-error td {
+    color: var(--error-fg);
+}
+
+.import-table .nowrap {
+    white-space: nowrap;
+}
+
+.import-help .import-table-wrap {
+    margin-top: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .import-chip.is-create,
+    :root:not([data-theme="light"]) .import-count.is-create { color: #86efac; }
+    :root:not([data-theme="light"]) .import-chip.is-error,
+    :root:not([data-theme="light"]) .import-count.is-error { color: #fca5a5; }
+}
+
+html[data-theme="dark"] .import-chip.is-create,
+html[data-theme="dark"] .import-count.is-create { color: #86efac; }
+
+html[data-theme="dark"] .import-chip.is-error,
+html[data-theme="dark"] .import-count.is-error { color: #fca5a5; }
+
+/* Django uppercases object tools, which turns «Excel» into «EXCEL» */
+.object-tools a:link,
+.object-tools a:visited {
+    text-transform: none;
+}

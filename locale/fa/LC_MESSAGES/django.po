@@ -659,3 +659,6 @@ msgstr "مورد علاقه‌مندی"
 
 msgid "wishlist items"
 msgstr "موارد علاقه‌مندی"
+
+msgid "admin sign-in"
+msgstr "ورود به پنل مدیریت"

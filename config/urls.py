@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from apps.catalog.sitemaps import CategorySitemap, PostSitemap, ProductSitemap, StaticViewSitemap
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
     path("cart/", include("apps.cart.urls")),
     path("reviews/", include("apps.reviews.urls")),

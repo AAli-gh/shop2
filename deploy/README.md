@@ -77,6 +77,9 @@ SMSIR_LINE_NUMBER=...
 PAYMENT_GATEWAY=apps.payments.gateways.ZarinPalGateway
 ZARINPAL_MERCHANT_ID=...
 ZARINPAL_SANDBOX=False
+
+# آدرس پنل مدیریت؛ یک مسیر غیرقابل‌حدس (پیش‌فرض admin/ جلوی deploy را می‌گیرد)
+ADMIN_URL=panel-<چند حرف تصادفی>/
 ```
 
 تا درگاه واقعی آماده نشده، برای سرور آزمایشی به‌جای دو خط آخر: `ALLOW_MOCK_GATEWAY=True`.
@@ -93,6 +96,14 @@ sudo -u shop2 env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python m
 ```
 
 گذرواژه ادمین سرور را جدید و قوی انتخاب کنید (از حساب توسعه استفاده نکنید).
+
+**ورود دومرحله‌ای ادمین:** در production ورود به پنل مدیریت علاوه بر گذرواژه، کد پیامکی می‌خواهد و به شماره موبایل تأییدشده حساب فرستاده می‌شود. پس برای هر مدیر (از جمله همین superuser) یک بار:
+
+1. در سایت با ایمیل و گذرواژه وارد شوید (`/accounts/login/email/`).
+2. از «پروفایل ← شماره موبایل» شماره را ثبت و با کد پیامکی تأیید کنید.
+3. حالا از آدرس `https://<دامنه>/<ADMIN_URL>` وارد پنل شوید.
+
+برای کارمندان بعدی همین کار را خودشان انجام می‌دهند. تا وقتی SMS.ir آماده نیست، می‌توانید موقتاً `ADMIN_2FA_ENABLED=False` بگذارید.
 
 ## ۷. سرویس‌ها
 

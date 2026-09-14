@@ -76,6 +76,7 @@ class PhoneOTP(models.Model):
     class Purpose(models.TextChoices):
         LOGIN = "login", _("login")
         CHANGE_PHONE = "change", _("change phone")
+        ADMIN = "admin", _("admin sign-in")
 
     phone = models.CharField(_("phone number"), max_length=15, db_index=True)
     purpose = models.CharField(_("purpose"), max_length=10, choices=Purpose.choices)

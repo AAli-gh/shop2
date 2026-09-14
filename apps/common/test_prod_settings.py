@@ -21,10 +21,11 @@ PROD_ENV = {
     "SMS_BACKEND": "apps.common.sms.SmsIrBackend",
     "SMSIR_API_KEY": "test-key",
     "SMSIR_OTP_TEMPLATE_ID": "123456",
+    "ADMIN_URL": "panel-test-7fk2q/",
 }
 OWNED_PREFIXES = (
     "DJANGO_", "EMAIL_", "PAYMENT_", "ZARINPAL_", "ALLOW_MOCK", "ALLOW_FAKE", "SITE_URL", "CACHE_URL",
-    "RATELIMIT_", "SMS_", "SMSIR_",
+    "RATELIMIT_", "SMS_", "SMSIR_", "ADMIN_",
 )
 
 

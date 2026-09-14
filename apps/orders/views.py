@@ -1,4 +1,4 @@
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -227,7 +227,8 @@ class InvoiceView(LoginRequiredMixin, View):
             .filter(order_number=order_number)
             .first()
         )
-        if order is None or not (request.user.is_staff or order.user_id == request.user.pk):
+        # staff see any order only after the admin sign-in (including its SMS step)
+        if order is None or not (order.user_id == request.user.pk or admin.site.has_permission(request)):
             raise Http404("سفارش یافت نشد")
         from apps.common.services import get_settings
 

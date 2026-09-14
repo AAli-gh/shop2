@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
@@ -26,7 +27,7 @@ class CartAdmin(admin.ModelAdmin):
     def owner(self, obj):
         if obj.user:
             return format_html(
-                '<a href="/admin/accounts/user/{}/change/">{}</a>', obj.user_id, obj.user
+                '<a href="{}">{}</a>', reverse("admin:accounts_user_change", args=[obj.user_id]), obj.user
             )
         return f"مهمان (session {obj.session_key or '—'})"
 

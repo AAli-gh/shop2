@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/login.css" %}">{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block usertools %}{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <p class="login-hint">کد {{ otp_length }} رقمی به شماره <strong dir="ltr">{{ masked_phone }}</strong> پیامک شد.</p>
+
+    <form method="post" id="login-form">{% csrf_token %}
+        <div class="form-row">
+            {{ form.code.errors }}
+            <label for="id_code" class="required">کد تأیید:</label>
+            <input type="text" name="code" id="id_code" class="otp-input" dir="ltr" maxlength="10"
+                   inputmode="numeric" autocomplete="one-time-code" autofocus required>
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="ورود">
+        </div>
+    </form>
+
+    <form method="post" action="{% url 'admin:login_resend' %}" class="login-secondary">{% csrf_token %}
+        {% if resend_in %}
+            <span class="help">ارسال دوباره تا {{ resend_in }} ثانیه دیگر</span>
+        {% else %}
+            <button type="submit" class="link-button">ارسال دوباره کد</button>
+        {% endif %}
+        <a href="{% url 'admin:login' %}">ورود با حساب دیگر</a>
+    </form>
+</div>
+{% endblock %}

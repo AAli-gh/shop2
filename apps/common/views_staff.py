@@ -1,9 +1,13 @@
-from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import admin
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 from apps.common.dashboard import sales_stats
+
+
+def staff_member_required(view):
+    """Staff pages share the admin's sign-in, including its SMS code step (apps.accounts.admin_site)."""
+    return admin.site.admin_view(view)
 
 
 @staff_member_required
@@ -58,31 +62,3 @@ def logs_download(request):
     response = HttpResponse(content, content_type="text/plain; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{name}"'
     return response
-
-
-@staff_member_required
-def import_products(request):
-    summary = None
-    if request.method == "POST":
-        file = request.FILES.get("file")
-        if not file:
-            messages.error(request, "فایلی انتخاب نشده است.")
-            return redirect("common:import_products")
-        if not file.name.lower().endswith((".csv", ".xlsx", ".xlsm")):
-            messages.error(request, "فقط فایل CSV یا Excel (xlsx) پذیرفته می‌شود.")
-            return redirect("common:import_products")
-
-        from apps.catalog.importer import import_products
-        from apps.common import shoplog
-
-        summary = import_products(file, file.name)
-        shoplog.product_imported(summary["created"], summary["updated"], len(summary["errors"]), file.name)
-        if summary["created"] or summary["updated"]:
-            messages.success(
-                request,
-                f"واردات انجام شد: {summary['created']} محصول جدید، {summary['updated']} به‌روزرسانی."
-                + (f" خطاها: {len(summary['errors'])}" if summary["errors"] else ""),
-            )
-        elif summary["errors"]:
-            messages.error(request, "هیچ محصولی وارد نشد؛ خطاها در پایین صفحه آمده است.")
-    return render(request, "pages/import_products.html", {"summary": summary})

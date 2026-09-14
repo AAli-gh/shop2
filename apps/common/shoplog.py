@@ -77,3 +77,11 @@ def return_status_changed(return_request, old_status: str) -> None:
 
 def rate_limited(scope: str, ip: str) -> None:
     logger.warning("RATE_LIMITED scope=%s ip=%s", scope, ip)
+
+
+def admin_login(user, ip: str) -> None:
+    logger.info("ADMIN_LOGIN user=%s ip=%s", user, ip)
+
+
+def admin_login_failed(username: str, ip: str, step: str) -> None:
+    logger.warning("ADMIN_LOGIN_FAILED user=%s ip=%s step=%s", username, ip, step)

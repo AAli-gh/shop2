@@ -30,7 +30,7 @@ if env("SENTRY_DSN"):
 
 # ---------------------------------------------------------------- apps
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "apps.common.admin_apps.ShopAdminConfig",  # django.contrib.admin with the shop's sign-in
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -151,6 +151,12 @@ ORDER_NOTIFY_EMAILS = env.list("ORDER_NOTIFY_EMAILS", default=[])
 RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)
 # request.META key holding the real client IP when behind a proxy that sets it, e.g. HTTP_X_REAL_IP
 RATELIMIT_IP_HEADER = env("RATELIMIT_IP_HEADER", default="")
+
+# ---------------------------------------------------------------- admin
+# a hard-to-guess path keeps bots off the admin login, e.g. ADMIN_URL=panel-7fk2q/
+ADMIN_URL = env("ADMIN_URL", default="admin/").strip("/") + "/"
+# staff sign in to the admin with their password and then an SMS code to their verified mobile
+ADMIN_2FA_ENABLED = env.bool("ADMIN_2FA_ENABLED", default=False)
 
 # ---------------------------------------------------------------- SMS / phone login
 SMS_BACKEND = env("SMS_BACKEND", default="apps.common.sms.FileSmsBackend")

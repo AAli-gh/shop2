@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">خانه</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:catalog_product_changelist' %}">{{ opts.verbose_name_plural }}</a>
+    &rsaquo; ورود گروهی
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" class="import-page">
+
+{% if report %}
+    {# ---------------------------------------------------------------- step 2: preview #}
+    <div class="module import-summary">
+        <h2>پیش‌نمایش — هنوز چیزی ذخیره نشده</h2>
+        <p class="import-files">فایل: <strong dir="ltr">{{ filename }}</strong>{% if zip_name %} · تصاویر: <strong dir="ltr">{{ zip_name }}</strong>{% endif %}</p>
+        <div class="import-counts">
+            <span class="import-count is-create">{{ report.created }} محصول جدید</span>
+            <span class="import-count is-update">{{ report.updated }} به‌روزرسانی</span>
+            <span class="import-count {% if report.errors %}is-error{% endif %}">{{ report.errors|length }} ردیف با خطا</span>
+        </div>
+        {% if report.new_categories %}<p class="import-note">دسته‌بندی‌های جدیدی که ساخته می‌شوند: <strong>{{ report.new_categories|join:"، " }}</strong> — اگر اشتباه تایپی است، فایل را اصلاح کنید.</p>{% endif %}
+        {% if report.new_brands %}<p class="import-note">برندهای جدید: <strong>{{ report.new_brands|join:"، " }}</strong></p>{% endif %}
+        {% if report.ignored_columns %}<p class="import-note">این ستون‌ها شناخته نشدند و نادیده گرفته می‌شوند: <strong>{{ report.ignored_columns|join:"، " }}</strong></p>{% endif %}
+    </div>
+
+    <div class="module">
+        <div class="import-table-wrap">
+            <table class="import-table">
+                <thead><tr><th>ردیف</th><th>محصول</th><th>نتیجه</th></tr></thead>
+                <tbody>
+                {% for row in report.rows %}
+                    <tr class="{% if row.action == 'error' %}is-error{% endif %}">
+                        <td>{{ row.row }}</td>
+                        <td>{{ row.name|default:"—" }}</td>
+                        <td>
+                            {% if row.action == "create" %}<span class="import-chip is-create">جدید</span>
+                            {% elif row.action == "update" %}<span class="import-chip is-update">به‌روزرسانی</span>
+                            {% else %}<span class="import-chip is-error">خطا</span> {{ row.message }}{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3">ردیفی در فایل نیست.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <form method="post" class="submit-row import-actions">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="confirm">
+        <input type="hidden" name="token" value="{{ token }}">
+        {% if report.created or report.updated %}
+            <input type="submit" class="default" value="تأیید و ذخیره {{ report.created|add:report.updated }} محصول">
+        {% endif %}
+        <a href="{% url 'admin:catalog_product_import' %}" class="closelink">بارگذاری فایل دیگر</a>
+    </form>
+    {% if report.errors and report.created|add:report.updated %}
+        <p class="help">ردیف‌های دارای خطا ذخیره نمی‌شوند؛ می‌توانید بعداً فقط همان‌ها را اصلاح و دوباره وارد کنید.</p>
+    {% endif %}
+
+{% else %}
+    {# ---------------------------------------------------------------- step 1: upload #}
+    {% if upload_error %}<p class="errornote">{{ upload_error }}</p>{% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <h2>بارگذاری فایل</h2>
+            <div class="form-row">
+                <label for="id_file" class="required">فایل محصولات:</label>
+                <input type="file" name="file" id="id_file" accept=".xlsx,.xlsm,.csv" required>
+                <div class="help">Excel (xlsx) یا CSV، حداکثر {{ max_rows }} ردیف و ۵ مگابایت.
+                    <a href="{% url 'admin:catalog_product_import_template' %}">دریافت فایل نمونه</a></div>
+            </div>
+            <div class="form-row">
+                <label for="id_images">تصاویر (اختیاری):</label>
+                <input type="file" name="images" id="id_images" accept=".zip">
+                <div class="help">یک فایل ZIP شامل عکس‌ها (حداکثر ۲۵ مگابایت، هر عکس تا ۵ مگابایت). نام هر فایل را در ستون «تصاویر» بنویسید.</div>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" class="default" value="بررسی فایل و پیش‌نمایش">
+        </div>
+    </form>
+
+    <div class="module import-help">
+        <h2>راهنما</h2>
+        <ul>
+            <li>ساده‌ترین راه: محصولات را از فهرست انتخاب کنید و از «اقدام» گزینه <strong>خروجی Excel</strong> را بزنید، فایل را ویرایش و همین‌جا دوباره وارد کنید.</li>
+            <li>محصولی که «شناسه» آن در سایت باشد ویرایش می‌شود و بقیه ردیف‌ها محصول جدید می‌سازند.</li>
+            <li>در ویرایش، خانه خالی مقدار فعلی را تغییر نمی‌دهد؛ برای تغییر گروهی قیمت کافی است فقط ستون‌های «شناسه» و «قیمت» در فایل باشد.</li>
+            <li>پیش از ذخیره، نتیجه هر ردیف را می‌بینید؛ تا دکمه تأیید را نزنید چیزی ذخیره نمی‌شود.</li>
+        </ul>
+        <div class="import-table-wrap">
+            <table class="import-table">
+                <thead><tr><th>ستون</th><th>توضیح</th></tr></thead>
+                <tbody>
+                {% for column in columns %}
+                    <tr><td class="nowrap"><strong>{{ column.title }}</strong></td><td>{{ column.help|default:"—" }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+</div>
+{% endblock %}
