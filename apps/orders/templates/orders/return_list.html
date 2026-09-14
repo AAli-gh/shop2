@@ -1,0 +1,38 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}مرجوعی‌های من | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">مرجوعی‌ها</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-6 text-lg sm:text-xl">درخواست‌های مرجوعی</h1>
+    {% if return_requests %}
+        <div class="space-y-3">
+            {% for rr in return_requests %}
+                <a href="{% url 'orders:detail' rr.order.order_number %}" class="block rounded-2xl border border-gray-100 p-4 transition hover:border-brand-300 dark:border-cedar/60">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <span class="text-sm font-bold">سفارش <span dir="ltr">{{ rr.order.order_number }}</span></span>
+                        {% include "orders/partials/return_status_chip.html" %}
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-mist-dim">
+                        {{ rr.get_reason_display }} · {{ rr.get_resolution_display }} · {{ rr.created_at|jalali|fa_digits }}
+                    </p>
+                    <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">
+                        {% for item in rr.items.all %}{{ item.order_item.product_name }} × {{ item.quantity|fa_digits }}{% if not forloop.last %}، {% endif %}{% endfor %}
+                    </p>
+                </a>
+            {% endfor %}
+        </div>
+        {% include "partials/pagination.html" %}
+    {% else %}
+        <div class="py-10 text-center">
+            <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="return" cls="w-8 h-8" sw="1.5" %}</div>
+            <p class="mt-5 font-bold">درخواست مرجوعی ثبت نکرده‌اید</p>
+            <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">برای سفارش‌های تحویل‌شده، از صفحه همان سفارش درخواست دهید.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

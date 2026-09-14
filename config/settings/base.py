@@ -139,6 +139,8 @@ ZARINPAL = {
 ORDER_PAYMENT_TIMEOUT_MINUTES = env.int("ORDER_PAYMENT_TIMEOUT_MINUTES", default=30)
 # ...unless a gateway payment started this recently (customer may still be at the bank)
 ORDER_PAYMENT_GRACE_MINUTES = env.int("ORDER_PAYMENT_GRACE_MINUTES", default=15)
+# days after delivery a customer can open a return request (7 = statutory withdrawal period for online purchases)
+RETURN_WINDOW_DAYS = env.int("RETURN_WINDOW_DAYS", default=7)
 
 # ---------------------------------------------------------------- rate limiting
 RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)

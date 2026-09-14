@@ -306,12 +306,16 @@ def transition_status(*, order: Order, new_status: str) -> Order:
     if new_status not in ALLOWED_TRANSITIONS.get(order.status, set()):
         raise OrderError(f"تغییر وضعیت از «{order.get_status_display()}» به «{Order.Status(new_status).label}» مجاز نیست.")
     old_status = order.status
+    update_fields = ["status", "updated_at"]
     if new_status == Order.Status.CANCELLED:
         # same bookkeeping as a customer cancellation, plus returning wallet money
         _release_reservations(order)
         _refund_wallet_payment(order)
+    elif new_status == Order.Status.DELIVERED:
+        order.delivered_at = timezone.now()  # the return window counts from here
+        update_fields.append("delivered_at")
     order.status = new_status
-    order.save(update_fields=["status", "updated_at"])
+    order.save(update_fields=update_fields)
 
     from apps.common import shoplog
     from apps.orders.emails import order_status_changed

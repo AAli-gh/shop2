@@ -49,6 +49,17 @@ def price(value):
 
 
 @register.filter
+def num_words(value):
+    """Integer in Persian words («یک میلیون و دویست هزار»)."""
+    from apps.common.numwords import number_to_words
+
+    try:
+        return number_to_words(int(value))
+    except (TypeError, ValueError):
+        return ""
+
+
+@register.filter
 def qa_paragraph(paragraph):
     """Render a paragraph whose first line is a question (bold), rest is the answer."""
     lines = [l.strip() for l in paragraph.splitlines() if l.strip()]

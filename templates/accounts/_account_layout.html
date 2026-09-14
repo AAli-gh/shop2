@@ -22,6 +22,7 @@
         <ul class="no-scrollbar flex gap-1 overflow-x-auto text-sm lg:flex-col">
             <li><a href="{% url 'accounts:profile' %}" class="acc-link {% if vn == 'accounts:profile' %}is-active{% endif %}">{% include "partials/icon.html" with name="user" %}اطلاعات حساب</a></li>
             <li><a href="{% url 'orders:list' %}" class="acc-link {% if vn == 'orders:list' or vn == 'orders:detail' %}is-active{% endif %}">{% include "partials/icon.html" with name="bag" %}سفارش‌های من</a></li>
+            <li><a href="{% url 'orders:returns' %}" class="acc-link {% if vn == 'orders:returns' or vn == 'orders:return_create' %}is-active{% endif %}">{% include "partials/icon.html" with name="return" %}مرجوعی‌ها</a></li>
             <li><a href="{% url 'accounts:address_list' %}" class="acc-link {% if vn == 'accounts:address_list' or vn == 'accounts:address_create' or vn == 'accounts:address_edit' %}is-active{% endif %}">{% include "partials/icon.html" with name="pin" %}آدرس‌ها</a></li>
             <li><a href="{% url 'wishlist:list' %}" class="acc-link {% if vn == 'wishlist:list' %}is-active{% endif %}">{% include "partials/icon.html" with name="heart" %}علاقه‌مندی‌ها</a></li>
             <li><a href="{% url 'wallet:page' %}" class="acc-link {% if vn == 'wallet:page' %}is-active{% endif %}">{% include "partials/icon.html" with name="wallet" %}کیف پول</a></li>

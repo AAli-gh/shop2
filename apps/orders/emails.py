@@ -41,6 +41,33 @@ def order_status_changed(order) -> None:
     _sms(order, f"وضعیت سفارش {order.order_number}: {order.get_status_display()}")
 
 
+def return_requested(return_request) -> None:
+    """Tell the shop team (settings.ADMINS) that a return request is waiting for review."""
+    from django.core.mail import mail_admins
+
+    order = return_request.order
+    lines = "\n".join(f"- {item.order_item.product_name} × {item.quantity}" for item in return_request.items.all())
+    mail_admins(
+        f"درخواست مرجوعی جدید — سفارش {order.order_number}",
+        f"دلیل: {return_request.get_reason_display()}\n"
+        f"درخواست مشتری: {return_request.get_resolution_display()}\n{lines}\n\n"
+        f"{return_request.description}\n\n"
+        f"بررسی: {settings.SITE_URL.rstrip('/')}/admin/orders/returnrequest/{return_request.pk}/change/",
+        fail_silently=True,
+    )
+
+
+def return_status_changed(return_request) -> None:
+    order = return_request.order
+    _send(
+        order.user.email,
+        f"درخواست مرجوعی سفارش {order.order_number}",
+        "orders/emails/return_status.txt",
+        {"return_request": return_request, "order": order, "site_url": settings.SITE_URL.rstrip("/")},
+    )
+    _sms(order, f"درخواست مرجوعی سفارش {order.order_number}: {return_request.get_status_display()}")
+
+
 def restock_available(product) -> int:
     """Notify pending restock subscribers; returns count sent."""
     from apps.catalog.models import RestockNotification

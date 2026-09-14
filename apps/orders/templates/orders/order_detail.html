@@ -14,7 +14,13 @@
             <h1 class="page-title text-lg sm:text-xl">سفارش <span dir="ltr">{{ order.order_number }}</span></h1>
             <p class="mt-2 text-xs text-gray-400 dark:text-mist-dim">ثبت‌شده در {{ order.created_at|jalali|fa_digits }}</p>
         </div>
-        {% include "orders/partials/status_chip.html" %}
+        <div class="flex flex-wrap items-center gap-2">
+            {% include "orders/partials/status_chip.html" %}
+            <a href="{% url 'orders:invoice' order.order_number %}" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">
+                {% include "partials/icon.html" with name="card" cls="w-4 h-4" %}
+                {% if order.status == 'pending_payment' %}پیش‌فاکتور{% else %}فاکتور{% endif %}
+            </a>
+        </div>
     </div>
 
     {% if order.status == 'cancelled' %}
@@ -97,6 +103,35 @@
                 <button type="submit" class="btn btn-danger">لغو سفارش</button>
             </form>
         </div>
+    {% endif %}
+
+    {% if order.status == 'delivered' %}
+        <section class="card p-5 sm:p-6">
+            <h2 class="card-title"><span class="text-brand-500 dark:text-river">{% include "partials/icon.html" with name="return" %}</span>مرجوعی کالا</h2>
+            {% for rr in return_requests %}
+                <div class="mb-3 rounded-xl border border-gray-100 p-4 text-sm dark:border-cedar/60">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="font-medium">{{ rr.get_reason_display }} · {{ rr.get_resolution_display }}</span>
+                        {% include "orders/partials/return_status_chip.html" %}
+                    </div>
+                    <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">
+                        {{ rr.created_at|jalali|fa_digits }} ·
+                        {% for item in rr.items.all %}{{ item.order_item.product_name }} × {{ item.quantity|fa_digits }}{% if not forloop.last %}، {% endif %}{% endfor %}
+                    </p>
+                    {% if rr.staff_note %}
+                        <p class="mt-3 rounded-lg bg-gray-50 p-3 text-xs leading-6 whitespace-pre-line text-gray-600 dark:bg-ember/40 dark:text-mist-dim"><b>پاسخ فروشگاه:</b> {{ rr.staff_note }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% if not return_blocked %}
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-sm text-gray-500 dark:text-mist-dim">تا {{ return_deadline|jalali|fa_digits }} می‌توانید درخواست مرجوعی ثبت کنید.</p>
+                    <a href="{% url 'orders:return_create' order.order_number %}" class="btn btn-outline">درخواست مرجوعی</a>
+                </div>
+            {% elif not return_requests %}
+                <p class="text-sm text-gray-500 dark:text-mist-dim">{{ return_blocked }}</p>
+            {% endif %}
+        </section>
     {% endif %}
 </div>
 {% endblock %}

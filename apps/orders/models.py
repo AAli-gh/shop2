@@ -47,6 +47,7 @@ class Order(models.Model):
     install_cost = models.BigIntegerField(_("install cost"), default=0)
     install_date = models.CharField(_("install date"), max_length=30, blank=True, help_text="ترجیح زمانی نصب")
     wallet_used = models.BigIntegerField(_("paid from wallet"), default=0, help_text=_("مبلغ کسرشده از کیف پول"))
+    delivered_at = models.DateTimeField(_("delivered at"), null=True, blank=True)  # starts the return window
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
@@ -109,6 +110,73 @@ class ShippingAddress(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.city}"
+
+
+class ReturnRequest(models.Model):
+    """A customer's request to send back items from a delivered order."""
+
+    class Reason(models.TextChoices):
+        DEFECTIVE = "defective", "کالا خراب یا معیوب است"
+        DAMAGED = "damaged", "کالا در ارسال آسیب دیده است"
+        WRONG_ITEM = "wrong_item", "کالای اشتباه ارسال شده است"
+        NOT_AS_DESCRIBED = "not_as_described", "کالا با مشخصات سایت مطابقت ندارد"
+        CHANGED_MIND = "changed_mind", "از خرید منصرف شده‌ام"
+        OTHER = "other", "سایر"
+
+    class Resolution(models.TextChoices):
+        REFUND = "refund", "بازگشت وجه"
+        REPLACE = "replace", "تعویض کالا"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "در انتظار بررسی"
+        APPROVED = "approved", "تأیید شد"
+        RECEIVED = "received", "کالا دریافت شد"
+        COMPLETED = "completed", "انجام شد"
+        REJECTED = "rejected", "رد شد"
+
+    OPEN_STATUSES = (Status.PENDING, Status.APPROVED, Status.RECEIVED)
+
+    order = models.ForeignKey(
+        Order, related_name="return_requests", on_delete=models.CASCADE, verbose_name=_("order"),
+    )
+    reason = models.CharField(_("reason"), max_length=20, choices=Reason.choices)
+    resolution = models.CharField(_("requested resolution"), max_length=10, choices=Resolution.choices, default=Resolution.REFUND)
+    description = models.TextField(_("description"), max_length=2000)
+    image = models.ImageField(_("photo"), upload_to="returns/", blank=True)
+    status = models.CharField(_("status"), max_length=12, choices=Status.choices, default=Status.PENDING, db_index=True)
+    staff_note = models.TextField(
+        _("reply to customer"), blank=True, help_text="در صفحه سفارش مشتری و پیام اطلاع‌رسانی نمایش داده می‌شود",
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("return request")
+        verbose_name_plural = _("return requests")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"مرجوعی {self.order.order_number} #{self.pk}"
+
+
+class ReturnRequestItem(models.Model):
+    return_request = models.ForeignKey(
+        ReturnRequest, related_name="items", on_delete=models.CASCADE, verbose_name=_("return request"),
+    )
+    order_item = models.ForeignKey(
+        OrderItem, related_name="return_items", on_delete=models.PROTECT, verbose_name=_("order item"),
+    )
+    quantity = models.PositiveSmallIntegerField(_("quantity"))
+
+    class Meta:
+        verbose_name = _("returned item")
+        verbose_name_plural = _("returned items")
+        constraints = [
+            models.UniqueConstraint(fields=["return_request", "order_item"], name="unique_item_per_return"),
+        ]
+
+    def __str__(self):
+        return f"{self.order_item.product_name} x{self.quantity}"
 
 
 class ShippingMethod(models.Model):

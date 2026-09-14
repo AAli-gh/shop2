@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=9">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=10">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {

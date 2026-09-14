@@ -61,5 +61,19 @@ def refund_required(order) -> None:
     )
 
 
+def return_requested(return_request) -> None:
+    logger.info(
+        "RETURN_REQUESTED order=%s user=%s request=%s reason=%s",
+        return_request.order.order_number, return_request.order.user, return_request.pk, return_request.reason,
+    )
+
+
+def return_status_changed(return_request, old_status: str) -> None:
+    logger.info(
+        "RETURN_STATUS order=%s request=%s %s -> %s",
+        return_request.order.order_number, return_request.pk, old_status, return_request.status,
+    )
+
+
 def rate_limited(scope: str, ip: str) -> None:
     logger.warning("RATE_LIMITED scope=%s ip=%s", scope, ip)

@@ -8,8 +8,9 @@ from django.views.generic import DetailView, ListView, TemplateView
 
 from apps.accounts.models import Address
 from apps.cart import services as cart_services
-from apps.orders import services
-from apps.orders.models import Order
+from apps.orders import returns, services
+from apps.orders.forms import ReturnRequestForm
+from apps.orders.models import Order, ReturnRequest
 from apps.orders.services import OrderError
 from apps.common.ratelimit import ratelimit
 from apps.payments.gateways import get_gateway
@@ -206,6 +207,101 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
         if order is None:
             raise Http404("سفارش یافت نشد")
         return order
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order = self.object
+        context["return_requests"] = order.return_requests.prefetch_related("items__order_item")
+        context["return_blocked"] = returns.return_block_reason(order)
+        context["return_deadline"] = returns.return_deadline(order)
+        return context
+
+
+class InvoiceView(LoginRequiredMixin, View):
+    """Printable invoice for the order's owner, or any order for staff."""
+
+    def get(self, request, order_number):
+        order = (
+            Order.objects.select_related("user", "shipping_address", "shipping_method")
+            .prefetch_related("items")
+            .filter(order_number=order_number)
+            .first()
+        )
+        if order is None or not (request.user.is_staff or order.user_id == request.user.pk):
+            raise Http404("سفارش یافت نشد")
+        from apps.common.services import get_settings
+
+        return render(request, "orders/invoice.html", {"order": order, "seller": get_settings()})
+
+
+@method_decorator(ratelimit("return_request", limit=10, window=3600), name="dispatch")
+class ReturnRequestCreateView(LoginRequiredMixin, View):
+    template_name = "orders/return_form.html"
+
+    def _order(self, request, order_number):
+        order = services.get_user_order(request.user, order_number)
+        if order is None:
+            raise Http404("سفارش یافت نشد")
+        return order
+
+    def _render(self, request, order, form, quantities=None, error=""):
+        available = returns.returnable_quantities(order)
+        rows = [
+            {
+                "item": item,
+                "available": available[item.pk],
+                "options": range(available[item.pk] + 1),
+                "selected": (quantities or {}).get(item.pk, 0),
+            }
+            for item in order.items.all()
+        ]
+        return render(request, self.template_name, {
+            "order": order, "form": form, "rows": rows, "error": error,
+            "deadline": returns.return_deadline(order),
+        })
+
+    def get(self, request, order_number):
+        order = self._order(request, order_number)
+        blocked = returns.return_block_reason(order)
+        if blocked:
+            messages.error(request, blocked)
+            return redirect("orders:detail", order_number=order.order_number)
+        return self._render(request, order, ReturnRequestForm())
+
+    def post(self, request, order_number):
+        order = self._order(request, order_number)
+        form = ReturnRequestForm(request.POST, request.FILES)
+        quantities = {}
+        for item in order.items.all():
+            try:
+                quantities[item.pk] = max(0, int(request.POST.get(f"qty_{item.pk}", 0)))
+            except (TypeError, ValueError):
+                quantities[item.pk] = 0
+        if not form.is_valid():
+            return self._render(request, order, form, quantities)
+        try:
+            returns.create_return_request(
+                order=order, quantities=quantities,
+                reason=form.cleaned_data["reason"], resolution=form.cleaned_data["resolution"],
+                description=form.cleaned_data["description"], image=form.cleaned_data.get("image"),
+            )
+        except returns.ReturnError as exc:
+            return self._render(request, order, form, quantities, error=str(exc))
+        messages.success(request, "درخواست مرجوعی ثبت شد؛ نتیجه بررسی از طریق پیامک یا ایمیل اطلاع داده می‌شود.")
+        return redirect("orders:detail", order_number=order.order_number)
+
+
+class ReturnRequestListView(LoginRequiredMixin, ListView):
+    template_name = "orders/return_list.html"
+    context_object_name = "return_requests"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            ReturnRequest.objects.filter(order__user=self.request.user)
+            .select_related("order")
+            .prefetch_related("items__order_item")
+        )
 
 
 class OrderCancelView(LoginRequiredMixin, View):

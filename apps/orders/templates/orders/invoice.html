@@ -1,0 +1,131 @@
+{% load static persian %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>{% if order.status == 'pending_payment' %}پیش‌فاکتور{% else %}فاکتور{% endif %} {{ order.order_number }} | {{ seller.store_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=10">
+    <style>
+        @page { size: A4; margin: 12mm; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+        }
+        .invoice-table th, .invoice-table td { border: 1px solid #d1d5db; padding: 0.5rem 0.625rem; }
+        .invoice-table th { background: #f3f4f6; font-weight: 700; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    </style>
+</head>
+{# always light: an invoice is printed on paper #}
+<body class="bg-surface font-sans text-gray-900">
+
+<div class="no-print sticky top-0 z-10 border-b border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <a href="{% if request.user.is_staff and order.user_id != request.user.pk %}{% url 'admin:orders_order_change' order.pk %}{% else %}{% url 'orders:detail' order.order_number %}{% endif %}" class="btn btn-sm btn-ghost">
+            {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" sw="2" %}
+            بازگشت
+        </a>
+        <button type="button" onclick="window.print()" class="btn btn-sm btn-primary">چاپ / ذخیره PDF</button>
+    </div>
+</div>
+
+<main class="mx-auto my-6 max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 text-sm sm:p-10 print:m-0 print:max-w-none print:rounded-none print:border-0 print:p-0">
+    <header class="flex flex-wrap items-start justify-between gap-6 border-b-2 border-gray-900 pb-5">
+        <div class="flex items-center gap-3">
+            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-xl font-bold text-white">{{ seller.store_name|first|upper }}</span>
+            <div>
+                <p class="text-lg font-bold">{{ seller.store_name }}</p>
+                {% if seller.legal_name %}<p class="text-xs text-gray-500">{{ seller.legal_name }}</p>{% endif %}
+            </div>
+        </div>
+        <h1 class="text-2xl font-bold">{% if order.status == 'pending_payment' %}پیش‌فاکتور{% else %}فاکتور فروش{% endif %}</h1>
+        <dl class="space-y-1 text-xs">
+            <div class="flex gap-2"><dt class="text-gray-500">شماره:</dt><dd class="font-bold" dir="ltr">{{ order.order_number }}</dd></div>
+            <div class="flex gap-2"><dt class="text-gray-500">تاریخ:</dt><dd>{{ order.created_at|jalali|fa_digits }}</dd></div>
+            <div class="flex gap-2"><dt class="text-gray-500">وضعیت:</dt><dd>{{ order.get_status_display }}</dd></div>
+        </dl>
+    </header>
+
+    {% if order.status == 'cancelled' %}
+        <p class="mt-5 rounded-lg border border-red-300 bg-red-50 p-2 text-center font-bold text-red-700">این سفارش لغو شده است</p>
+    {% endif %}
+
+    <section class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 print:grid-cols-2">
+        <div class="rounded-xl border border-gray-200 p-4">
+            <h2 class="mb-2 font-bold">مشخصات فروشنده</h2>
+            <dl class="space-y-1 text-xs leading-6">
+                <div><dt class="inline text-gray-500">نام:</dt> <dd class="inline">{{ seller.legal_name|default:seller.store_name }}</dd></div>
+                {% if seller.national_id %}<div><dt class="inline text-gray-500">شناسه/کد ملی:</dt> <dd class="inline"><bdi>{{ seller.national_id|fa_digits }}</bdi></dd></div>{% endif %}
+                {% if seller.economic_code %}<div><dt class="inline text-gray-500">کد اقتصادی:</dt> <dd class="inline"><bdi>{{ seller.economic_code|fa_digits }}</bdi></dd></div>{% endif %}
+                {% if seller.address %}<div><dt class="inline text-gray-500">نشانی:</dt> <dd class="inline">{{ seller.address }}</dd></div>{% endif %}
+                {% if seller.postal_code %}<div><dt class="inline text-gray-500">کد پستی:</dt> <dd class="inline"><bdi>{{ seller.postal_code|fa_digits }}</bdi></dd></div>{% endif %}
+                {% if seller.contact_phone %}<div><dt class="inline text-gray-500">تلفن:</dt> <dd class="inline"><bdi>{{ seller.contact_phone|fa_digits }}</bdi></dd></div>{% endif %}
+            </dl>
+        </div>
+        <div class="rounded-xl border border-gray-200 p-4">
+            <h2 class="mb-2 font-bold">مشخصات خریدار</h2>
+            {% with address=order.shipping_address %}
+            <dl class="space-y-1 text-xs leading-6">
+                <div><dt class="inline text-gray-500">نام:</dt> <dd class="inline">{{ address.full_name }}</dd></div>
+                <div><dt class="inline text-gray-500">تلفن:</dt> <dd class="inline"><bdi>{{ address.phone|fa_digits }}</bdi></dd></div>
+                <div><dt class="inline text-gray-500">نشانی:</dt> <dd class="inline">{{ address.province }}، {{ address.city }}، {{ address.address_line }}</dd></div>
+                <div><dt class="inline text-gray-500">کد پستی:</dt> <dd class="inline"><bdi>{{ address.postal_code|fa_digits }}</bdi></dd></div>
+            </dl>
+            {% endwith %}
+        </div>
+    </section>
+
+    <table class="invoice-table mt-6 w-full border-collapse text-xs">
+        <thead>
+            <tr>
+                <th class="w-10 text-center">ردیف</th>
+                <th class="text-start">شرح کالا</th>
+                <th class="w-16 text-center">تعداد</th>
+                <th class="w-32 text-center">مبلغ واحد (تومان)</th>
+                <th class="w-32 text-center">مبلغ کل (تومان)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter|fa_digits }}</td>
+                    <td>{{ item.product_name }}</td>
+                    <td class="text-center">{{ item.quantity|fa_digits }}</td>
+                    <td class="text-center"><bdi>{{ item.unit_price|price|fa_digits }}</bdi></td>
+                    <td class="text-center"><bdi>{{ item.line_total|price|fa_digits }}</bdi></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="mt-4 flex flex-wrap items-start justify-between gap-6">
+        <dl class="space-y-1 text-xs leading-6">
+            {% if order.payment_ref %}<div><dt class="inline text-gray-500">کد پیگیری پرداخت:</dt> <dd class="inline" dir="ltr">{{ order.payment_ref }}</dd></div>{% endif %}
+            {% if order.shipping_method %}<div><dt class="inline text-gray-500">روش ارسال:</dt> <dd class="inline">{{ order.shipping_method.name }}</dd></div>{% endif %}
+            {% if order.coupon_code %}<div><dt class="inline text-gray-500">کد تخفیف:</dt> <dd class="inline" dir="ltr">{{ order.coupon_code }}</dd></div>{% endif %}
+        </dl>
+        <table class="invoice-table w-full border-collapse text-xs sm:w-80 print:w-80">
+            <tbody>
+                <tr><th class="text-start">جمع کالاها</th><td class="text-left"><bdi>{{ order.items_subtotal|price|fa_digits }}</bdi></td></tr>
+                {% if order.discount_amount %}<tr><th class="text-start">تخفیف</th><td class="text-left"><bdi>-{{ order.discount_amount|price|fa_digits }}</bdi></td></tr>{% endif %}
+                <tr><th class="text-start">هزینه ارسال</th><td class="text-left">{% if order.shipping_cost %}<bdi>{{ order.shipping_cost|price|fa_digits }}</bdi>{% else %}رایگان{% endif %}</td></tr>
+                {% if order.install_requested %}<tr><th class="text-start">هزینه نصب</th><td class="text-left">{% if order.install_cost %}<bdi>{{ order.install_cost|price|fa_digits }}</bdi>{% else %}رایگان{% endif %}</td></tr>{% endif %}
+                {% if order.wallet_used %}<tr><th class="text-start">پرداخت از کیف پول</th><td class="text-left"><bdi>{{ order.wallet_used|price|fa_digits }}</bdi></td></tr>{% endif %}
+                <tr><th class="text-start text-sm">{% if order.status == 'pending_payment' %}مبلغ قابل پرداخت{% else %}مبلغ کل{% endif %} (تومان)</th><td class="text-left text-sm font-bold"><bdi>{{ order.total|price|fa_digits }}</bdi></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="mt-4 rounded-lg bg-gray-50 p-3 text-xs">
+        <span class="text-gray-500">مبلغ به حروف:</span>
+        <span class="font-bold">{{ order.total|num_words }} تومان</span>
+    </p>
+
+    <footer class="mt-10 border-t border-gray-200 pt-4 text-center text-[11px] text-gray-400">
+        این فاکتور به‌صورت الکترونیکی از فروشگاه اینترنتی {{ seller.store_name }} صادر شده است.
+    </footer>
+</main>
+</body>
+</html>

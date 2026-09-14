@@ -1,0 +1,89 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}درخواست مرجوعی {{ order.order_number }} | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><a href="{% url 'orders:list' %}">سفارش‌های من</a>
+<span aria-hidden="true">‹</span><a href="{% url 'orders:detail' order.order_number %}" dir="ltr">{{ order.order_number }}</a>
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">مرجوعی</span>
+{% endblock %}
+
+{% block account_content %}
+<form method="post" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+    <div class="card p-5 sm:p-6">
+        <h1 class="page-title text-lg sm:text-xl">درخواست مرجوعی سفارش <span dir="ltr">{{ order.order_number }}</span></h1>
+        {% if deadline %}
+            <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">مهلت ثبت درخواست تا {{ deadline|jalali|fa_digits }} است. پس از بررسی، نتیجه از طریق پیامک یا ایمیل اطلاع داده می‌شود.</p>
+        {% endif %}
+        {% if error %}<div class="alert-error mt-4">{{ error }}</div>{% endif %}
+    </div>
+
+    <section class="card p-5 sm:p-6">
+        <h2 class="card-title">کدام کالاها؟</h2>
+        <ul class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for row in rows %}
+                <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                    <span class="min-w-0 flex-1">
+                        <span class="font-medium">{{ row.item.product_name }}</span>
+                        <span class="block text-xs text-gray-400 dark:text-mist-dim">
+                            خریداری‌شده: {{ row.item.quantity|fa_digits }} عدد{% if row.available < row.item.quantity %} · قابل مرجوع: {{ row.available|fa_digits }}{% endif %}
+                        </span>
+                    </span>
+                    {% if row.available %}
+                        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-mist-dim">
+                            تعداد مرجوعی
+                            <select name="qty_{{ row.item.pk }}" class="input h-10 w-20 px-2">
+                                {% for n in row.options %}
+                                    <option value="{{ n }}" {% if n == row.selected %}selected{% endif %}>{{ n|fa_digits }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                    {% else %}
+                        <span class="chip bg-gray-100 text-gray-500 dark:bg-ember dark:text-mist-dim">قبلاً درخواست شده</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="card space-y-6 p-5 sm:p-6">
+        <div>
+            <h2 class="card-title mb-3">{{ form.reason.label }}</h2>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {% for radio in form.reason %}
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-3 text-sm hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50/60 dark:border-cedar/60 dark:has-checked:border-river dark:has-checked:bg-ember">
+                        {{ radio.tag }} {{ radio.choice_label }}
+                    </label>
+                {% endfor %}
+            </div>
+            {% if form.reason.errors %}<p class="field-error">یک دلیل را انتخاب کنید.</p>{% endif %}
+        </div>
+
+        <div>
+            <h2 class="card-title mb-3">{{ form.resolution.label }}</h2>
+            <div class="flex flex-wrap gap-2">
+                {% for radio in form.resolution %}
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50/60 dark:border-cedar/60 dark:has-checked:border-river dark:has-checked:bg-ember">
+                        {{ radio.tag }} {{ radio.choice_label }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% include "partials/field.html" with field=form.description %}
+
+        <div>
+            <label class="label" for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+            <input type="file" name="image" id="{{ form.image.id_for_label }}" accept="image/jpeg,image/png,image/webp"
+                   class="text-xs file:ml-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-bold file:text-brand-600 dark:file:bg-ember dark:file:text-river">
+            {% if form.image.errors %}<p class="field-error">{{ form.image.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="flex flex-wrap gap-3 border-t border-gray-100 pt-5 dark:border-cedar/60">
+            <button type="submit" class="btn btn-primary">ثبت درخواست مرجوعی</button>
+            <a href="{% url 'orders:detail' order.order_number %}" class="btn btn-ghost">انصراف</a>
+        </div>
+    </section>
+</form>
+{% endblock %}

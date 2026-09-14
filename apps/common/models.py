@@ -16,6 +16,14 @@ class SiteSettings(models.Model):
     )
     contact_phone = models.CharField(_("contact phone"), max_length=20, blank=True)
     about_text = models.TextField(_("about text"), blank=True)
+    # seller details printed on invoices
+    legal_name = models.CharField(
+        _("seller legal name"), max_length=150, blank=True, help_text="نام شخص یا شرکت فروشنده روی فاکتور",
+    )
+    national_id = models.CharField(_("national ID"), max_length=20, blank=True, help_text="شناسه ملی شرکت یا کد ملی")
+    economic_code = models.CharField(_("economic code"), max_length=20, blank=True)
+    address = models.CharField(_("seller address"), max_length=300, blank=True)
+    postal_code = models.CharField(_("seller postal code"), max_length=10, blank=True)
     trust_badges_html = models.TextField(
         _("trust badges HTML"), blank=True,
         help_text="کد HTML نماد اعتماد الکترونیکی (اینماد) و ساماندهی را دقیقاً همان‌طور که سامانه‌ها می‌دهند اینجا بچسبانید؛ "
