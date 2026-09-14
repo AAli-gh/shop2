@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}
+    {% if current_q %}جستجوی «{{ current_q }}»{% elif current_brand_name %}{{ current_brand_name }}{% else %}محصولات{% endif %} | {{ site_settings.store_name }}
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <a href="{% url 'catalog:product_list' %}">محصولات</a>
+    {% for cat in categories %}
+        {% if cat.slug == current_category %}<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">{{ cat.name }}</span>{% endif %}
+        {% for sub in cat.children.all %}{% if sub.slug == current_category %}<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">{{ sub.name }}</span>{% endif %}{% endfor %}
+    {% endfor %}
+</nav>
+
+<div class="grid items-start gap-6 lg:grid-cols-4">
+    <!-- Sidebar -->
+    <aside class="lg:sticky lg:top-6">
+        <input type="checkbox" id="filters-toggle" class="peer hidden">
+        <label for="filters-toggle" class="btn btn-ghost w-full cursor-pointer lg:hidden">
+            {% include "partials/icon.html" with name="filter" %}
+            دسته‌بندی و فیلترها
+        </label>
+
+        <div class="mt-4 hidden space-y-4 peer-checked:block lg:mt-0 lg:block">
+            <div class="card p-4">
+                <h2 class="card-title mb-3 text-sm">دسته‌بندی‌ها</h2>
+                <ul class="space-y-0.5 text-sm">
+                    <li>
+                        <a href="{% url 'catalog:product_list' %}" class="acc-link py-2 {% if not current_category %}is-active{% endif %}">همه محصولات</a>
+                    </li>
+                    {% for cat in categories %}
+                        <li>
+                            <a href="{% url 'catalog:category' cat.slug %}" class="acc-link py-2 {% if current_category == cat.slug %}is-active{% endif %}">{{ cat.name }}</a>
+                            {% if cat.children.all %}
+                                <ul class="ms-4 mt-0.5 space-y-0.5 border-s border-gray-100 ps-2 dark:border-cedar/60">
+                                    {% for sub in cat.children.all %}
+                                        <li><a href="{% url 'catalog:category' sub.slug %}" class="acc-link py-1.5 text-xs {% if current_category == sub.slug %}is-active{% endif %}">{{ sub.name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <form method="get" class="card space-y-5 p-4">
+                {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}">{% endif %}
+                {% if current_sort and current_sort != 'newest' %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+
+                <div>
+                    <h2 class="mb-3 text-sm font-bold">محدوده قیمت (تومان)</h2>
+                    <div class="flex gap-2">
+                        <input type="number" name="min_price" value="{{ min_price|default_if_none:'' }}" placeholder="از" class="input h-10 px-3">
+                        <input type="number" name="max_price" value="{{ max_price|default_if_none:'' }}" placeholder="تا" class="input h-10 px-3">
+                    </div>
+                    <p class="mt-2 text-[11px] text-gray-400 dark:text-mist-dim">بازه: <bdi>{{ price_lo|toman|fa_digits }}</bdi> تا <bdi>{{ price_hi|toman|fa_digits }}</bdi></p>
+                </div>
+
+                {% if brands %}
+                <div class="border-t border-gray-100 pt-4 dark:border-cedar/60">
+                    <h2 class="mb-3 text-sm font-bold">برند</h2>
+                    <div class="max-h-48 space-y-2 overflow-y-auto text-sm">
+                        <label class="flex cursor-pointer items-center gap-2.5">
+                            <input type="radio" name="brand" value="" {% if not current_brand %}checked{% endif %} class="h-4 w-4">
+                            <span>همه برندها</span>
+                        </label>
+                        {% for b in brands %}
+                            <label class="flex cursor-pointer items-center gap-2.5">
+                                <input type="radio" name="brand" value="{{ b.slug }}" {% if current_brand == b.slug %}checked{% endif %} class="h-4 w-4">
+                                <span>{{ b.name }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% for group in spec_filters %}
+                    <div class="border-t border-gray-100 pt-4 dark:border-cedar/60">
+                        <h2 class="mb-3 text-sm font-bold">{{ group.attr.name }}</h2>
+                        <div class="max-h-40 space-y-2 overflow-y-auto text-sm">
+                            {% for val in group.values %}
+                                <label class="flex cursor-pointer items-center gap-2.5">
+                                    <input type="checkbox" name="filter_{{ group.attr.name }}" value="{{ val.value }}" {% if val.checked %}checked{% endif %} class="h-4 w-4">
+                                    <span>{{ val.value }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="space-y-2 border-t border-gray-100 pt-4 dark:border-cedar/60">
+                    <button type="submit" class="btn btn-primary w-full">اعمال فیلترها</button>
+                    {% if min_price or max_price or current_brand or active_filter_pairs %}
+                        <a href="{{ request.path }}{% if current_category and not request.resolver_match.kwargs.category_slug %}?category={{ current_category }}{% endif %}" class="btn btn-ghost w-full">حذف فیلترها</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Products -->
+    <div class="min-w-0 lg:col-span-3">
+        <div class="card mb-5 flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5">
+            <div class="flex items-center gap-3">
+                <h1 class="page-title text-lg sm:text-xl">
+                    {% if current_q %}نتایج «{{ current_q }}»{% elif current_brand_name %}محصولات {{ current_brand_name }}{% else %}{% for cat in categories %}{% if cat.slug == current_category %}{{ cat.name }}{% endif %}{% for sub in cat.children.all %}{% if sub.slug == current_category %}{{ sub.name }}{% endif %}{% endfor %}{% endfor %}{% if not current_category %}همه محصولات{% endif %}{% endif %}
+                </h1>
+                {% if products.paginator.count %}<span class="text-xs text-gray-400 dark:text-mist-dim">{{ products.paginator.count|fa_digits }} کالا</span>{% endif %}
+            </div>
+            <form method="get" class="flex items-center gap-2 text-sm">
+                {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}">{% endif %}
+                {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                {% if current_brand %}<input type="hidden" name="brand" value="{{ current_brand }}">{% endif %}
+                {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+                {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+                {% for pair in active_filter_pairs %}<input type="hidden" name="filter_{{ pair.name }}" value="{{ pair.value }}">{% endfor %}
+                <label for="sort" class="shrink-0 text-gray-500 dark:text-mist-dim">مرتب‌سازی:</label>
+                <select id="sort" name="sort" onchange="this.form.submit()" class="input h-10 w-auto pl-8">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>جدیدترین</option>
+                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>ارزان‌ترین</option>
+                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>گران‌ترین</option>
+                </select>
+            </form>
+        </div>
+
+        {% if products.object_list %}
+            <div class="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+                {% for product in products %}
+                    {% include "catalog/partials/product_card.html" %}
+                {% endfor %}
+            </div>
+            {% include "partials/pagination.html" with page_obj=products %}
+        {% else %}
+            <div class="empty-state">
+                <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="bag" cls="w-8 h-8" sw="1.5" %}</div>
+                <p class="mt-5 font-bold">محصولی یافت نشد</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">فیلترها را تغییر دهید یا عبارت دیگری جستجو کنید.</p>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">مشاهده همه محصولات</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

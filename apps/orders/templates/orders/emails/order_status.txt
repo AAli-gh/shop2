@@ -1,0 +1,10 @@
+{% autoescape off %}
+کاربر گرامی، وضعیت سفارش {{ order.order_number }} به «{{ order.get_status_display }}» تغییر کرد.
+{% if order.tracking_code %}
+
+کد رهگیری مرسوله: {{ order.tracking_code }}{% endif %}
+{% if order.shipping_note %}
+توضیح ارسال: {{ order.shipping_note }}{% endif %}
+
+مشاهده سفارش: http://127.0.0.1:8000/orders/{{ order.order_number }}/
+{% endautoescape %}

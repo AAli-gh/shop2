@@ -1,0 +1,13 @@
+<form id="restock-box-{{ product.pk }}"
+      hx-post="{% url 'catalog:restock_notify' product.slug %}"
+      hx-target="#restock-box-{{ product.pk }}" hx-swap="outerHTML"
+      class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <span class="flex shrink-0 items-center gap-2 text-sm font-bold">
+        <span class="text-brand-500 dark:text-river">{% include "partials/icon.html" with name="mail" %}</span>
+        موجود شد؟ خبرم کن
+    </span>
+    <input type="email" name="email" placeholder="ایمیل شما" required
+           value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+           dir="ltr" class="input h-10 flex-1">
+    <button type="submit" class="btn btn-primary h-10">ثبت</button>
+</form>

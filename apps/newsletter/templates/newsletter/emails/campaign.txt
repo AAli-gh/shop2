@@ -1,0 +1,9 @@
+{% autoescape off %}
+{{ campaign.subject }}
+
+{% for p in campaign.paragraphs %}{{ p }}
+
+{% endfor %}---
+این ایمیل را از {{ store }} دریافت کرده‌اید.
+لغو عضویت: {{ unsub_link }}
+{% endautoescape %}

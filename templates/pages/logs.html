@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}لاگ‌ها | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="page-title">لاگ رویدادها</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="?file=shop" class="btn btn-sm {% if log_name == 'shop.log' %}btn-primary{% else %}btn-ghost{% endif %}">رویدادهای فروش</a>
+        <a href="?file=error" class="btn btn-sm {% if log_name == 'error.log' %}bg-red-600 text-white hover:bg-red-700{% else %}btn-ghost{% endif %}">خطاها</a>
+        <a href="{% url 'common:logs_download' %}?file={{ log_name|cut:'.log' }}" class="btn btn-sm btn-ghost">دانلود</a>
+        <a href="{% url 'common:dashboard' %}" class="btn btn-sm btn-ghost">داشبورد</a>
+    </div>
+</div>
+
+<div class="max-h-[70vh] overflow-x-auto overflow-y-auto rounded-2xl bg-brand-900 p-5 font-mono text-xs text-brand-100 dark:bg-black/40 dark:text-glacier" dir="ltr">
+    {% if log_lines %}
+        {% for line in log_lines %}
+            <div class="whitespace-pre leading-6">{{ line }}</div>
+        {% endfor %}
+    {% else %}
+        <div class="text-brand-200/60">فایل لاگ خالی است.</div>
+    {% endif %}
+</div>
+{% endblock %}

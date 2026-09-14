@@ -1,0 +1,27 @@
+{% extends "accounts/_account_layout.html" %}
+{% block title %}{% if object %}ویرایش آدرس{% else %}افزودن آدرس{% endif %} | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><a href="{% url 'accounts:address_list' %}">آدرس‌ها</a>
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">{% if object %}ویرایش{% else %}افزودن{% endif %}</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-6 text-lg sm:text-xl">{% if object %}ویرایش آدرس{% else %}افزودن آدرس{% endif %}</h1>
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div class="grid gap-5 sm:grid-cols-2">
+            {% for field in form %}
+                <div class="{% if field.name == 'address_line' or field.widget_type == 'checkbox' %}sm:col-span-2{% endif %}">
+                    {% include "partials/field.html" %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <button type="submit" class="btn btn-primary">ذخیره</button>
+            <a href="{% url 'accounts:address_list' %}" class="btn btn-ghost">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

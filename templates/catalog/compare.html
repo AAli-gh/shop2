@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}مقایسه محصولات | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">مقایسه محصولات</span>
+</nav>
+
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="page-title">مقایسه محصولات</h1>
+    {% if products %}
+        <a href="{% url 'catalog:product_list' %}" class="btn btn-sm btn-ghost">
+            {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+            افزودن محصول دیگر
+        </a>
+    {% endif %}
+</div>
+{% include "catalog/partials/compare_table.html" %}
+{% endblock %}

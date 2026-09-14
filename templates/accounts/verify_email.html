@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{% if verified %}حساب فعال شد{% else %}لینک نامعتبر{% endif %} | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="card mx-auto max-w-lg p-8 text-center sm:p-10">
+    {% if verified %}
+        <div class="icon-tile bg-green-50 text-green-600 dark:bg-ember dark:text-green-300">{% include "partials/icon.html" with name="check" cls="w-8 h-8" sw="2.2" %}</div>
+        <h1 class="mt-5 text-xl font-bold">حساب شما فعال شد</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">اکنون می‌توانید وارد شوید.</p>
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary mt-7">ورود</a>
+    {% else %}
+        <div class="icon-tile bg-red-50 text-red-600 dark:bg-ember dark:text-red-300">{% include "partials/icon.html" with name="warning" cls="w-8 h-8" sw="1.6" %}</div>
+        <h1 class="mt-5 text-xl font-bold">لینک نامعتبر یا منقضی است</h1>
+        <a href="{% url 'accounts:resend_verification' %}" class="btn btn-ghost mt-7">ارسال مجدد ایمیل تأیید</a>
+    {% endif %}
+</div>
+{% endblock %}

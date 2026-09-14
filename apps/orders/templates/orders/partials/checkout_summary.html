@@ -1,0 +1,70 @@
+{% load persian %}
+<h2 class="card-title">خلاصه سفارش</h2>
+
+{% if summary.items %}
+    <ul class="mb-4 space-y-2.5 border-b border-gray-100 pb-4 text-sm dark:border-cedar/60">
+        {% for row in summary.items %}
+            <li class="flex justify-between gap-3">
+                <span class="min-w-0 truncate text-gray-600 dark:text-mist-dim">{{ row.product.name }} <span class="text-gray-400">× {{ row.item.quantity|fa_digits }}</span></span>
+                <span class="shrink-0 font-medium"><bdi>{{ row.line_total|toman|fa_digits }}</bdi></span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<dl class="space-y-3 text-sm">
+    <div class="flex justify-between">
+        <dt class="text-gray-500 dark:text-mist-dim">جمع کالاها</dt>
+        <dd><bdi>{{ summary.subtotal|toman|fa_digits }}</bdi></dd>
+    </div>
+    <div class="flex justify-between">
+        <dt class="text-gray-500 dark:text-mist-dim">تخفیف</dt>
+        <dd class="{% if totals.discount %}font-medium text-green-600 dark:text-green-300{% endif %}">
+            {% if totals.discount %}<bdi>-{{ totals.discount|toman|fa_digits }}</bdi>{% else %}—{% endif %}
+        </dd>
+    </div>
+    <div class="flex justify-between">
+        <dt class="text-gray-500 dark:text-mist-dim">هزینه ارسال</dt>
+        <dd>{% if totals.shipping == 0 %}<span class="text-green-600 dark:text-green-300">رایگان</span>{% else %}<bdi>{{ totals.shipping|toman|fa_digits }}</bdi>{% endif %}</dd>
+    </div>
+    {% if totals.install %}
+    <div class="flex justify-between">
+        <dt class="text-gray-500 dark:text-mist-dim">هزینه نصب</dt>
+        <dd>{% if totals.install == 0 %}<span class="text-green-600 dark:text-green-300">رایگان</span>{% else %}<bdi>{{ totals.install|toman|fa_digits }}</bdi>{% endif %}</dd>
+    </div>
+    {% endif %}
+    <div class="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-cedar/60">
+        <dt class="font-bold">قابل پرداخت</dt>
+        <dd class="text-lg font-bold text-brand-700 dark:text-river"><bdi>{{ totals.total|toman|fa_digits }}</bdi></dd>
+    </div>
+</dl>
+
+{% if totals.wallet_balance %}
+<div class="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4 text-sm dark:border-cedar/60 dark:bg-ember/60">
+    <label class="flex cursor-pointer items-center gap-2.5 font-medium">
+        <input type="checkbox" name="pay_with_wallet" value="on" class="h-4 w-4"
+               {% if totals.wallet_balance >= totals.total %}checked{% endif %}>
+        <span>پرداخت از کیف پول</span>
+    </label>
+    <p class="mt-1.5 text-xs text-gray-500 dark:text-mist-dim">
+        موجودی کیف پول: <bdi>{{ totals.wallet_balance|toman|fa_digits }}</bdi>
+    </p>
+</div>
+{% endif %}
+
+{% if error_message %}
+    <p class="alert-error mt-4 text-xs">{{ error_message }}</p>
+{% elif coupon_result and coupon_result.coupon %}
+    <p class="alert-success mt-4 text-xs">کد تخفیف «{{ coupon_result.coupon.code }}» اعمال شد.</p>
+{% endif %}
+
+{% if coupon_result and coupon_result.coupon %}
+    <input type="hidden" name="coupon_session_active" value="1">
+{% endif %}
+
+{% if summary.items %}
+    <button type="submit" formaction="{% url 'orders:place' %}" class="btn btn-primary mt-5 h-12 w-full">
+        {% include "partials/icon.html" with name="lock" cls="w-4 h-4" sw="2" %}
+        ثبت سفارش و پرداخت
+    </button>
+{% endif %}

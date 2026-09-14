@@ -1,0 +1,37 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}سفارش‌های من | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">سفارش‌های من</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-6 text-lg sm:text-xl">سفارش‌های من</h1>
+
+    {% if orders %}
+        <div class="space-y-3">
+            {% for order in orders %}
+                <a href="{% url 'orders:detail' order.order_number %}"
+                   class="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-100 p-4 transition hover:border-brand-300 hover:shadow-sm sm:flex-nowrap dark:border-cedar/60">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="bag" %}</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold"><span dir="ltr">{{ order.order_number }}</span></p>
+                        <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{{ order.created_at|jalali|fa_digits }}</p>
+                    </div>
+                    {% include "orders/partials/status_chip.html" %}
+                    <span class="w-32 text-left text-sm font-bold"><bdi>{{ order.total|toman|fa_digits }}</bdi></span>
+                    <span class="hidden text-gray-300 sm:block dark:text-cedar-light">{% include "partials/icon.html" with name="chevron-left" cls="w-4 h-4" sw="2" %}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="py-10 text-center">
+            <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="bag" cls="w-8 h-8" sw="1.5" %}</div>
+            <p class="mt-5 font-bold">هنوز سفارشی ثبت نکرده‌اید</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">شروع خرید</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

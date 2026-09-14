@@ -1,0 +1,127 @@
+from django.conf import settings
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+class Order(models.Model):
+    class Status(models.TextChoices):
+        PENDING_PAYMENT = "pending_payment", "در انتظار پرداخت"
+        PAID = "paid", "پرداخت‌شده"
+        PROCESSING = "processing", "در حال پردازش"
+        SHIPPED = "shipped", "ارسال شد"
+        DELIVERED = "delivered", "تحویل شد"
+        CANCELLED = "cancelled", "لغو شد"
+
+    order_number = models.CharField(_("order number"), max_length=20, unique=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.PROTECT,
+        verbose_name=_("user"),
+    )
+    status = models.CharField(
+        _("status"), max_length=20, choices=Status.choices,
+        default=Status.PENDING_PAYMENT, db_index=True,
+    )
+    items_subtotal = models.BigIntegerField(_("items subtotal"), default=0)
+    discount_amount = models.BigIntegerField(_("discount amount"), default=0)
+    shipping_cost = models.BigIntegerField(_("shipping cost"), default=0)
+    total = models.BigIntegerField(_("total"), default=0)
+    coupon = models.ForeignKey(
+        "discounts.Coupon", null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name=_("coupon"),
+    )
+    coupon_code = models.CharField(_("coupon code"), max_length=40, blank=True)
+    payment_ref = models.CharField(_("payment reference"), max_length=60, blank=True)
+    tracking_code = models.CharField(
+        _("tracking code"), max_length=60, blank=True,
+        help_text=_("کد رهگیری مرسوله پستی"),
+    )
+    shipping_note = models.CharField(
+        _("shipping note"), max_length=200, blank=True,
+        help_text=_("مثلاً نام باربری یا توضیح ارسال"),
+    )
+    shipping_method = models.ForeignKey(
+        "orders.ShippingMethod", null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name=_("shipping method"),
+    )
+    install_requested = models.BooleanField(_("install requested"), default=False)
+    install_cost = models.BigIntegerField(_("install cost"), default=0)
+    install_date = models.CharField(_("install date"), max_length=30, blank=True, help_text="ترجیح زمانی نصب")
+    wallet_used = models.BigIntegerField(_("paid from wallet"), default=0, help_text=_("مبلغ کسرشده از کیف پول"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("order")
+        verbose_name_plural = _("orders")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "-created_at"])]
+
+    def __str__(self):
+        return self.order_number
+
+    @property
+    def progress_steps(self):
+        """Linear fulfilment steps for the order timeline, each marked done/current."""
+        flow = [s for s in self.Status if s != self.Status.CANCELLED]
+        current = flow.index(self.status) if self.status in flow else -1
+        return [
+            {"label": s.label, "done": i < current, "current": i == current}
+            for i, s in enumerate(flow)
+        ]
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+        Order, related_name="items", on_delete=models.CASCADE, verbose_name=_("order")
+    )
+    product = models.ForeignKey(
+        "catalog.Product", null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name=_("product"),
+    )
+    product_name = models.CharField(_("product name"), max_length=200)
+    unit_price = models.BigIntegerField(_("unit price"))
+    quantity = models.PositiveSmallIntegerField(_("quantity"))
+    line_total = models.BigIntegerField(_("line total"))
+
+    class Meta:
+        verbose_name = _("order item")
+        verbose_name_plural = _("order items")
+
+    def __str__(self):
+        return f"{self.product_name} x{self.quantity}"
+
+
+class ShippingAddress(models.Model):
+    order = models.OneToOneField(
+        Order, related_name="shipping_address", on_delete=models.CASCADE,
+        verbose_name=_("order"),
+    )
+    full_name = models.CharField(_("full name"), max_length=120)
+    phone = models.CharField(_("phone number"), max_length=15)
+    province = models.CharField(_("province"), max_length=60)
+    city = models.CharField(_("city"), max_length=60)
+    postal_code = models.CharField(_("postal code"), max_length=10)
+    address_line = models.CharField(_("address"), max_length=300)
+
+    class Meta:
+        verbose_name = _("shipping address")
+        verbose_name_plural = _("shipping addresses")
+
+    def __str__(self):
+        return f"{self.full_name} - {self.city}"
+
+
+class ShippingMethod(models.Model):
+    name = models.CharField(_("name"), max_length=100)
+    description = models.CharField(_("description"), max_length=200, blank=True)
+    price = models.BigIntegerField(_("price"), default=0, help_text=_("in Toman; 0 = free"))
+    is_active = models.BooleanField(_("active"), default=True)
+    sort_order = models.PositiveSmallIntegerField(_("sort order"), default=0)
+
+    class Meta:
+        verbose_name = _("shipping method")
+        verbose_name_plural = _("shipping methods")
+        ordering = ["sort_order", "price"]
+
+    def __str__(self):
+        return self.name

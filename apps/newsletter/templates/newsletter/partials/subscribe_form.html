@@ -1,0 +1,8 @@
+<form id="newsletter-box" hx-post="{% url 'newsletter:subscribe' %}" hx-target="#newsletter-box" hx-swap="outerHTML"
+      class="flex gap-2 w-full max-w-sm">
+    <input type="email" name="email" placeholder="ایمیل شما" required dir="ltr"
+           class="flex-1 rounded-lg border border-gray-300 dark:border-cedar/60 bg-white dark:bg-ember px-3 py-2 text-sm">
+    <button type="submit" class="bg-brand-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-brand-700 whitespace-nowrap">
+        عضویت در خبرنامه
+    </button>
+</form>

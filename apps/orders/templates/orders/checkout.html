@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}تسویه حساب | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <a href="{% url 'cart:detail' %}">سبد خرید</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">تسویه حساب</span>
+</nav>
+{% include "orders/partials/steps.html" with step=2 %}
+
+<form method="post" action="{% url 'orders:place' %}" id="checkout-form" class="grid items-start gap-6 lg:grid-cols-3">
+    {% csrf_token %}
+
+    <div class="space-y-5 lg:col-span-2">
+        {% with option="flex cursor-pointer gap-3 rounded-xl border border-gray-200 p-4 hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50/60 dark:border-cedar/60 dark:has-checked:border-river dark:has-checked:bg-ember" badge="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-ember dark:text-river" %}
+        <!-- Address -->
+        <section class="card p-5 sm:p-6">
+            <h2 class="card-title"><span class="{{ badge }}">{% include "partials/icon.html" with name="pin" cls="w-4 h-4" %}</span>آدرس تحویل</h2>
+            {% if addresses %}
+                <div class="space-y-3">
+                    {% for address in addresses %}
+                        <label class="{{ option }} items-start">
+                            <input type="radio" name="address_id" value="{{ address.pk }}"
+                                   {% if forloop.first %}checked{% endif %}
+                                   onchange="document.getElementById('new-address-box').classList.add('hidden')"
+                                   class="mt-1 h-4 w-4">
+                            <span class="text-sm leading-7">
+                                <b>{{ address.full_name }}</b> <span class="text-gray-400 dark:text-mist-dim">— <bdi>{{ address.phone }}</bdi></span><br>
+                                <span class="text-gray-600 dark:text-mist-dim">{{ address.province }}، {{ address.city }}، {{ address.address_line }}</span>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <button type="button" onclick="document.getElementById('new-address-box').classList.remove('hidden')"
+                        class="btn btn-sm btn-ghost mt-4">
+                    {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+                    آدرس جدید
+                </button>
+            {% endif %}
+
+            <div id="new-address-box" class="{% if addresses %}hidden mt-5 border-t border-gray-100 pt-5 dark:border-cedar/60{% endif %} space-y-3">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <input name="full_name" placeholder="نام و نام خانوادگی" class="input">
+                    <input name="phone" placeholder="شماره تماس" dir="ltr" class="input">
+                    <input name="province" placeholder="استان" class="input">
+                    <input name="city" placeholder="شهر" class="input">
+                    <input name="postal_code" placeholder="کد پستی" dir="ltr" inputmode="numeric" class="input sm:col-span-2">
+                </div>
+                <textarea name="address_line" rows="2" placeholder="نشانی کامل" class="input"></textarea>
+                <label class="flex items-center gap-2.5 text-sm text-gray-600 dark:text-mist-dim">
+                    <input type="checkbox" name="save_address" class="h-4 w-4"> ذخیره این آدرس در پروفایل من
+                </label>
+            </div>
+        </section>
+
+        <!-- Shipping method -->
+        {% if shipping_methods %}
+        <section class="card p-5 sm:p-6">
+            <h2 class="card-title"><span class="{{ badge }}">{% include "partials/icon.html" with name="truck" cls="w-4 h-4" %}</span>روش ارسال</h2>
+            <div class="space-y-3">
+                {% for m in shipping_methods %}
+                    <label class="{{ option }} items-center justify-between">
+                        <span class="flex items-center gap-3">
+                            <input type="radio" name="shipping_method" value="{{ m.pk }}" {% if forloop.first %}checked{% endif %} class="h-4 w-4">
+                            <span class="text-sm">
+                                <b>{{ m.name }}</b>
+                                {% if m.description %}<span class="mt-0.5 block text-xs text-gray-500 dark:text-mist-dim">{{ m.description }}</span>{% endif %}
+                            </span>
+                        </span>
+                        <span class="shrink-0 text-sm font-bold">
+                            {% if m.price == 0 %}<span class="text-green-600 dark:text-green-300">رایگان</span>{% else %}<bdi>{{ m.price|toman|fa_digits }}</bdi>{% endif %}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Install -->
+        {% if needs_install %}
+        <section class="card p-5 sm:p-6">
+            <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="install_requested" class="h-4 w-4" checked>
+                <span class="{{ badge }}">{% include "partials/icon.html" with name="wrench" cls="w-4 h-4" %}</span>
+                <span class="font-bold">درخواست نصب تخصصی</span>
+                {% if totals.install %}<span class="text-xs text-gray-500 dark:text-mist-dim">(<bdi>{{ totals.install|toman|fa_digits }}</bdi>)</span>{% else %}<span class="text-xs text-green-600 dark:text-green-300">(رایگان)</span>{% endif %}
+            </label>
+            <input name="install_date" placeholder="زمان ترجیحی نصب (اختیاری)" class="input mt-4">
+        </section>
+        {% endif %}
+
+        <!-- Coupon -->
+        <section class="card p-5 sm:p-6">
+            <h2 class="card-title"><span class="{{ badge }}">٪</span>کد تخفیف</h2>
+            <div class="flex gap-2">
+                <input name="coupon_code_display" id="coupon-input" value="{{ coupon_code }}" placeholder="کد تخفیف را وارد کنید"
+                       dir="ltr" class="input flex-1">
+                <button type="button" hx-post="{% url 'orders:coupon_apply' %}"
+                        hx-include="#coupon-input"
+                        hx-target="#checkout-summary" hx-swap="innerHTML"
+                        class="btn btn-outline">
+                    اعمال
+                </button>
+            </div>
+        </section>
+        {% endwith %}
+    </div>
+
+    <!-- Summary -->
+    <div class="lg:sticky lg:top-6">
+        <div id="checkout-summary" class="card p-5 sm:p-6">
+            {% include "orders/partials/checkout_summary.html" %}
+        </div>
+    </div>
+</form>
+{% endblock %}

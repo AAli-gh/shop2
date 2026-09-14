@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}واردات محصولات | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="page-title">واردات محصولات از فایل</h1>
+        <a href="/dashboard/" class="btn btn-sm btn-ghost">داشبورد</a>
+    </div>
+
+    <div class="card mb-6 p-5 sm:p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+            <div>
+                <label class="label">فایل CSV یا Excel (xlsx)</label>
+                <input type="file" name="file" accept=".csv,.xlsx,.xlsm" required
+                       class="input file:ml-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:font-bold file:text-brand-600 dark:file:bg-cedar dark:file:text-river">
+            </div>
+            <button type="submit" class="btn btn-primary">شروع واردات</button>
+        </form>
+    </div>
+
+    <div class="card mb-6 p-5 text-sm leading-7 sm:p-6">
+        <h2 class="card-title">ساختار فایل</h2>
+        <p>ردیف اول، عنوان ستون‌هاست. ستون‌های <b>name</b>، <b>price</b> و <b>category</b> الزامی‌اند:</p>
+        <pre dir="ltr" class="mt-3 overflow-x-auto rounded-xl bg-gray-50 p-4 text-xs dark:bg-ember">name,price,category,slug,description,stock,sale_price,is_featured
+هدفون بی‌سیم مدل X,1250000,صوتی,,توضیحات محصول,10,,بله
+کیف چرم دست‌دوز,890000,کیف و کالا,, ,3,790000,no</pre>
+        <ul class="mt-4 space-y-1 text-xs text-gray-500 dark:text-mist-dim">
+            <li>• قیمت‌ها به تومان؛ ارقام فارسی و جداکننده هزارگان مجاز است.</li>
+            <li>• اگر محصولی با همان <b>slug</b> از قبل باشد، به‌روزرسانی می‌شود.</li>
+            <li>• دسته‌بندی جدید خودکار ساخته می‌شود.</li>
+        </ul>
+    </div>
+
+    {% if summary %}
+        <div class="card p-5 sm:p-6">
+            <h2 class="card-title">نتیجه واردات</h2>
+            <div class="mb-4 flex flex-wrap gap-2 text-sm">
+                <span class="chip bg-green-50 px-4 py-1.5 text-green-700 dark:bg-ember dark:text-glacier">جدید: {{ summary.created|fa_digits }}</span>
+                <span class="chip bg-brand-50 px-4 py-1.5 text-brand-600 dark:bg-ember dark:text-river">به‌روزرسانی: {{ summary.updated|fa_digits }}</span>
+                <span class="chip bg-red-50 px-4 py-1.5 text-red-700 dark:bg-ember dark:text-red-300">خطا: {{ summary.errors|length|fa_digits }}</span>
+            </div>
+            {% if summary.errors %}
+                <div class="border-t border-gray-100 pt-3 dark:border-cedar/60">
+                    <ul class="max-h-60 space-y-1 overflow-y-auto text-xs">
+                        {% for e in summary.errors %}
+                            <li class="text-red-600 dark:text-red-300">ردیف {{ e.row|fa_digits }}{% if e.name %} ({{ e.name }}){% endif %}: {{ e.error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

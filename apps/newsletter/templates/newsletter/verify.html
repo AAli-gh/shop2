@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}خبرنامه | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="card mx-auto max-w-lg p-8 text-center sm:p-10">
+    {% if verified %}
+        <div class="icon-tile bg-green-50 text-green-600 dark:bg-ember dark:text-green-300">{% include "partials/icon.html" with name="check" cls="w-8 h-8" sw="2.2" %}</div>
+        <h1 class="mt-5 text-xl font-bold">عضویت شما در خبرنامه فعال شد</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">از این پس تخفیف‌ها و اخبار را در ایمیل خود دریافت می‌کنید.</p>
+    {% else %}
+        <div class="icon-tile bg-red-50 text-red-600 dark:bg-ember dark:text-red-300">{% include "partials/icon.html" with name="warning" cls="w-8 h-8" sw="1.6" %}</div>
+        <h1 class="mt-5 text-xl font-bold">لینک تأیید نامعتبر است</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">ممکن است قبلاً عضویت خود را تأیید کرده باشید.</p>
+    {% endif %}
+    <a href="/" class="btn btn-ghost mt-7">بازگشت به فروشگاه</a>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+from django.shortcuts import get_object_or_404, render
+
+from apps.catalog import services
+from apps.common import lastvisited
+from apps.common.ratelimit import ratelimit
+
+
+def home(request):
+    return render(
+        request,
+        "catalog/home.html",
+        {
+            "banners": services.active_banners()[:2],
+            "home_categories": services.home_categories(),
+            "product_total": services.active_product_count(),
+            "featured": services.featured_products(),
+            "on_sale": services.on_sale_products(),
+            "best_sellers": services.best_sellers(),
+            "recently_viewed": lastvisited.get_viewed_products(request),
+        },
+    )
+
+
+def live_search(request):
+    q = request.GET.get("q", "")
+    results = services.quick_search(q)
+    if len(q.strip()) < 2:
+        return render(request, "catalog/partials/live_search_empty.html")
+    return render(
+        request,
+        "catalog/partials/live_search_results.html",
+        {"results": results, "q": q},
+    )
+
+
+def _parse_price(value):
+    try:
+        v = int(value)
+        return v if v >= 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def product_list(request, category_slug=None, brand_slug=None):
+    category = category_slug or request.GET.get("category")
+    brand = brand_slug or request.GET.get("brand")
+    min_price = _parse_price(request.GET.get("min_price"))
+    max_price = _parse_price(request.GET.get("max_price"))
+    # spec filters arrive as filter_<attrname> query params (multi-value per attribute)
+    filters = {
+        key[len("filter_"):]: [v for v in request.GET.getlist(key) if v]
+        for key in request.GET
+        if key.startswith("filter_") and request.GET.getlist(key)
+    }
+    products = services.list_products(
+        category_slug=category,
+        brand_slug=brand,
+        q=request.GET.get("q"),
+        sort=request.GET.get("sort"),
+        page=request.GET.get("page"),
+        min_price=min_price,
+        max_price=max_price,
+        filters=filters,
+    )
+    lo, hi = services.price_bounds()
+    current_category_obj = None
+    if category:
+        from apps.catalog.models import Category
+
+        current_category_obj = Category.objects.filter(slug=category).first()
+    brand_obj = None
+    if brand:
+        brand_obj = services.get_brand(brand)
+    # build spec filter groups with checked flags (avoid dict lookups by Persian keys in templates)
+    spec_filters = []
+    for group in services.filterable_attributes(current_category_obj):
+        active = filters.get(group["attr"].name, [])
+        spec_filters.append({
+            "attr": group["attr"],
+            "values": [{"value": v, "checked": v in active} for v in group["values"]],
+        })
+    return render(
+        request,
+        "catalog/product_list.html",
+        {
+            "products": products,
+            "categories": services.top_categories(),
+            "brands": services.active_brands(),
+            "spec_filters": spec_filters,
+            "current_category": category,
+            "current_brand": brand,
+            "current_brand_name": brand_obj.name if brand_obj else "",
+            "current_sort": request.GET.get("sort") or "newest",
+            "current_q": request.GET.get("q") or "",
+            "active_filters": filters,
+            "active_filter_pairs": [{"name": k, "value": v} for k, vs in filters.items() for v in vs],
+            "min_price": min_price,
+            "max_price": max_price,
+            "price_lo": lo,
+            "price_hi": hi,
+        },
+    )
+
+
+@ratelimit("restock", limit=10, window=3600)
+def restock_notify(request, slug):
+    product = services.get_product_detail(slug)
+    if product is None:
+        from django.http import Http404
+
+        raise Http404("محصول یافت نشد")
+
+    from apps.catalog import restock
+
+    result = restock.subscribe(product=product, email=request.POST.get("email", ""))
+    return render(
+        request,
+        "catalog/partials/restock_result.html",
+        {"product": product, "ok": result["ok"], "message": result["message"]},
+    )
+
+
+def compare_toggle(request, slug):
+    from apps.catalog import compare
+
+    try:
+        result = compare.toggle(request, slug=slug)
+        error = None
+    except compare.CompareError as exc:
+        result = {"added": False, "count": len(compare.get_slugs(request))}
+        error = str(exc)
+    return render(
+        request,
+        "catalog/partials/compare_result.html",
+        {"slug": slug, "result": result, "error": error, "compare_count": result["count"]},
+    )
+
+
+def compare_remove(request, slug):
+    from apps.catalog import compare
+
+    compare.remove(request, slug)
+    products = compare.get_products(request)
+    return render(
+        request,
+        "catalog/partials/compare_table.html",
+        {"products": products, "spec_rows": compare.spec_rows(products)},
+    )
+
+
+def compare_page(request):
+    from apps.catalog import compare
+
+    products = compare.get_products(request)
+    return render(
+        request,
+        "catalog/compare.html",
+        {"products": products, "spec_rows": compare.spec_rows(products)},
+    )
+
+
+def product_detail(request, slug):
+    product = services.get_product_detail(slug)
+    if product is None:
+        from django.http import Http404
+
+        raise Http404("محصول یافت نشد")
+
+    from apps.common import lastvisited
+    from apps.reviews import services as review_services
+
+    lastvisited.record_view(request, product)
+
+    return render(
+        request,
+        "catalog/product_detail.html",
+        {
+            "product": product,
+            "specs": services.product_specs(product),
+            "reviews": review_services.approved_reviews_for(product),
+            "has_reviewed": (
+                request.user.is_authenticated
+                and review_services.has_reviewed(user=request.user, product=product)
+            ),
+            "related_products": services.related_products(product),
+            "recently_viewed": lastvisited.get_viewed_products(request, exclude_slug=slug),
+        },
+    )
+
+
+def brand_page(request, brand_slug):
+    brand = services.get_brand(brand_slug)
+    if brand is None:
+        from django.http import Http404
+
+        raise Http404("برند یافت نشد")
+    return product_list(request, brand_slug=brand_slug)

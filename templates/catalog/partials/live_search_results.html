@@ -1,0 +1,32 @@
+{% load persian %}
+<div id="live-search-results"
+     class="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-brand-900/10 dark:border-cedar/60 dark:bg-midnight">
+    {% if results %}
+        <ul class="max-h-96 divide-y divide-gray-50 overflow-y-auto dark:divide-cedar/40">
+            {% for p in results %}
+                <li>
+                    <a href="{{ p.get_absolute_url }}" class="flex items-center gap-3 px-4 py-3 hover:bg-brand-50/60 dark:hover:bg-ember/60">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-50 dark:bg-ember">
+                            {% if p.image %}
+                                <img src="{{ p.image.url }}" alt="" class="h-full w-full object-cover">
+                            {% else %}
+                                {% include "partials/icon.html" with name="photo" cls="w-5 h-5 text-gray-300" sw="1.5" %}
+                            {% endif %}
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-bold">{{ p.name }}</span>
+                            <span class="mt-0.5 block text-xs text-gray-400 dark:text-mist-dim">{{ p.category.name }}</span>
+                        </span>
+                        <span class="shrink-0 text-sm font-bold"><bdi>{{ p.effective_price|toman|fa_digits }}</bdi></span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="/products/?q={{ q|urlencode }}" class="flex items-center justify-center gap-1 border-t border-gray-100 px-4 py-3 text-xs font-bold text-brand-600 hover:bg-brand-50/60 dark:border-cedar/60 dark:text-river dark:hover:bg-ember/60">
+            مشاهده همه نتایج «{{ q }}»
+            {% include "partials/icon.html" with name="chevron-left" cls="w-3.5 h-3.5" sw="2" %}
+        </a>
+    {% else %}
+        <p class="px-4 py-5 text-center text-sm text-gray-400 dark:text-mist-dim">نتیجه‌ای برای «{{ q }}» یافت نشد.</p>
+    {% endif %}
+</div>

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}سفارش ثبت شد | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="card mx-auto max-w-xl p-6 text-center sm:p-10">
+    <div class="icon-tile bg-green-50 text-green-600 dark:bg-ember dark:text-green-300">
+        {% include "partials/icon.html" with name="check" cls="w-8 h-8" sw="2.2" %}
+    </div>
+    <h1 class="mt-5 text-2xl font-bold">پرداخت با موفقیت انجام شد</h1>
+    <p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+        سفارش <span dir="ltr" class="font-bold text-gray-900 dark:text-glacier">{{ order.order_number }}</span> ثبت شد و در حال پردازش است.
+    </p>
+
+    <dl class="mt-7 space-y-3 rounded-2xl bg-gray-50 p-5 text-start text-sm dark:bg-ember/40">
+        <div class="flex justify-between">
+            <dt class="text-gray-500 dark:text-mist-dim">مبلغ پرداخت‌شده</dt>
+            <dd class="font-bold"><bdi>{{ order.total|toman|fa_digits }}</bdi></dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-gray-500 dark:text-mist-dim">تاریخ ثبت</dt>
+            <dd>{{ order.created_at|jalali|fa_digits }}</dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-gray-500 dark:text-mist-dim">کد پیگیری پرداخت</dt>
+            <dd dir="ltr">{{ order.payment_ref }}</dd>
+        </div>
+    </dl>
+
+    <div class="mt-7 flex flex-wrap justify-center gap-3">
+        <a href="{% url 'orders:detail' order.order_number %}" class="btn btn-primary">مشاهده سفارش</a>
+        <a href="/" class="btn btn-ghost">ادامه خرید</a>
+    </div>
+</div>
+{% endblock %}

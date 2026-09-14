@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:12px;padding:24px;font-family:Vazirmatn,Tahoma,sans-serif" dir="rtl">
+    <h2 style="margin-top:0">{{ campaign.subject }}</h2>
+    {% for p in campaign.paragraphs %}
+        <p style="line-height:1.9">{{ p|linebreaksbr }}</p>
+    {% endfor %}
+    <hr>
+    <p style="color:#888;font-size:12px">این ایمیل از فروشگاه ارسال شده است.<br>لغو عضویت: &lt;لینک شخصی هر مشترک&gt;</p>
+</div>
+<a href="../../" class="button" style="margin-top:12px">بازگشت</a>
+{% endblock %}

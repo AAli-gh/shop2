@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}{{ site_settings.store_name }}{% endblock %}
+{% block main_class %}flex-1 w-full{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="max-w-7xl mx-auto px-4 pt-6">
+    <div class="grid lg:grid-cols-2 rounded-3xl overflow-hidden bg-brand-50 dark:bg-cedar/40 border border-brand-100 dark:border-cedar/60">
+        <div class="p-8 sm:p-12 flex flex-col justify-center items-start">
+            {% if product_total %}
+                <span class="inline-flex items-center gap-2 rounded-full bg-white dark:bg-ember px-3.5 py-1.5 text-xs font-medium text-brand-600 dark:text-river">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-500 dark:bg-river"></span>
+                    بیش از {{ product_total|fa_digits }} کالای اصل و معتبر
+                </span>
+            {% endif %}
+            <h1 class="mt-5 text-3xl sm:text-5xl font-bold leading-snug sm:leading-tight">خرید مطمئن،<br>انتخاب هوشمند</h1>
+            <p class="mt-4 max-w-md text-gray-500 dark:text-mist-dim leading-8">
+                خانه‌ای بهتر با انتخاب از برترین برندها، ضمانت اصالت کالا و ارسال سریع به سراسر ایران.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-3">
+                <a href="{% url 'catalog:product_list' %}"
+                   class="inline-flex items-center gap-2 h-12 rounded-xl bg-brand-600 dark:bg-river-deep px-6 text-sm font-bold text-white hover:bg-brand-700 dark:hover:bg-river">
+                    مشاهده محصولات
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+                </a>
+                {% if on_sale %}
+                    <a href="#on-sale"
+                       class="inline-flex items-center h-12 rounded-xl border border-brand-500 dark:border-river px-6 text-sm font-bold text-brand-600 dark:text-river hover:bg-white dark:hover:bg-ember">
+                        پیشنهادهای ویژه
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Decorative visual (no hero photo in the data model) -->
+        <div class="relative min-h-64 lg:min-h-[26rem] overflow-hidden bg-gradient-to-br from-brand-200 via-brand-400 to-brand-600 dark:from-cedar dark:via-river-deep dark:to-midnight">
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;"></div>
+            <div class="absolute inset-0 flex items-center justify-center gap-4 sm:gap-6 p-8">
+                <div class="w-28 sm:w-36 aspect-[3/5] rounded-3xl bg-white/25 backdrop-blur border border-white/40 shadow-xl flex flex-col p-3 gap-2">
+                    <div class="h-2/5 rounded-2xl border border-white/50"></div>
+                    <div class="flex-1 rounded-2xl border border-white/50"></div>
+                </div>
+                <div class="w-28 sm:w-36 aspect-square rounded-3xl bg-white/25 backdrop-blur border border-white/40 shadow-xl flex flex-col p-3 gap-3 self-end mb-6">
+                    <div class="flex gap-1.5"><span class="w-2 h-2 rounded-full bg-white/70"></span><span class="w-2 h-2 rounded-full bg-white/50"></span></div>
+                    <div class="flex-1 flex items-center justify-center">
+                        <div class="w-3/4 aspect-square rounded-full border-4 border-white/60 flex items-center justify-center">
+                            <div class="w-1/2 aspect-square rounded-full bg-white/30"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular categories -->
+{% if home_categories %}
+<section class="max-w-7xl mx-auto px-4 mt-14">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold">
+            <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
+            دسته‌بندی‌های محبوب
+        </h2>
+        <a href="{% url 'catalog:product_list' %}" class="flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-river hover:underline">
+            مشاهده همه
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+        </a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {% for category in home_categories %}
+            <a href="{{ category.get_absolute_url }}"
+               class="group rounded-2xl border border-gray-100 dark:border-cedar/60 bg-white dark:bg-cedar/40 p-2 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
+                <div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-ember flex items-center justify-center">
+                    {% if category.cover_url %}
+                        <img src="{{ category.cover_url }}" alt="{{ category.name }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                    {% else %}
+                        <svg class="w-10 h-10 text-brand-300 dark:text-cedar-light" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+                        </svg>
+                    {% endif %}
+                </div>
+                <p class="py-3 text-center text-sm font-bold group-hover:text-brand-600 dark:group-hover:text-river">{{ category.name }}</p>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Best sellers (tinted band) -->
+{% if best_sellers %}
+<section class="mt-14 py-12 bg-brand-100/50 dark:bg-cedar/20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold">
+                <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
+                پرفروش‌ترین‌ها
+            </h2>
+            <a href="{% url 'catalog:product_list' %}" class="flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-river hover:underline">
+                همه پرفروش‌ها
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+            {% for product in best_sellers %}
+                {% include "catalog/partials/product_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Promo banners -->
+{% if banners %}
+<section class="max-w-7xl mx-auto px-4 mt-14 grid md:grid-cols-2 gap-5">
+    {% for banner in banners %}
+        <a href="{{ banner.link|default:'#' }}"
+           class="group grid grid-cols-2 rounded-2xl overflow-hidden border border-gray-100 dark:border-cedar/60 {% cycle 'bg-brand-50' 'bg-brand-100/60' %} dark:bg-cedar/40 {% if banners|length == 1 %}md:col-span-2{% endif %}">
+            <div class="p-6 sm:p-8 flex flex-col justify-center">
+                <span class="text-xs font-medium text-brand-500 dark:text-river">فرصت محدود</span>
+                <h3 class="mt-2 text-lg sm:text-xl font-bold">{{ banner.title }}</h3>
+                {% if banner.subtitle %}<p class="mt-2 text-xs sm:text-sm text-gray-500 dark:text-mist-dim leading-6">{{ banner.subtitle }}</p>{% endif %}
+                <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 dark:text-river">
+                    خرید کنید
+                    <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+                </span>
+            </div>
+            <div class="relative min-h-44 bg-gradient-to-br from-brand-200 to-brand-500 dark:from-cedar dark:to-midnight">
+                {% if banner.image %}
+                    <img src="{{ banner.image.url }}" alt="{{ banner.title }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% endif %}
+            </div>
+        </a>
+    {% endfor %}
+</section>
+{% endif %}
+
+<!-- Sale products -->
+{% if on_sale %}
+<section id="on-sale" class="max-w-7xl mx-auto px-4 mt-14 scroll-mt-6">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold">
+            <span class="w-1.5 h-7 rounded-full bg-red-500"></span>
+            پیشنهاد ویژه
+        </h2>
+        <a href="{% url 'catalog:product_list' %}" class="flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-river hover:underline">
+            مشاهده همه
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+        </a>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {% for product in on_sale %}
+            {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured -->
+{% if featured %}
+<section class="max-w-7xl mx-auto px-4 mt-14">
+    <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold mb-6">
+        <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
+        منتخب فروشگاه
+    </h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {% for product in featured %}
+            {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Recently viewed -->
+{% if recently_viewed %}
+<section class="max-w-7xl mx-auto px-4 mt-14">
+    <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold mb-6">
+        <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
+        بازدیدهای اخیر شما
+    </h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {% for product in recently_viewed %}
+            {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Trust features -->
+<div class="max-w-7xl mx-auto px-4 mt-14">
+    {% include "partials/trust_features.html" %}
+</div>
+
+{% endblock %}

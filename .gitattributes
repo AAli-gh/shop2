@@ -1,0 +1,4 @@
+# store text with LF in the repository; Windows batch files must keep CRLF to run in cmd
+* text=auto
+*.bat text eol=crlf
+*.woff2 binary

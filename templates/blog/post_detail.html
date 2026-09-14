@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}{{ post.title }} | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <a href="{% url 'blog:list' %}">راهنمای خرید</a>
+    <span aria-hidden="true">‹</span>
+    <span class="line-clamp-1 text-gray-600 dark:text-glacier">{{ post.title }}</span>
+</nav>
+
+<article class="mx-auto max-w-3xl">
+    <div class="card overflow-hidden">
+        {% if post.cover %}
+            <div class="aspect-[21/9] w-full bg-gray-50 dark:bg-ember">
+                <img src="{{ post.cover.url }}" alt="" class="h-full w-full object-cover">
+            </div>
+        {% endif %}
+        <div class="p-6 sm:p-10">
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="chip {% if post.kind == 'guide' %}bg-brand-50 text-brand-600 dark:bg-ember dark:text-river{% else %}bg-gray-100 text-gray-600 dark:bg-ember dark:text-glacier{% endif %}">
+                    {% if post.kind == 'guide' %}راهنمای خرید{% else %}مقاله{% endif %}
+                </span>
+                <span class="text-xs text-gray-400 dark:text-mist-dim">{{ post.published_at|jalali|fa_digits }}</span>
+            </div>
+            <h1 class="mt-4 text-2xl leading-snug font-bold sm:text-3xl">{{ post.title }}</h1>
+            {% if post.excerpt %}
+                <p class="mt-5 rounded-2xl bg-brand-50 p-5 text-sm leading-7 text-gray-600 dark:bg-ember/50 dark:text-mist-dim">{{ post.excerpt }}</p>
+            {% endif %}
+            <div class="mt-6 space-y-5 text-sm leading-8 text-gray-700 sm:text-base dark:text-glacier">
+                {% for b in post.blocks %}
+                    {% if b.h2 %}<h2 class="page-title mt-8 text-lg sm:text-xl">{{ b.h2 }}</h2>
+                    {% else %}<p class="whitespace-pre-line">{{ b.p }}</p>{% endif %}
+                {% endfor %}
+            </div>
+            <div class="mt-10 border-t border-gray-100 pt-6 dark:border-cedar/60">
+                <a href="{% url 'blog:list' %}" class="btn btn-sm btn-ghost">
+                    {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" sw="2" %}
+                    بازگشت به راهنمای خرید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if related %}
+    <section class="mt-10">
+        <h2 class="page-title mb-5">مطالب مرتبط</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+            {% for r in related %}
+                <a href="{{ r.get_absolute_url }}" class="card block p-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
+                    <h3 class="line-clamp-2 text-sm leading-6 font-bold">{{ r.title }}</h3>
+                    <p class="mt-2 line-clamp-2 text-xs leading-6 text-gray-500 dark:text-mist-dim">{{ r.excerpt }}</p>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

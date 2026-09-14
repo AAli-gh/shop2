@@ -1,0 +1,102 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}سفارش {{ order.order_number }} | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><a href="{% url 'orders:list' %}">سفارش‌های من</a>
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier" dir="ltr">{{ order.order_number }}</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="space-y-5">
+    <div class="card flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+        <div>
+            <h1 class="page-title text-lg sm:text-xl">سفارش <span dir="ltr">{{ order.order_number }}</span></h1>
+            <p class="mt-2 text-xs text-gray-400 dark:text-mist-dim">ثبت‌شده در {{ order.created_at|jalali|fa_digits }}</p>
+        </div>
+        {% include "orders/partials/status_chip.html" %}
+    </div>
+
+    {% if order.status == 'cancelled' %}
+        <div class="alert-error flex items-center gap-2">{% include "partials/icon.html" with name="warning" %}این سفارش لغو شده است.</div>
+    {% else %}
+        <div class="card overflow-x-auto p-5 sm:p-6">
+            <ol class="flex min-w-[32rem] items-start">
+                {% for s in order.progress_steps %}
+                    <li class="relative flex flex-1 flex-col items-center text-center text-xs">
+                        {% if not forloop.first %}
+                            <span class="absolute top-4 -right-1/2 left-1/2 h-0.5 {% if s.done or s.current %}bg-brand-500 dark:bg-river{% else %}bg-gray-200 dark:bg-cedar/60{% endif %}" aria-hidden="true"></span>
+                        {% endif %}
+                        <span class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full
+                            {% if s.done %}bg-brand-600 text-white dark:bg-river-deep
+                            {% elif s.current %}border-2 border-brand-600 bg-white font-bold text-brand-600 dark:border-river dark:bg-midnight dark:text-river
+                            {% else %}border border-gray-200 bg-white text-gray-300 dark:border-cedar/60 dark:bg-midnight{% endif %}">
+                            {% if s.done %}{% include "partials/icon.html" with name="check" cls="w-4 h-4" sw="2.5" %}{% else %}{{ forloop.counter|fa_digits }}{% endif %}
+                        </span>
+                        <span class="mt-2 {% if s.current %}font-bold text-brand-600 dark:text-river{% elif s.done %}text-gray-700 dark:text-glacier{% else %}text-gray-400 dark:text-mist-dim{% endif %}">{{ s.label }}</span>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    {% endif %}
+
+    <!-- Items -->
+    <div class="card overflow-hidden">
+        <h2 class="card-title mb-0 px-5 pt-5 sm:px-6">اقلام سفارش</h2>
+        <ul class="mt-2 divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for item in order.items.all %}
+                <li class="flex items-center justify-between gap-4 px-5 py-4 text-sm sm:px-6">
+                    <span class="font-medium">{{ item.product_name }} <span class="text-gray-400 dark:text-mist-dim">× {{ item.quantity|fa_digits }}</span></span>
+                    <span class="shrink-0 font-bold"><bdi>{{ item.line_total|toman|fa_digits }}</bdi></span>
+                </li>
+            {% endfor %}
+        </ul>
+        <dl class="space-y-2 bg-gray-50 px-5 py-4 text-sm sm:px-6 dark:bg-ember/40">
+            <div class="flex justify-between text-gray-500 dark:text-mist-dim"><dt>جمع کالاها</dt><dd><bdi>{{ order.items_subtotal|toman|fa_digits }}</bdi></dd></div>
+            <div class="flex justify-between text-gray-500 dark:text-mist-dim">
+                <dt>تخفیف {% if order.coupon_code %}(کد {{ order.coupon_code }}){% endif %}</dt>
+                <dd>{% if order.discount_amount %}<bdi>-{{ order.discount_amount|toman|fa_digits }}</bdi>{% else %}—{% endif %}</dd>
+            </div>
+            <div class="flex justify-between text-gray-500 dark:text-mist-dim"><dt>ارسال</dt><dd>{% if order.shipping_cost == 0 %}رایگان{% else %}<bdi>{{ order.shipping_cost|toman|fa_digits }}</bdi>{% endif %}</dd></div>
+            {% if order.install_requested %}
+                <div class="flex justify-between text-gray-500 dark:text-mist-dim"><dt>نصب</dt><dd>{% if order.install_cost == 0 %}رایگان{% else %}<bdi>{{ order.install_cost|toman|fa_digits }}</bdi>{% endif %}</dd></div>
+            {% endif %}
+            {% if order.wallet_used %}
+                <div class="flex justify-between text-gray-500 dark:text-mist-dim"><dt>پرداخت از کیف پول</dt><dd><bdi>{{ order.wallet_used|toman|fa_digits }}</bdi></dd></div>
+            {% endif %}
+            <div class="flex justify-between border-t border-gray-200 pt-2 text-base font-bold dark:border-cedar/50"><dt>جمع کل</dt><dd><bdi>{{ order.total|toman|fa_digits }}</bdi></dd></div>
+        </dl>
+    </div>
+
+    <!-- Address & payment -->
+    <div class="grid gap-5 md:grid-cols-2">
+        <div class="card p-5 text-sm sm:p-6">
+            <h2 class="card-title"><span class="text-brand-500 dark:text-river">{% include "partials/icon.html" with name="pin" %}</span>آدرس تحویل</h2>
+            <p class="font-medium">{{ order.shipping_address.full_name }} <span class="text-gray-400 dark:text-mist-dim">— <bdi>{{ order.shipping_address.phone }}</bdi></span></p>
+            <p class="mt-2 leading-7 text-gray-600 dark:text-mist-dim">{{ order.shipping_address.province }}، {{ order.shipping_address.city }}، {{ order.shipping_address.address_line }}</p>
+            <p class="mt-1 text-gray-500 dark:text-mist-dim">کد پستی: <bdi>{{ order.shipping_address.postal_code }}</bdi></p>
+        </div>
+        <div class="card p-5 text-sm sm:p-6">
+            <h2 class="card-title"><span class="text-brand-500 dark:text-river">{% include "partials/icon.html" with name="card" %}</span>پرداخت و ارسال</h2>
+            <dl class="space-y-2">
+                <div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-mist-dim">تاریخ سفارش</dt><dd>{{ order.created_at|jalali|fa_digits }}</dd></div>
+                {% if order.payment_ref %}<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-mist-dim">کد پیگیری پرداخت</dt><dd dir="ltr">{{ order.payment_ref }}</dd></div>{% endif %}
+                {% if order.shipping_method %}<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-mist-dim">روش ارسال</dt><dd>{{ order.shipping_method.name }}</dd></div>{% endif %}
+                {% if order.tracking_code %}<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-mist-dim">کد رهگیری مرسوله</dt><dd dir="ltr" class="font-bold">{{ order.tracking_code }}</dd></div>{% endif %}
+                {% if order.install_date %}<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-mist-dim">زمان ترجیحی نصب</dt><dd>{{ order.install_date }}</dd></div>{% endif %}
+            </dl>
+            {% if order.shipping_note %}<p class="mt-3 rounded-xl bg-gray-50 p-3 text-gray-500 dark:bg-ember/40 dark:text-mist-dim">{{ order.shipping_note }}</p>{% endif %}
+        </div>
+    </div>
+
+    {% if order.status == 'pending_payment' %}
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'orders:pay' order.order_number %}" class="btn btn-success">پرداخت سفارش</a>
+            <form method="post" action="{% url 'orders:cancel' order.order_number %}" onsubmit="return confirm('این سفارش لغو شود؟')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">لغو سفارش</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

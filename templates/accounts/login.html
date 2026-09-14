@@ -1,0 +1,22 @@
+{% extends "accounts/_auth_layout.html" %}
+{% block title %}ورود | {{ site_settings.store_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="text-2xl font-bold">ورود به حساب</h1>
+<p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">خوش آمدید! برای ادامه وارد حساب کاربری خود شوید.</p>
+<form method="post" class="mt-8 space-y-5">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert-error">{{ form.non_field_errors.0 }}</div>{% endif %}
+    {% for field in form %}
+        {% include "partials/field.html" %}
+    {% endfor %}
+    <div class="text-left">
+        <a href="{% url 'accounts:password_reset' %}" class="link text-xs">گذرواژه را فراموش کرده‌اید؟</a>
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="btn btn-primary h-12 w-full">ورود</button>
+</form>
+<p class="mt-8 text-center text-sm text-gray-500 dark:text-mist-dim">
+    حساب کاربری ندارید؟ <a href="{% url 'accounts:register' %}" class="link font-bold">ثبت‌نام کنید</a>
+</p>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% load persian %}
+{% if products %}
+<div id="compare-table" class="card overflow-x-auto">
+    <table class="w-full min-w-[40rem] text-sm">
+        <thead>
+        <tr class="border-b border-gray-100 dark:border-cedar/60">
+            <th class="w-36 p-4 text-start align-bottom text-xs font-medium text-gray-400 dark:text-mist-dim">{{ products|length|fa_digits }} محصول</th>
+            {% for p in products %}
+                <td class="min-w-44 p-4 text-center align-top">
+                    <a href="{{ p.get_absolute_url }}" class="mx-auto flex aspect-square w-28 items-center justify-center overflow-hidden rounded-xl bg-gray-50 dark:bg-ember">
+                        {% if p.image %}
+                            <img src="{{ p.image.url }}" alt="{{ p.name }}" class="h-full w-full object-cover">
+                        {% else %}
+                            {% include "partials/icon.html" with name="photo" cls="w-10 h-10 text-gray-300 dark:text-cedar-light" sw="1.2" %}
+                        {% endif %}
+                    </a>
+                    <a href="{{ p.get_absolute_url }}" class="mt-3 block leading-6 font-bold hover:text-brand-600 dark:hover:text-river">{{ p.name }}</a>
+                    <button type="button" hx-post="{% url 'catalog:compare_remove' p.slug %}"
+                            hx-target="#compare-table" hx-swap="outerHTML"
+                            class="btn btn-sm btn-danger mt-3">
+                        {% include "partials/icon.html" with name="x" cls="w-3.5 h-3.5" sw="2" %}
+                        حذف
+                    </button>
+                </td>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody class="[&>tr:nth-child(odd)]:bg-gray-50/70 dark:[&>tr:nth-child(odd)]:bg-ember/30">
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">قیمت</th>
+            {% for p in products %}
+                <td class="p-4 text-center font-bold"><bdi>{{ p.effective_price|toman|fa_digits }}</bdi></td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">تخفیف</th>
+            {% for p in products %}
+                <td class="p-4 text-center">{% if p.discount_percent %}<span class="chip bg-red-500 text-white">{{ p.discount_percent|fa_digits }}٪</span>{% else %}—{% endif %}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">دسته</th>
+            {% for p in products %}
+                <td class="p-4 text-center">{{ p.category.name }}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">امتیاز</th>
+            {% for p in products %}
+                <td class="p-4 text-center">{% if p.avg_rating %}<span class="text-amber-500">★</span> {{ p.avg_rating|floatformat:1|fa_digits }}{% else %}—{% endif %}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">برند</th>
+            {% for p in products %}
+                <td class="p-4 text-center">{{ p.brand.name|default:"—" }}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">گارانتی</th>
+            {% for p in products %}
+                <td class="p-4 text-center text-xs">{{ p.warranty|default:"—" }}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">موجودی</th>
+            {% for p in products %}
+                <td class="p-4 text-center">
+                    {% if p.in_stock %}<span class="text-green-600 dark:text-green-300">موجود ({{ p.stock|fa_digits }})</span>
+                    {% else %}<span class="text-red-500">ناموجود</span>{% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        {% for row in spec_rows %}
+            <tr>
+                <th class="p-4 text-start font-medium text-gray-500 dark:text-mist-dim">{{ row.name }}</th>
+                {% for cell in row.cells %}
+                    <td class="p-4 text-center">{{ cell }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div id="compare-table" class="empty-state">
+    <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="chart" cls="w-8 h-8" sw="1.5" %}</div>
+    <p class="mt-5 font-bold">هنوز محصولی برای مقایسه انتخاب نکرده‌اید</p>
+    <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">روی «+ مقایسه» زیر هر محصول کلیک کنید (حداکثر ۳ محصول).</p>
+    <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">رفتن به فروشگاه</a>
+</div>
+{% endif %}

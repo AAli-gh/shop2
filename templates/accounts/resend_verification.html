@@ -1,0 +1,15 @@
+{% extends "accounts/_auth_layout.html" %}
+{% block title %}ارسال مجدد ایمیل تأیید | {{ site_settings.store_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="text-2xl font-bold">ارسال مجدد ایمیل تأیید</h1>
+<p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">ایمیلی که با آن ثبت‌نام کرده‌اید را وارد کنید.</p>
+<form method="post" class="mt-8 space-y-5">
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.email %}
+    <button type="submit" class="btn btn-primary h-12 w-full">ارسال</button>
+</form>
+<p class="mt-8 text-center text-sm">
+    <a href="{% url 'accounts:login' %}" class="link">بازگشت به ورود</a>
+</p>
+{% endblock %}

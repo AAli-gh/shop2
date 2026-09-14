@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}{{ page.title }} | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">{{ page.title }}</span>
+</nav>
+
+<div class="mx-auto max-w-3xl">
+    <div class="card p-6 sm:p-10">
+        <h1 class="page-title">{{ page.title }}</h1>
+        {% if page.key == 'faq' %}
+            <div class="mt-8 space-y-3">
+                {% for p in page.paragraphs %}
+                    <div class="rounded-2xl border border-gray-100 bg-gray-50/60 p-5 text-sm leading-7 text-gray-600 dark:border-cedar/60 dark:bg-ember/30 dark:text-mist-dim [&_strong]:text-base [&_strong]:text-gray-900 dark:[&_strong]:text-glacier">{{ p|qa_paragraph }}</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="mt-8 space-y-4 text-sm leading-8 text-gray-600 sm:text-base dark:text-mist-dim">
+                {% for p in page.paragraphs %}
+                    <p>{{ p|linebreaksbr }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card mt-6 flex flex-wrap items-center justify-between gap-4 p-5">
+        <p class="text-sm font-medium">پاسخ سؤال خود را پیدا نکردید؟</p>
+        <a href="{% url 'common:contact' %}" class="btn btn-sm btn-primary">تماس با پشتیبانی</a>
+    </div>
+</div>
+{% endblock %}

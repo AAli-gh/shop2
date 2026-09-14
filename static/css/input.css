@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@source "../../templates";
+@source "../../apps";
+@source "../js";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Vazirmatn", Tahoma, Arial, sans-serif;
+
+  /* Ocean Blue palette (light mode) */
+  --color-surface: #f2f9fb;
+  --color-brand-50: #f0f8fa;
+  --color-brand-100: #dceff4;
+  --color-brand-200: #a5d1e1;
+  --color-brand-300: #7fbfd3;
+  --color-brand-400: #3faec2;
+  --color-brand-500: #199fb1;
+  --color-brand-600: #0d5c75;
+  --color-brand-700: #0b4e63;
+  --color-brand-800: #093f50;
+  --color-brand-900: #07303d;
+
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+
+  /* Dark-mode nature palette */
+  --color-midnight: #1a2126;
+  --color-cedar: #3e5b64;
+  --color-cedar-light: #4b6a73;
+  --color-ember: #37362b;
+  --color-river: #63a0aa;
+  --color-river-deep: #528a94;
+  --color-glacier: #b7d1d4;
+  --color-mist-dim: #93b0b4;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* horizontal scrollers (category nav) without a visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* shared UI components — keep page templates on these so every page matches the storefront design */
+@layer base {
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: var(--color-brand-600);
+  }
+  input[type="number"].no-spin::-webkit-inner-spin-button,
+  input[type="number"].no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"].no-spin {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-gray-100 bg-white dark:border-cedar/60 dark:bg-cedar/40;
+  }
+  .card-title {
+    @apply mb-4 flex items-center gap-2 text-base font-bold;
+  }
+  .page-title {
+    @apply flex items-center gap-3 text-xl font-bold sm:text-2xl;
+  }
+  .page-title::before {
+    content: "";
+    @apply h-7 w-1.5 shrink-0 rounded-full bg-brand-500 dark:bg-river;
+  }
+  .breadcrumb {
+    @apply flex flex-wrap items-center gap-1.5 text-xs text-gray-400 dark:text-mist-dim;
+  }
+  .breadcrumb a {
+    @apply hover:text-brand-600 dark:hover:text-river;
+  }
+  .btn {
+    @apply inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-sm {
+    @apply h-9 rounded-lg px-3.5 text-xs;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 dark:bg-river-deep dark:hover:bg-river;
+  }
+  .btn-outline {
+    @apply border border-brand-500 text-brand-600 hover:bg-brand-50 dark:border-river dark:text-river dark:hover:bg-ember;
+  }
+  .btn-ghost {
+    @apply border border-gray-200 text-gray-700 hover:border-brand-300 hover:text-brand-600 dark:border-cedar/60 dark:text-glacier dark:hover:text-river;
+  }
+  .btn-danger {
+    @apply border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-ember;
+  }
+  .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700;
+  }
+  .input {
+    @apply h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none dark:border-cedar/50 dark:bg-ember dark:placeholder:text-mist-dim dark:focus:bg-ember;
+  }
+  textarea.input {
+    @apply h-auto py-3 leading-7;
+  }
+  input[type="file"].input {
+    @apply h-auto py-2.5;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium;
+  }
+  .field-error {
+    @apply mt-1 text-xs text-red-600 dark:text-red-300;
+  }
+  .alert-error {
+    @apply rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-ember dark:text-red-300;
+  }
+  .alert-success {
+    @apply rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-ember dark:text-glacier;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap;
+  }
+  .link {
+    @apply text-brand-600 hover:underline dark:text-river;
+  }
+  .empty-state {
+    @apply rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center dark:border-cedar/60 dark:bg-cedar/20;
+  }
+  .icon-tile {
+    @apply mx-auto flex h-16 w-16 items-center justify-center rounded-2xl;
+  }
+  .acc-link {
+    @apply flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 whitespace-nowrap text-gray-600 hover:bg-gray-50 hover:text-brand-600 dark:text-glacier/80 dark:hover:bg-ember dark:hover:text-river;
+  }
+  .acc-link.is-active {
+    @apply bg-brand-50 font-bold text-brand-600 dark:bg-ember dark:text-river;
+  }
+}
+
+/* number/price spans are LTR inside RTL text */
+bdi, .ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}

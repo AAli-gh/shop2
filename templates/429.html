@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}تلاش بیش از حد | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="card mx-auto max-w-lg p-8 text-center sm:p-10">
+    <div class="icon-tile bg-amber-50 text-amber-600 dark:bg-ember dark:text-amber-300">{% include "partials/icon.html" with name="clock" cls="w-8 h-8" sw="1.6" %}</div>
+    <h1 class="mt-5 text-xl font-bold">تعداد تلاش‌ها بیش از حد مجاز است</h1>
+    <p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+        برای حفظ امنیت حساب‌ها، لطفاً حدود {{ retry_minutes|fa_digits }} دقیقه صبر کنید و دوباره تلاش کنید.
+    </p>
+    <a href="/" class="btn btn-ghost mt-7">صفحه اصلی</a>
+</div>
+{% endblock %}

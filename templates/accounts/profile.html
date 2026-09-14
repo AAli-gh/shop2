@@ -1,0 +1,31 @@
+{% extends "accounts/_account_layout.html" %}
+{% block title %}پروفایل | {{ site_settings.store_name }}{% endblock %}
+
+{% block account_content %}
+<div class="space-y-5">
+    <div class="grid gap-4 sm:grid-cols-3">
+        {% with tile="card flex items-center gap-3 p-4 hover:border-brand-300" icon="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river" %}
+        <a href="{% url 'orders:list' %}" class="{{ tile }}"><span class="{{ icon }}">{% include "partials/icon.html" with name="bag" %}</span><span class="text-sm font-bold">سفارش‌های من</span></a>
+        <a href="{% url 'accounts:address_list' %}" class="{{ tile }}"><span class="{{ icon }}">{% include "partials/icon.html" with name="pin" %}</span><span class="text-sm font-bold">آدرس‌ها</span></a>
+        <a href="{% url 'wallet:page' %}" class="{{ tile }}"><span class="{{ icon }}">{% include "partials/icon.html" with name="wallet" %}</span><span class="text-sm font-bold">کیف پول</span></a>
+        {% endwith %}
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h1 class="page-title mb-6 text-lg sm:text-xl">اطلاعات حساب</h1>
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label class="label">ایمیل</label>
+                    <input type="email" value="{{ user.email }}" disabled dir="ltr" class="input cursor-not-allowed opacity-70">
+                </div>
+                {% for field in form %}
+                    {% include "partials/field.html" %}
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

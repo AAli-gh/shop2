@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}تماس با ما | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">تماس با ما</span>
+</nav>
+
+<div class="grid items-start gap-6 lg:grid-cols-3">
+    <aside class="card space-y-5 p-6">
+        <h2 class="card-title mb-2">راه‌های ارتباطی</h2>
+        {% with icon="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river" %}
+        {% if settings_obj.contact_phone %}
+            <div class="flex items-center gap-3">
+                <span class="{{ icon }}">{% include "partials/icon.html" with name="phone" %}</span>
+                <div>
+                    <p class="text-xs text-gray-400 dark:text-mist-dim">تلفن پشتیبانی</p>
+                    <p class="mt-0.5 text-sm font-bold"><bdi>{{ settings_obj.contact_phone|fa_digits }}</bdi></p>
+                </div>
+            </div>
+        {% endif %}
+        <div class="flex items-center gap-3">
+            <span class="{{ icon }}">{% include "partials/icon.html" with name="clock" %}</span>
+            <div>
+                <p class="text-xs text-gray-400 dark:text-mist-dim">ساعات پاسخ‌گویی</p>
+                <p class="mt-0.5 text-sm font-bold">شنبه تا پنجشنبه، ۹ تا ۱۸</p>
+            </div>
+        </div>
+        <a href="{% url 'common:faq' %}" class="flex items-center gap-3 rounded-xl hover:text-brand-600 dark:hover:text-river">
+            <span class="{{ icon }}">{% include "partials/icon.html" with name="book" %}</span>
+            <div>
+                <p class="text-xs text-gray-400 dark:text-mist-dim">پاسخ سریع</p>
+                <p class="mt-0.5 text-sm font-bold">پرسش‌های متداول</p>
+            </div>
+        </a>
+        {% endwith %}
+    </aside>
+
+    <div class="card p-6 sm:p-8 lg:col-span-2">
+        <h1 class="page-title text-lg sm:text-xl">ارسال پیام</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">پیام شما در کوتاه‌ترین زمان ممکن پاسخ داده می‌شود.</p>
+        <form method="post" class="mt-6 space-y-5">
+            {% csrf_token %}
+            <div class="grid gap-5 sm:grid-cols-2">
+                {% for field in form %}
+                    <div class="{% if field.name == 'subject' or field.name == 'body' %}sm:col-span-2{% endif %}">
+                        {% include "partials/field.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">ارسال پیام</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

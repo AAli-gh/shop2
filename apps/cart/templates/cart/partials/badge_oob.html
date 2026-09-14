@@ -1,0 +1,3 @@
+<span id="cart-badge"
+      hx-swap-oob="true"
+      class="bg-brand-600 dark:bg-river-deep text-white text-[11px] font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center {% if not summary.item_count %}hidden{% endif %}">{% if summary.item_count %}{{ summary.item_count }}{% endif %}</span>

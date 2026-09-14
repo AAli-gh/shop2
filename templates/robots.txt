@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /orders/
+Disallow: /accounts/
+Disallow: /wishlist/
+Disallow: /api/
+Disallow: /newsletter/verify/
+Disallow: /newsletter/unsubscribe/
+
+Sitemap: http://127.0.0.1:8000/sitemap.xml

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}سبد خرید | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">سبد خرید</span>
+</nav>
+{% if summary.items %}
+    {% include "orders/partials/steps.html" with step=1 %}
+{% endif %}
+<div id="cart-region">
+    {% include "cart/partials/cart_body.html" %}
+</div>
+{% endblock %}

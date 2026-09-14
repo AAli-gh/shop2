@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}درباره ما | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">درباره ما</span>
+</nav>
+
+<section class="grid overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 lg:grid-cols-5 dark:border-cedar/60 dark:bg-cedar/40">
+    <div class="p-8 sm:p-12 lg:col-span-3">
+        <span class="chip bg-white text-brand-600 dark:bg-ember dark:text-river">درباره ما</span>
+        <h1 class="mt-4 text-3xl leading-snug font-bold sm:text-4xl">درباره {{ site_settings.store_name }}</h1>
+        {% if site_settings.about_text %}
+            <div class="mt-5 text-sm leading-8 whitespace-pre-line text-gray-600 sm:text-base dark:text-mist-dim">{{ site_settings.about_text }}</div>
+        {% else %}
+            <p class="mt-5 text-sm leading-8 text-gray-600 sm:text-base dark:text-mist-dim">
+                ما یک فروشگاه اینترنتی هستیم که با هدف ارائه کالای باکیفیت و تجربه خریدی ساده و مطمئن راه‌اندازی شده‌ایم.
+                متن کامل درباره ما را می‌توانید از پنل مدیریت فروشگاه ویرایش کنید.
+            </p>
+        {% endif %}
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'common:contact' %}" class="btn btn-primary">تماس با ما</a>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-outline">رفتن به فروشگاه</a>
+        </div>
+    </div>
+    <div class="relative hidden min-h-72 bg-gradient-to-br from-brand-200 via-brand-400 to-brand-600 lg:col-span-2 lg:block dark:from-cedar dark:via-river-deep dark:to-midnight">
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <span class="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-white/40 bg-white/25 text-6xl font-bold text-white shadow-xl backdrop-blur">{{ site_settings.store_name|first|upper }}</span>
+        </div>
+    </div>
+</section>
+
+<div class="mt-10">
+    {% include "partials/trust_features.html" %}
+</div>
+{% endblock %}

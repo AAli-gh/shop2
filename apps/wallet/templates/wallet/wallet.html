@@ -1,0 +1,48 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}کیف پول من | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">کیف پول</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="space-y-5">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-6 text-white sm:p-8 dark:from-cedar dark:via-river-deep dark:to-midnight">
+        <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;"></div>
+        <div class="relative flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm opacity-80">موجودی کیف پول</p>
+                <p class="mt-2 text-3xl font-bold sm:text-4xl"><bdi>{{ wallet.balance|price|fa_digits }}</bdi> <span class="text-base font-medium opacity-80">تومان</span></p>
+            </div>
+            <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15">{% include "partials/icon.html" with name="wallet" cls="w-7 h-7" sw="1.5" %}</span>
+        </div>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">افزایش اعتبار با کد هدیه</h2>
+        <form method="post" action="{% url 'wallet:redeem' %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="مثلاً GIFT-AB12CD34EF" required dir="ltr" class="input flex-1">
+            <button type="submit" class="btn btn-primary">شارژ</button>
+        </form>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">تراکنش‌های اخیر</h2>
+        {% if transactions %}
+            <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+                {% for t in transactions %}
+                    <li class="flex items-center gap-3 py-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-bold {% if t.amount >= 0 %}bg-green-50 text-green-600 dark:bg-ember dark:text-green-300{% else %}bg-red-50 text-red-600 dark:bg-ember dark:text-red-300{% endif %}">{% if t.amount >= 0 %}+{% else %}−{% endif %}</span>
+                        <span class="flex-1 text-gray-600 dark:text-mist-dim">{{ t.get_kind_display }}</span>
+                        <span class="font-bold {% if t.amount >= 0 %}text-green-600 dark:text-green-300{% else %}text-red-600 dark:text-red-300{% endif %}"><bdi>{{ t.amount|absval|toman|fa_digits }}</bdi></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="py-4 text-center text-sm text-gray-400 dark:text-mist-dim">تراکنشی ثبت نشده است.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

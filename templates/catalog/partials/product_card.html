@@ -1,0 +1,77 @@
+{% load persian %}
+<div class="group relative flex flex-col bg-white dark:bg-cedar/40 rounded-2xl border border-gray-100 dark:border-cedar/60 p-3 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
+    <div class="relative">
+        <a href="{{ product.get_absolute_url }}" class="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-gray-50 dark:bg-ember">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy"
+                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">
+            {% else %}
+                <svg class="h-14 w-14 text-gray-300 dark:text-cedar-light" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M18 6h.008v.008H18V6Zm2.25 12H3.75A1.5 1.5 0 0 1 2.25 16.5v-9A1.5 1.5 0 0 1 3.75 6h16.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5Z"/>
+                </svg>
+            {% endif %}
+        </a>
+        {% if product.discount_percent %}
+            <span class="absolute top-2 right-2 z-10 flex h-7 min-w-9 items-center justify-center rounded-full bg-red-500 px-2 text-[11px] font-bold text-white shadow-sm">
+                {{ product.discount_percent|fa_digits }}٪
+            </span>
+        {% endif %}
+        <div class="absolute top-1.5 left-1.5 z-10 rounded-full bg-white/90 dark:bg-midnight/70">
+            {% include "wishlist/partials/heart_button.html" %}
+        </div>
+    </div>
+
+    <div class="flex flex-1 flex-col px-1 pt-3">
+        {% if product.brand %}
+            <a href="{% url 'catalog:brand' product.brand.slug %}" class="text-[11px] text-gray-400 dark:text-mist-dim hover:text-brand-600 dark:hover:text-river">{{ product.brand.name }}</a>
+        {% endif %}
+        <a href="{{ product.get_absolute_url }}" class="mt-0.5 line-clamp-2 min-h-12 text-sm font-bold leading-6 hover:text-brand-600 dark:hover:text-river">{{ product.name }}</a>
+
+        {% if product.avg_rating %}
+            <div class="mt-1.5 flex items-center gap-1 text-xs">
+                <svg class="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"/>
+                </svg>
+                <span class="font-medium">{{ product.avg_rating|floatformat:1|fa_digits }}</span>
+                <span class="text-gray-400 dark:text-mist-dim">({{ product.review_count|fa_digits }})</span>
+            </div>
+        {% endif %}
+
+        {% if product.has_installments %}
+            <span class="mt-1 text-[11px] text-brand-600 dark:text-river">قسطی <bdi>{{ product.monthly_payment|toman|fa_digits }}</bdi>/ماه</span>
+        {% endif %}
+
+        <div class="mt-auto flex items-end justify-between gap-2 pt-3">
+            <div class="min-w-0">
+                {% if product.discount_percent %}
+                    <p class="text-xs text-gray-400 dark:text-mist-dim line-through"><bdi>{{ product.price|price|fa_digits }}</bdi></p>
+                {% endif %}
+                <p class="text-base font-bold">
+                    <bdi>{{ product.effective_price|price|fa_digits }}</bdi>
+                    <span class="text-xs font-medium text-gray-500 dark:text-mist-dim">تومان</span>
+                </p>
+            </div>
+            {% if product.in_stock %}
+                <button type="button" title="افزودن به سبد خرید"
+                        hx-post="{% url 'cart:htmx_add' product.pk %}"
+                        hx-target="#cart-feedback-{{ product.pk }}" hx-swap="innerHTML"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 dark:bg-river-deep text-white transition-colors hover:bg-brand-700 dark:hover:bg-river">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
+                    </svg>
+                </button>
+            {% else %}
+                <span class="shrink-0 rounded-lg bg-red-50 dark:bg-ember px-2 py-1 text-xs text-red-500">ناموجود</span>
+            {% endif %}
+        </div>
+
+        <div class="mt-2 flex min-h-5 items-center justify-between gap-2">
+            <span id="cart-feedback-{{ product.pk }}" class="text-xs"></span>
+            <button type="button" hx-post="{% url 'catalog:compare_toggle' product.slug %}"
+                    hx-target="this" hx-swap="outerHTML"
+                    class="text-[11px] text-gray-400 dark:text-mist-dim hover:text-brand-600 dark:hover:text-river">
+                + مقایسه
+            </button>
+        </div>
+    </div>
+</div>

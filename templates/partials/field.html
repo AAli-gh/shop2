@@ -1,0 +1,10 @@
+{% comment %}One form field in the shared style. Usage: {% include "partials/field.html" with field=form.email %}{% endcomment %}
+{% if field.widget_type == "checkbox" %}
+    <label class="flex items-center gap-2.5 text-sm" for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+{% else %}
+    <div>
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+{% endif %}

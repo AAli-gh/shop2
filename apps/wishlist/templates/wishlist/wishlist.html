@@ -1,0 +1,29 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}علاقه‌مندی‌های من | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">علاقه‌مندی‌ها</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-6 text-lg sm:text-xl">علاقه‌مندی‌های من</h1>
+    {% if items %}
+        <div class="grid grid-cols-2 gap-4 xl:grid-cols-3">
+            {% for row in items %}
+                {% with product=row.product %}
+                    {% include "catalog/partials/product_card.html" %}
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="py-10 text-center">
+            <div class="icon-tile bg-red-50 text-red-500 dark:bg-ember dark:text-red-300">{% include "partials/icon.html" with name="heart" cls="w-8 h-8" sw="1.5" %}</div>
+            <p class="mt-5 font-bold">لیست علاقه‌مندی‌های شما خالی است</p>
+            <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">با زدن قلب روی هر محصول، آن را اینجا نگه دارید.</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">رفتن به فروشگاه</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

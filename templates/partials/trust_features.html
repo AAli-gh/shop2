@@ -1,0 +1,38 @@
+{% load persian %}
+<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% with card="card flex items-center gap-4 p-5" icon="w-12 h-12 shrink-0 rounded-xl bg-brand-50 dark:bg-ember text-brand-600 dark:text-river flex items-center justify-center" %}
+    <div class="{{ card }}">
+        <span class="{{ icon }}">{% include "partials/icon.html" with name="truck" cls="w-6 h-6" sw="1.6" %}</span>
+        <div>
+            {% if site_settings.free_shipping_threshold %}
+                <p class="text-sm font-bold">ارسال رایگان</p>
+                <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">برای خریدهای بالای <bdi>{{ site_settings.free_shipping_threshold|toman|fa_digits }}</bdi></p>
+            {% else %}
+                <p class="text-sm font-bold">ارسال سریع</p>
+                <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">به سراسر ایران</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="{{ card }}">
+        <span class="{{ icon }}">{% include "partials/icon.html" with name="shield" cls="w-6 h-6" sw="1.6" %}</span>
+        <div>
+            <p class="text-sm font-bold">ضمانت اصالت کالا</p>
+            <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">تضمین کالای اصل</p>
+        </div>
+    </div>
+    <a href="{% url 'common:contact' %}" class="{{ card }} hover:border-brand-200">
+        <span class="{{ icon }}">{% include "partials/icon.html" with name="phone" cls="w-6 h-6" sw="1.6" %}</span>
+        <div>
+            <p class="text-sm font-bold">پشتیبانی مشتریان</p>
+            <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{% if site_settings.contact_phone %}<bdi>{{ site_settings.contact_phone|fa_digits }}</bdi>{% else %}همیشه در کنار شما{% endif %}</p>
+        </div>
+    </a>
+    <a href="{% url 'common:return_policy' %}" class="{{ card }} hover:border-brand-200">
+        <span class="{{ icon }}">{% include "partials/icon.html" with name="return" cls="w-6 h-6" sw="1.6" %}</span>
+        <div>
+            <p class="text-sm font-bold">ضمانت بازگشت کالا</p>
+            <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">خرید بدون نگرانی</p>
+        </div>
+    </a>
+    {% endwith %}
+</section>

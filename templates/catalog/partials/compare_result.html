@@ -1,0 +1,8 @@
+{% if error %}
+<span class="text-xs text-red-600 block mt-1">{{ error }}</span>
+{% elif result.added %}
+<span id="compare-feedback-{{ slug }}" class="text-xs text-green-600 block mt-1">به مقایسه اضافه شد ✓</span>
+{% else %}
+<span id="compare-feedback-{{ slug }}" class="text-xs text-gray-400 block mt-1">از مقایسه حذف شد</span>
+{% endif %}
+<span id="compare-badge" hx-swap-oob="true" class="absolute -top-1.5 -left-1.5 bg-brand-600 dark:bg-river-deep text-white text-[11px] font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center ring-2 ring-white dark:ring-midnight {% if not result.count %}hidden{% endif %}">{% if result.count %}{{ result.count }}{% endif %}</span>

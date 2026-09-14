@@ -1,0 +1,12 @@
+{% autoescape off %}
+{{ order.user.name|default:"کاربر گرامی" }}، سفارش شما ثبت شد.
+
+شماره سفارش: {{ order.order_number }}
+مبلغ قابل پرداخت: {{ order.total }} تومان
+{% if order.shipping_address %}
+آدرس تحویل: {{ order.shipping_address.province }}، {{ order.shipping_address.city }}، {{ order.shipping_address.address_line }}
+{% endif %}
+مشاهده سفارش: http://127.0.0.1:8000/orders/{{ order.order_number }}/
+
+از خرید شما سپاسگزاریم.
+{% endautoescape %}

@@ -1,0 +1,27 @@
+{% load persian %}
+{% if page_obj.has_other_pages %}
+<nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="صفحه‌بندی">
+    {% if page_obj.has_previous %}
+        <a href="{% querystring page=page_obj.previous_page_number %}" aria-label="صفحه قبل"
+           class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-brand-300 hover:text-brand-600 dark:border-cedar/60 dark:bg-cedar/40 dark:text-glacier dark:hover:text-river">
+            {% include "partials/icon.html" with name="chevron-right" cls="w-4 h-4" sw="2" %}
+        </a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+            <span class="flex h-10 min-w-10 items-center justify-center rounded-xl bg-brand-600 px-3 text-sm font-bold text-white dark:bg-river-deep">{{ num|fa_digits }}</span>
+        {% elif page_obj.paginator.num_pages > 7 and num > page_obj.number|add:2 and num < page_obj.paginator.num_pages|add:-2 and num != 1 and num != page_obj.paginator.num_pages %}
+            {% if num == page_obj.number|add:3 %}<span class="px-1 text-gray-400">…</span>{% endif %}
+        {% else %}
+            <a href="{% querystring page=num %}"
+               class="flex h-10 min-w-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-sm hover:border-brand-300 hover:text-brand-600 dark:border-cedar/60 dark:bg-cedar/40 dark:hover:text-river">{{ num|fa_digits }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <a href="{% querystring page=page_obj.next_page_number %}" aria-label="صفحه بعد"
+           class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-brand-300 hover:text-brand-600 dark:border-cedar/60 dark:bg-cedar/40 dark:text-glacier dark:hover:text-river">
+            {% include "partials/icon.html" with name="chevron-left" cls="w-4 h-4" sw="2" %}
+        </a>
+    {% endif %}
+</nav>
+{% endif %}

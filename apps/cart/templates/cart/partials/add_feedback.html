@@ -1,0 +1,6 @@
+{% if error %}
+    <span class="text-red-600">{{ error }}</span>
+{% else %}
+    <span class="text-green-600">به سبد اضافه شد ✓</span>
+{% endif %}
+{% include "cart/partials/badge_oob.html" %}

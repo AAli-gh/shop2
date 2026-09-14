@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}ایمیل تأیید ارسال شد | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="card mx-auto max-w-lg p-8 text-center sm:p-10">
+    <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="mail" cls="w-8 h-8" sw="1.6" %}</div>
+    <h1 class="mt-5 text-xl font-bold">یک ایمیل برایتان فرستادیم</h1>
+    <p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+        برای فعال‌سازی حساب، روی لینک داخل ایمیل کلیک کنید. صندوق ورودی و اسپم را بررسی کنید.
+    </p>
+    <a href="{% url 'accounts:resend_verification' %}" class="btn btn-ghost mt-7">ارسال مجدد ایمیل</a>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}پرداخت سفارش | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <a href="{% url 'orders:list' %}">سفارش‌های من</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">پرداخت</span>
+</nav>
+{% include "orders/partials/steps.html" with step=3 %}
+
+<div class="card mx-auto max-w-lg p-6 sm:p-8">
+    <div class="text-center">
+        <span class="chip bg-amber-50 text-amber-700 dark:bg-ember dark:text-amber-300">درگاه پرداخت آزمایشی</span>
+        <h1 class="mt-4 text-xl font-bold">پرداخت سفارش <span dir="ltr">{{ order.order_number }}</span></h1>
+    </div>
+
+    <div class="mt-6 rounded-2xl bg-brand-50 p-5 text-center dark:bg-ember/60">
+        <p class="text-sm text-gray-500 dark:text-mist-dim">مبلغ قابل پرداخت</p>
+        <p class="mt-1 text-3xl font-bold"><bdi>{{ order.total|price|fa_digits }}</bdi> <span class="text-base font-medium text-gray-500 dark:text-mist-dim">تومان</span></p>
+    </div>
+
+    <dl class="mt-5 space-y-3 text-sm">
+        <div class="flex items-center justify-between"><dt class="text-gray-500 dark:text-mist-dim">درگاه</dt><dd>شبیه‌ساز پرداخت (Mock)</dd></div>
+        <div class="flex items-center justify-between"><dt class="text-gray-500 dark:text-mist-dim">وضعیت فعلی</dt><dd>{% include "orders/partials/status_chip.html" %}</dd></div>
+    </dl>
+
+    <form method="post" class="mt-6 space-y-3">
+        {% csrf_token %}
+        <button type="submit" name="outcome" value="success" class="btn btn-success h-12 w-full">
+            {% include "partials/icon.html" with name="lock" cls="w-4 h-4" sw="2" %}
+            پرداخت (شبیه‌سازی موفق)
+        </button>
+        <button type="submit" name="outcome" value="fail" class="btn btn-ghost w-full">
+            انصراف / پرداخت ناموفق
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+sent_emails/
+cache/
+
+# Env
+.env
+
+# Tailwind standalone CLI (downloaded binary)
+tools/
+
+# Claude Code personal permissions (launch.json stays shared)
+.claude/settings.local.json
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+backups/
+logs/

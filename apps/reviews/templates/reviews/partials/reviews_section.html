@@ -1,0 +1,81 @@
+{% load persian %}
+<div class="card p-6 sm:p-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h2 class="page-title text-lg sm:text-xl">نظرات کاربران</h2>
+        {% if product.avg_rating %}
+            <div class="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-2 dark:bg-ember">
+                <span class="text-2xl font-bold text-amber-500">{{ product.avg_rating|floatformat:1|fa_digits }}</span>
+                <div class="text-xs leading-5">
+                    <div class="text-amber-400">{% for s in "12345" %}{% if forloop.counter <= product.avg_rating %}★{% else %}<span class="text-gray-300 dark:text-cedar-light">★</span>{% endif %}{% endfor %}</div>
+                    <span class="text-gray-400 dark:text-mist-dim">از {{ product.review_count|fa_digits }} نظر</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if submitted %}
+        <div class="alert-success mb-4">نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.</div>
+    {% endif %}
+    {% if error %}
+        <div class="alert-error mb-4">{{ error }}</div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        {% if has_reviewed %}
+            <p class="mb-3 text-xs text-gray-500 dark:text-mist-dim">شما قبلاً برای این محصول نظر ثبت کرده‌اید. نظر جدید جایگزین قبلی می‌شود (نیازمند تأیید مجدد).</p>
+        {% endif %}
+        <form hx-post="{% url 'reviews:submit' product.pk %}"
+              hx-target="#reviews-section" hx-swap="innerHTML"
+              hx-encoding="multipart/form-data"
+              class="mb-8 space-y-4 rounded-2xl bg-gray-50 p-5 dark:bg-ember/40">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-medium">امتیاز شما:</span>
+                <div class="flex gap-1">
+                    {% for i in "54321" %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="rating" value="{{ i }}" class="peer sr-only" required>
+                            <span class="text-2xl text-gray-300 peer-checked:text-amber-500 hover:text-amber-400 dark:text-cedar-light">★</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <textarea name="body" rows="3" placeholder="تجربه شما از این محصول..." class="input" required></textarea>
+            <div>
+                <label class="mb-1.5 block text-xs text-gray-500 dark:text-mist-dim">عکس (اختیاری، JPG/PNG/WebP، حداکثر ۳MB)</label>
+                <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
+                       class="text-xs file:ml-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-bold file:text-brand-600 dark:file:bg-ember dark:file:text-river">
+            </div>
+            <button type="submit" class="btn btn-primary">ثبت نظر</button>
+        </form>
+    {% else %}
+        <div class="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 p-5 text-sm dark:bg-ember/40">
+            <span class="text-gray-600 dark:text-mist-dim">برای ثبت نظر ابتدا وارد حساب کاربری شوید.</span>
+            <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="btn btn-sm btn-outline">ورود / ثبت‌نام</a>
+        </div>
+    {% endif %}
+
+    {% if reviews %}
+        <div class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for review in reviews %}
+                <div class="flex gap-4 py-5 first:pt-0">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 font-bold text-brand-600 dark:bg-ember dark:text-river">{{ review.user.name|default:"ک"|first }}</span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-sm font-bold">{% if review.user.name %}{{ review.user.name }}{% else %}کاربر{% endif %}</span>
+                            <span class="text-xs text-gray-400 dark:text-mist-dim">{{ review.created_at|jalali|fa_digits }}</span>
+                        </div>
+                        <div class="mt-0.5 text-sm text-amber-400">{% for s in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}<span class="text-gray-300 dark:text-cedar-light">★</span>{% endif %}{% endfor %}</div>
+                        <p class="mt-2 text-sm leading-7 whitespace-pre-line text-gray-600 dark:text-mist-dim">{{ review.body }}</p>
+                        {% if review.image %}
+                            <a href="{{ review.image.url }}" target="_blank" rel="noopener" class="mt-3 inline-block">
+                                <img src="{{ review.image.url }}" alt="عکس نظر" class="max-h-40 rounded-xl border border-gray-100 dark:border-cedar/50">
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="py-6 text-center text-sm text-gray-400 dark:text-mist-dim">هنوز نظری ثبت نشده است. اولین نفر باشید!</p>
+    {% endif %}
+</div>
