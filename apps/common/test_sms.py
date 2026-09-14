@@ -58,6 +58,21 @@ def test_smsir_sends_text_from_line_number(monkeypatch):
     assert fake.calls[0]["json"] == {"lineNumber": 30007732000000, "messageText": "سلام", "mobiles": ["09121234567"]}
 
 
+@override_settings(SMSIR={**SMSIR, "OTP_TEMPLATE_ID": 0})
+def test_smsir_without_template_texts_the_code_from_the_line(monkeypatch):
+    fake = fake_client(monkeypatch, {"status": 1, "message": "موفق"})
+    SmsIrBackend().send_otp("09121234567", "12345")
+    assert fake.calls[0]["url"] == "https://api.sms.ir/v1/send/bulk"
+    assert fake.calls[0]["json"]["lineNumber"] == 30007732000000
+    assert "12345" in fake.calls[0]["json"]["messageText"]
+
+
+@override_settings(SMSIR={**SMSIR, "OTP_TEMPLATE_ID": 0, "LINE_NUMBER": ""})
+def test_smsir_without_template_or_line_raises():
+    with pytest.raises(SmsError):
+        SmsIrBackend().send_otp("09121234567", "12345")
+
+
 @override_settings(SMSIR=SMSIR)
 def test_smsir_rejection_raises(monkeypatch):
     fake_client(monkeypatch, {"status": 0, "message": "قالب نامعتبر"}, status_code=400)

@@ -93,7 +93,12 @@ class SmsIrBackend(SmsBackend):
 
     def send_otp(self, phone, code):
         if not self.template_id:
-            raise SmsError("SMSIR_OTP_TEMPLATE_ID is not configured")
+            # until a Verify template is approved, text the code from the line (development / trial
+            # accounts; production requires the template, which also reaches numbers that block ads)
+            if not self.line_number:
+                raise SmsError("SMSIR_OTP_TEMPLATE_ID or SMSIR_LINE_NUMBER is not configured")
+            self.send_text(phone, f"کد ورود شما: {code}")
+            return
         self._post("/send/verify", {
             "mobile": phone,
             "templateId": int(self.template_id),
