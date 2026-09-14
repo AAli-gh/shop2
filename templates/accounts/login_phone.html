@@ -10,6 +10,10 @@
     <input type="hidden" name="next" value="{{ next }}">
     {% include "partials/field.html" with field=form.phone %}
     <button type="submit" class="btn btn-primary h-12 w-full">دریافت کد تأیید</button>
+    <p class="text-center text-xs leading-6 text-gray-400 dark:text-mist-dim">
+        ورود یا ثبت‌نام به معنای پذیرش <a href="{% url 'common:terms' %}" class="link">قوانین و مقررات</a>
+        و <a href="{% url 'common:privacy' %}" class="link">حریم خصوصی</a> است.
+    </p>
 </form>
 
 <div class="my-8 flex items-center gap-3 text-xs text-gray-400 dark:text-mist-dim">

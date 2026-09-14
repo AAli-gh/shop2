@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=8">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=9">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {
@@ -197,6 +197,12 @@
             {% if site_settings.contact_phone %}
                 <p class="mt-3">تلفن پشتیبانی: <bdi class="text-white dark:text-glacier">{{ site_settings.contact_phone|fa_digits }}</bdi></p>
             {% endif %}
+            {% if site_settings.trust_badges_html %}
+                {# official e-namad / samandehi snippets pasted by the owner in site settings (staff-only field) #}
+                <div class="trust-badges mt-5 flex flex-wrap items-center gap-3 [&_a]:inline-block [&_a]:rounded-xl [&_a]:bg-white [&_a]:p-1.5 [&_img]:max-h-24 [&_img]:w-auto">
+                    {{ site_settings.trust_badges_html|safe }}
+                </div>
+            {% endif %}
         </div>
 
         <div class="lg:col-span-2">
@@ -224,7 +230,8 @@
                 <li><a href="{% url 'common:faq' %}" class="hover:text-white dark:hover:text-river">پرسش‌های متداول</a></li>
                 <li><a href="{% url 'common:return_policy' %}" class="hover:text-white dark:hover:text-river">رویه بازگرداندن کالا</a></li>
                 <li><a href="{% url 'orders:list' %}" class="hover:text-white dark:hover:text-river">پیگیری سفارش</a></li>
-                <li><a href="/sitemap.xml" class="hover:text-white dark:hover:text-river">نقشه سایت</a></li>
+                <li><a href="{% url 'common:terms' %}" class="hover:text-white dark:hover:text-river">قوانین و مقررات</a></li>
+                <li><a href="{% url 'common:privacy' %}" class="hover:text-white dark:hover:text-river">حریم خصوصی</a></li>
             </ul>
         </div>
 
@@ -243,7 +250,10 @@
             <button type="button" data-theme-toggle class="sm:hidden inline-flex items-center gap-1.5 underline-offset-4 hover:underline">
                 <span class="dark:hidden">حالت تیره</span><span class="hidden dark:inline">حالت روشن</span>
             </button>
-            <span>پرداخت امن از طریق تمام کارت‌های بانکی</span>
+            <span class="flex flex-wrap gap-x-4 gap-y-1">
+                <span>پرداخت امن از طریق تمام کارت‌های بانکی</span>
+                <a href="/sitemap.xml" class="hover:text-white dark:hover:text-river">نقشه سایت</a>
+            </span>
         </div>
     </div>
 </footer>

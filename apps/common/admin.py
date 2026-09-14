@@ -18,6 +18,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         (None, {"fields": ("store_name",)}),
         ("ارسال", {"fields": ("shipping_flat_rate", "free_shipping_threshold")}),
         ("ارتباط با مشتری", {"fields": ("contact_phone", "about_text")}),
+        ("نمادهای اعتماد", {"fields": ("trust_badges_html",)}),
     )
 
     def has_add_permission(self, request):

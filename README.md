@@ -68,6 +68,8 @@ DATABASE_URL=postgres://user:pass@localhost:5432/shop2
 
 ## راه‌اندازی روی سرور (production)
 
+راهنمای قدم‌به‌قدم سرور (PostgreSQL، systemd، nginx، HTTPS، زمان‌بندی‌ها و اسکریپت به‌روزرسانی): [deploy/README.md](deploy/README.md)
+
 تنظیمات production در `config/settings/prod.py` است و همه چیز را از متغیرهای محیطی می‌خواند؛ اگر مقدار ضروری نباشد یا ناامن باشد (کلید کوتاه، `DJANGO_ALLOWED_HOSTS` خالی، `EMAIL_HOST` خالی، درگاه Mock) سایت اصلاً بالا نمی‌آید. فهرست متغیرها در `.env.example`.
 
 ```bash

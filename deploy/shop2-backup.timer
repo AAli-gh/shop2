@@ -1,0 +1,12 @@
+# /etc/systemd/system/shop2-backup.timer
+[Unit]
+Description=shop2: daily database backup at 03:30
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+# run at next boot if the server was off at 03:30
+Persistent=true
+Unit=shop2-backup.service
+
+[Install]
+WantedBy=timers.target

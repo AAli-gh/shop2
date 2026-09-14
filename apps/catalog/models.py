@@ -4,6 +4,17 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from apps.common.text import normalize_search
+
+
+def refresh_search_text(products) -> None:
+    """Rebuild the folded search copy for products, e.g. after their brand or category is renamed."""
+    batch = []
+    for product in products.select_related("brand", "category"):
+        product.search_text = product.build_search_text()
+        batch.append(product)
+    Product.objects.bulk_update(batch, ["search_text"], batch_size=200)
+
 
 class Brand(models.Model):
     name = models.CharField(_("name"), max_length=120)
@@ -25,6 +36,7 @@ class Brand(models.Model):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
+        refresh_search_text(self.products.all())
 
     def get_absolute_url(self):
         return reverse("catalog:brand", kwargs={"brand_slug": self.slug})
@@ -51,6 +63,7 @@ class Category(models.Model):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
+        refresh_search_text(self.products.all())
 
     def get_absolute_url(self):
         return reverse("catalog:category", kwargs={"category_slug": self.slug})
@@ -147,6 +160,9 @@ class Product(models.Model):
         _("installment down payment"), default=0, help_text=_("مقدم قسط به تومان")
     )
 
+    # folded name + brand + category + description, so any keyboard's spelling matches (apps.common.text)
+    search_text = models.TextField(_("search text"), blank=True, editable=False)
+
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
@@ -167,9 +183,23 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def build_search_text(self) -> str:
+        parts = [
+            self.name,
+            self.brand.name if self.brand_id else "",
+            self.category.name if self.category_id else "",
+            self.description,
+        ]
+        return normalize_search(" ".join(part for part in parts if part))
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is None or {"name", "description", "brand", "category"} & set(update_fields):
+            self.search_text = self.build_search_text()
+            if update_fields is not None:
+                kwargs["update_fields"] = {*update_fields, "search_text"}
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

@@ -1,0 +1,12 @@
+# /etc/systemd/system/shop2-backup.service — run by shop2-backup.timer
+[Unit]
+Description=shop2: database backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=shop2
+WorkingDirectory=/srv/shop2
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+EnvironmentFile=/srv/shop2/.env
+ExecStart=/srv/shop2/.venv/bin/python manage.py backup_db --dir /var/backups/shop2 --keep 14

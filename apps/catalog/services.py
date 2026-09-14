@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 
 from apps.catalog.models import Attribute, Banner, Brand, Category, Product
+from apps.common.text import normalize_search
 
 SORT_CHOICES = {
     "newest": "-created_at",
@@ -23,6 +24,13 @@ def _active_qs():
     )
 
 
+def _search(qs, q):
+    """Every word of the query must appear somewhere (any order), after folding spelling variants."""
+    for term in normalize_search(q).split():
+        qs = qs.filter(search_text__contains=term)
+    return qs
+
+
 def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, page=1,
                   per_page=12, min_price=None, max_price=None, filters=None):
     qs = _active_qs()
@@ -31,7 +39,7 @@ def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, pag
     if brand_slug:
         qs = qs.filter(brand__slug=brand_slug)
     if q:
-        qs = qs.filter(Q(name__icontains=q) | Q(description__icontains=q))
+        qs = _search(qs, q)
     if min_price is not None:
         qs = qs.filter(price__gte=min_price)
     if max_price is not None:
@@ -120,14 +128,9 @@ def active_banners():
 
 def quick_search(q, limit=6):
     """Light live-search results for the header dropdown."""
-    q = (q or "").strip()
-    if len(q) < 2:
+    if len(normalize_search(q)) < 2:
         return []
-    return list(
-        _active_qs()
-        .filter(Q(name__icontains=q) | Q(category__name__icontains=q))
-        .order_by("-sold_count")[:limit]
-    )
+    return list(_search(_active_qs(), q).order_by("-sold_count")[:limit])
 
 
 def related_products(product, limit=4):

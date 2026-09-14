@@ -19,9 +19,19 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="mt-8 space-y-4 text-sm leading-8 text-gray-600 sm:text-base dark:text-mist-dim">
+            <div class="mt-8 space-y-5 text-sm leading-8 text-gray-600 sm:text-base dark:text-mist-dim">
                 {% for p in page.paragraphs %}
-                    <p>{{ p|linebreaksbr }}</p>
+                    {# a paragraph's first line is its heading when the paragraph has more than one line #}
+                    {% with lines=p.splitlines %}
+                        {% if lines|length > 1 %}
+                            <section>
+                                <h2 class="mb-1 text-base font-bold text-gray-900 dark:text-glacier">{{ lines.0 }}</h2>
+                                <p>{% for line in lines|slice:"1:" %}{{ line }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>
+                            </section>
+                        {% else %}
+                            <p>{{ p }}</p>
+                        {% endif %}
+                    {% endwith %}
                 {% endfor %}
             </div>
         {% endif %}

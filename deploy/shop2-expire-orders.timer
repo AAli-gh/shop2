@@ -1,0 +1,11 @@
+# /etc/systemd/system/shop2-expire-orders.timer
+[Unit]
+Description=shop2: expire unpaid orders every 10 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=10min
+Unit=shop2-expire-orders.service
+
+[Install]
+WantedBy=timers.target

@@ -11,6 +11,10 @@
         {% include "partials/field.html" %}
     {% endfor %}
     <button type="submit" class="btn btn-primary h-12 w-full">ثبت‌نام</button>
+    <p class="text-center text-xs leading-6 text-gray-400 dark:text-mist-dim">
+        ثبت‌نام به معنای پذیرش <a href="{% url 'common:terms' %}" class="link">قوانین و مقررات</a>
+        و <a href="{% url 'common:privacy' %}" class="link">حریم خصوصی</a> است.
+    </p>
 </form>
 <p class="mt-8 text-center text-sm text-gray-500 dark:text-mist-dim">
     ساده‌تر: <a href="{% url 'accounts:login' %}" class="link font-bold">ورود و ثبت‌نام با شماره موبایل</a>

@@ -1,0 +1,25 @@
+# /etc/systemd/system/shop2.service — the Django app behind gunicorn
+[Unit]
+Description=shop2 storefront (gunicorn)
+After=network.target postgresql.service
+
+[Service]
+User=shop2
+# nginx (www-data) must be able to reach the socket
+Group=www-data
+WorkingDirectory=/srv/shop2
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+EnvironmentFile=/srv/shop2/.env
+RuntimeDirectory=shop2
+ExecStart=/srv/shop2/.venv/bin/gunicorn config.wsgi:application \
+    --bind unix:/run/shop2/gunicorn.sock \
+    --umask 007 \
+    --workers 3 \
+    --timeout 60 \
+    --access-logfile - \
+    --error-logfile -
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

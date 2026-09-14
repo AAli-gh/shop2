@@ -16,6 +16,11 @@ class SiteSettings(models.Model):
     )
     contact_phone = models.CharField(_("contact phone"), max_length=20, blank=True)
     about_text = models.TextField(_("about text"), blank=True)
+    trust_badges_html = models.TextField(
+        _("trust badges HTML"), blank=True,
+        help_text="کد HTML نماد اعتماد الکترونیکی (اینماد) و ساماندهی را دقیقاً همان‌طور که سامانه‌ها می‌دهند اینجا بچسبانید؛ "
+                  "در فوتر همه صفحات نمایش داده می‌شود. فقط کد رسمی همان سامانه‌ها را وارد کنید.",
+    )
 
     class Meta:
         verbose_name = _("site settings")
@@ -56,6 +61,8 @@ class StaticPage(models.Model):
     class PageKey(models.TextChoices):
         FAQ = "faq", _("FAQ")
         RETURN_POLICY = "return_policy", _("return policy")
+        TERMS = "terms", _("terms and conditions")
+        PRIVACY = "privacy", _("privacy policy")
 
     key = models.CharField(_("key"), max_length=20, choices=PageKey.choices, unique=True)
     title = models.CharField(_("title"), max_length=200)

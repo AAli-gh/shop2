@@ -1,0 +1,12 @@
+# /etc/systemd/system/shop2-expire-orders.service — run by shop2-expire-orders.timer
+[Unit]
+Description=shop2: cancel unpaid orders past the payment window
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=shop2
+WorkingDirectory=/srv/shop2
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+EnvironmentFile=/srv/shop2/.env
+ExecStart=/srv/shop2/.venv/bin/python manage.py expire_unpaid_orders
