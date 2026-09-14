@@ -10,7 +10,7 @@
 <div class="card p-5 sm:p-6">
     <h1 class="page-title mb-6 text-lg sm:text-xl">علاقه‌مندی‌های من</h1>
     {% if items %}
-        <div class="grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
             {% for row in items %}
                 {% with product=row.product %}
                     {% include "catalog/partials/product_card.html" %}

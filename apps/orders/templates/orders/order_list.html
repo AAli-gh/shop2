@@ -21,7 +21,7 @@
                         <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{{ order.created_at|jalali|fa_digits }}</p>
                     </div>
                     {% include "orders/partials/status_chip.html" %}
-                    <span class="w-32 text-left text-sm font-bold"><bdi>{{ order.total|toman|fa_digits }}</bdi></span>
+                    <span class="flex-1 text-left text-sm font-bold sm:w-32 sm:flex-none"><bdi>{{ order.total|toman|fa_digits }}</bdi></span>
                     <span class="hidden text-gray-300 sm:block dark:text-cedar-light">{% include "partials/icon.html" with name="chevron-left" cls="w-4 h-4" sw="2" %}</span>
                 </a>
             {% endfor %}

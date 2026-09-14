@@ -15,7 +15,7 @@
     {% endfor %}
 </nav>
 
-<div class="grid items-start gap-6 lg:grid-cols-4">
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
     <!-- Sidebar -->
     <aside class="lg:sticky lg:top-6">
         <input type="checkbox" id="filters-toggle" class="peer hidden">
@@ -128,7 +128,7 @@
         </div>
 
         {% if products.object_list %}
-            <div class="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 {% for product in products %}
                     {% include "catalog/partials/product_card.html" %}
                 {% endfor %}

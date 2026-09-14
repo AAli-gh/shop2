@@ -7,8 +7,8 @@
 
 <!-- Hero -->
 <section class="max-w-7xl mx-auto px-4 pt-6">
-    <div class="grid lg:grid-cols-2 rounded-3xl overflow-hidden bg-brand-50 dark:bg-cedar/40 border border-brand-100 dark:border-cedar/60">
-        <div class="p-8 sm:p-12 flex flex-col justify-center items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 rounded-3xl overflow-hidden bg-brand-50 dark:bg-cedar/40 border border-brand-100 dark:border-cedar/60">
+        <div class="p-6 sm:p-12 flex flex-col justify-center items-start">
             {% if product_total %}
                 <span class="inline-flex items-center gap-2 rounded-full bg-white dark:bg-ember px-3.5 py-1.5 text-xs font-medium text-brand-600 dark:text-river">
                     <span class="w-1.5 h-1.5 rounded-full bg-brand-500 dark:bg-river"></span>
@@ -35,7 +35,7 @@
         </div>
 
         <!-- Decorative visual (no hero photo in the data model) -->
-        <div class="relative min-h-64 lg:min-h-[26rem] overflow-hidden bg-gradient-to-br from-brand-200 via-brand-400 to-brand-600 dark:from-cedar dark:via-river-deep dark:to-midnight">
+        <div class="relative hidden lg:block min-h-64 lg:min-h-[26rem] overflow-hidden bg-gradient-to-br from-brand-200 via-brand-400 to-brand-600 dark:from-cedar dark:via-river-deep dark:to-midnight">
             <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;"></div>
             <div class="absolute inset-0 flex items-center justify-center gap-4 sm:gap-6 p-8">
                 <div class="w-28 sm:w-36 aspect-[3/5] rounded-3xl bg-white/25 backdrop-blur border border-white/40 shadow-xl flex flex-col p-3 gap-2">
@@ -102,7 +102,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             </a>
         </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
             {% for product in best_sellers %}
                 {% include "catalog/partials/product_card.html" %}
             {% endfor %}
@@ -113,7 +113,7 @@
 
 <!-- Promo banners -->
 {% if banners %}
-<section class="max-w-7xl mx-auto px-4 mt-14 grid md:grid-cols-2 gap-5">
+<section class="max-w-7xl mx-auto px-4 mt-14 grid grid-cols-1 md:grid-cols-2 gap-5">
     {% for banner in banners %}
         <a href="{{ banner.link|default:'#' }}"
            class="group grid grid-cols-2 rounded-2xl overflow-hidden border border-gray-100 dark:border-cedar/60 {% cycle 'bg-brand-50' 'bg-brand-100/60' %} dark:bg-cedar/40 {% if banners|length == 1 %}md:col-span-2{% endif %}">
@@ -149,7 +149,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         </a>
     </div>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
         {% for product in on_sale %}
             {% include "catalog/partials/product_card.html" %}
         {% endfor %}
@@ -164,7 +164,7 @@
         <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
         منتخب فروشگاه
     </h2>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
         {% for product in featured %}
             {% include "catalog/partials/product_card.html" %}
         {% endfor %}
@@ -179,7 +179,7 @@
         <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
         بازدیدهای اخیر شما
     </h2>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
         {% for product in recently_viewed %}
             {% include "catalog/partials/product_card.html" %}
         {% endfor %}

@@ -14,7 +14,7 @@ document.addEventListener("click", (e) => {
 
 // Theme toggle (dark mode)
 document.addEventListener("click", (e) => {
-  const btn = e.target.closest("#theme-toggle");
+  const btn = e.target.closest("#theme-toggle, [data-theme-toggle]");
   if (!btn) return;
   const dark = document.documentElement.classList.toggle("dark");
   localStorage.setItem("theme", dark ? "dark" : "light");

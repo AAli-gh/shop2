@@ -22,7 +22,7 @@
 </nav>
 
 <div class="card p-4 sm:p-6 lg:p-8">
-    <div class="grid gap-8 lg:grid-cols-12">
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12">
         <!-- Gallery -->
         <div class="lg:col-span-5">
             <div class="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50 dark:bg-ember">
@@ -141,7 +141,7 @@
                     <button hx-post="{% url 'cart:htmx_add' product.pk %}"
                             hx-include="#qty-input"
                             hx-target="#cart-feedback" hx-swap="innerHTML"
-                            class="btn btn-primary h-12 flex-1 sm:flex-none sm:px-10">
+                            class="btn btn-primary order-last h-12 w-full sm:order-none sm:w-auto sm:flex-1 lg:flex-none lg:px-10">
                         {% include "partials/icon.html" with name="cart" %}
                         افزودن به سبد خرید
                     </button>
@@ -177,7 +177,7 @@
 {% if specs %}
 <section class="card mt-6 p-6 sm:p-8">
     <h2 class="page-title mb-5 text-lg sm:text-xl">مشخصات فنی</h2>
-    <dl class="grid gap-x-10 md:grid-cols-2">
+    <dl class="grid grid-cols-1 gap-x-10 md:grid-cols-2">
         {% for row in specs %}
             <div class="flex items-start justify-between gap-4 border-b border-gray-100 py-3 text-sm dark:border-cedar/50">
                 <dt class="text-gray-500 dark:text-mist-dim">{{ row.attribute.name }}{% if row.attribute.unit %} ({{ row.attribute.unit }}){% endif %}</dt>
@@ -211,7 +211,7 @@
 {% if related_products %}
 <section class="mt-12">
     <h2 class="page-title mb-6">شاید بپسندید</h2>
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-5">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-5">
         {% for product in related_products %}
             {% include "catalog/partials/product_card.html" %}
         {% endfor %}
@@ -223,7 +223,7 @@
 {% if recently_viewed %}
 <section class="mt-12">
     <h2 class="page-title mb-6">بازدیدهای اخیر شما</h2>
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-5">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-5">
         {% for product in recently_viewed %}
             {% include "catalog/partials/product_card.html" %}
         {% endfor %}

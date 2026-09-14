@@ -47,7 +47,7 @@
     {% if related %}
     <section class="mt-10">
         <h2 class="page-title mb-5">مطالب مرتبط</h2>
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
             {% for r in related %}
                 <a href="{{ r.get_absolute_url }}" class="card block p-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
                     <h3 class="line-clamp-2 text-sm leading-6 font-bold">{{ r.title }}</h3>

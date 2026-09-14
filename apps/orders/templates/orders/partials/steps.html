@@ -1,21 +1,22 @@
-{% comment %}Checkout progress. Usage: {% include "orders/partials/steps.html" with step=2 %} (1 cart, 2 shipping, 3 payment){% endcomment %}
-<ol class="card mb-6 flex items-center gap-2 p-4 text-xs sm:gap-4 sm:px-6 sm:text-sm">
+{% comment %}Checkout progress. Usage: {% include "orders/partials/steps.html" with step=2 %} (1 cart, 2 shipping, 3 payment).
+On phones only the current step keeps its label, so the bar fits a 320px screen.{% endcomment %}
+<ol class="card mb-6 flex items-center gap-1.5 p-3 text-xs sm:gap-4 sm:p-4 sm:px-6 sm:text-sm">
     <li class="flex shrink-0 items-center gap-2 {% if step >= 1 %}font-bold text-brand-600 dark:text-river{% else %}text-gray-400{% endif %}">
         <span class="flex h-7 w-7 items-center justify-center rounded-full {% if step > 1 %}bg-brand-600 text-white dark:bg-river-deep{% elif step == 1 %}border-2 border-brand-600 dark:border-river{% else %}border border-gray-300{% endif %}">
             {% if step > 1 %}{% include "partials/icon.html" with name="check" cls="w-3.5 h-3.5" sw="2.5" %}{% else %}۱{% endif %}
         </span>
-        سبد خرید
+        <span class="{% if step != 1 %}hidden sm:inline{% endif %}">سبد خرید</span>
     </li>
     <li class="h-px flex-1 {% if step > 1 %}bg-brand-400 dark:bg-river{% else %}bg-gray-200 dark:bg-cedar/60{% endif %}" aria-hidden="true"></li>
     <li class="flex shrink-0 items-center gap-2 {% if step >= 2 %}font-bold text-brand-600 dark:text-river{% else %}text-gray-400 dark:text-mist-dim{% endif %}">
         <span class="flex h-7 w-7 items-center justify-center rounded-full {% if step > 2 %}bg-brand-600 text-white dark:bg-river-deep{% elif step == 2 %}border-2 border-brand-600 dark:border-river{% else %}border border-gray-300 dark:border-cedar/60{% endif %}">
             {% if step > 2 %}{% include "partials/icon.html" with name="check" cls="w-3.5 h-3.5" sw="2.5" %}{% else %}۲{% endif %}
         </span>
-        اطلاعات ارسال
+        <span class="{% if step != 2 %}hidden sm:inline{% endif %}">اطلاعات ارسال</span>
     </li>
     <li class="h-px flex-1 {% if step > 2 %}bg-brand-400 dark:bg-river{% else %}bg-gray-200 dark:bg-cedar/60{% endif %}" aria-hidden="true"></li>
     <li class="flex shrink-0 items-center gap-2 {% if step >= 3 %}font-bold text-brand-600 dark:text-river{% else %}text-gray-400 dark:text-mist-dim{% endif %}">
         <span class="flex h-7 w-7 items-center justify-center rounded-full {% if step == 3 %}border-2 border-brand-600 dark:border-river{% else %}border border-gray-300 dark:border-cedar/60{% endif %}">۳</span>
-        پرداخت
+        <span class="{% if step != 3 %}hidden sm:inline{% endif %}">پرداخت</span>
     </li>
 </ol>

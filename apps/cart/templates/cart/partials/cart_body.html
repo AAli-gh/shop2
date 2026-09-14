@@ -1,6 +1,6 @@
 {% load persian %}
 {% if summary.items %}
-<div class="grid items-start gap-6 lg:grid-cols-3">
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
     <div class="card divide-y divide-gray-100 lg:col-span-2 dark:divide-cedar/60">
         <div class="flex items-center justify-between p-5 sm:px-6">
             <h1 class="page-title text-lg sm:text-xl">سبد خرید</h1>
@@ -32,7 +32,7 @@
                             aria-label="افزایش"
                             class="h-full w-9 text-lg hover:text-brand-600 dark:hover:text-river">+</button>
                 </div>
-                <div class="w-32 shrink-0 text-left text-sm font-bold">
+                <div class="flex-1 text-left text-sm font-bold sm:w-32 sm:flex-none">
                     <bdi>{{ row.line_total|toman|fa_digits }}</bdi>
                 </div>
                 <button type="button" hx-post="{% url 'cart:htmx_remove' row.item.pk %}"

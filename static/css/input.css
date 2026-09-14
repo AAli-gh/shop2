@@ -127,7 +127,8 @@
     @apply bg-green-600 text-white hover:bg-green-700;
   }
   .input {
-    @apply h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none dark:border-cedar/50 dark:bg-ember dark:placeholder:text-mist-dim dark:focus:bg-ember;
+    /* 16px on phones: smaller text makes iOS Safari zoom the page when a field gets focus */
+    @apply h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-base sm:text-sm placeholder:text-gray-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none dark:border-cedar/50 dark:bg-ember dark:placeholder:text-mist-dim dark:focus:bg-ember;
   }
   textarea.input {
     @apply h-auto py-3 leading-7;

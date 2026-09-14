@@ -11,7 +11,7 @@
     <h1 class="page-title mb-6 text-lg sm:text-xl">{% if object %}ویرایش آدرس{% else %}افزودن آدرس{% endif %}</h1>
     <form method="post" class="space-y-5">
         {% csrf_token %}
-        <div class="grid gap-5 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {% for field in form %}
                 <div class="{% if field.name == 'address_line' or field.widget_type == 'checkbox' %}sm:col-span-2{% endif %}">
                     {% include "partials/field.html" %}

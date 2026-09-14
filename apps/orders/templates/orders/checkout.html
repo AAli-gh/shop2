@@ -12,7 +12,7 @@
 </nav>
 {% include "orders/partials/steps.html" with step=2 %}
 
-<form method="post" action="{% url 'orders:place' %}" id="checkout-form" class="grid items-start gap-6 lg:grid-cols-3">
+<form method="post" action="{% url 'orders:place' %}" id="checkout-form" class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
     {% csrf_token %}
 
     <div class="space-y-5 lg:col-span-2">
@@ -43,7 +43,7 @@
             {% endif %}
 
             <div id="new-address-box" class="{% if addresses %}hidden mt-5 border-t border-gray-100 pt-5 dark:border-cedar/60{% endif %} space-y-3">
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <input name="full_name" placeholder="نام و نام خانوادگی" class="input">
                     <input name="phone" placeholder="شماره تماس" dir="ltr" class="input">
                     <input name="province" placeholder="استان" class="input">

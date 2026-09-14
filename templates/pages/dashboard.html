@@ -18,19 +18,19 @@
     <div class="card p-5">
         <span class="{{ icon }}">{% include "partials/icon.html" with name="chart" %}</span>
         <p class="mt-4 text-xs text-gray-500 dark:text-mist-dim">فروش امروز</p>
-        <p class="mt-1 text-xl font-bold"><bdi>{{ stats.today.total|toman|fa_digits }}</bdi></p>
+        <p class="mt-1 text-lg font-bold sm:text-xl"><bdi>{{ stats.today.total|toman|fa_digits }}</bdi></p>
         <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{{ stats.today.count|fa_digits }} سفارش</p>
     </div>
     <div class="card p-5">
         <span class="{{ icon }}">{% include "partials/icon.html" with name="chart" %}</span>
         <p class="mt-4 text-xs text-gray-500 dark:text-mist-dim">۷ روز اخیر</p>
-        <p class="mt-1 text-xl font-bold"><bdi>{{ stats.week.total|toman|fa_digits }}</bdi></p>
+        <p class="mt-1 text-lg font-bold sm:text-xl"><bdi>{{ stats.week.total|toman|fa_digits }}</bdi></p>
         <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{{ stats.week.count|fa_digits }} سفارش</p>
     </div>
     <div class="card p-5">
         <span class="{{ icon }}">{% include "partials/icon.html" with name="chart" %}</span>
         <p class="mt-4 text-xs text-gray-500 dark:text-mist-dim">۳۰ روز اخیر</p>
-        <p class="mt-1 text-xl font-bold"><bdi>{{ stats.month.total|toman|fa_digits }}</bdi></p>
+        <p class="mt-1 text-lg font-bold sm:text-xl"><bdi>{{ stats.month.total|toman|fa_digits }}</bdi></p>
         <p class="mt-1 text-xs text-gray-400 dark:text-mist-dim">{{ stats.month.count|fa_digits }} سفارش</p>
     </div>
     <div class="card p-5">
@@ -59,7 +59,7 @@
     </div>
 </div>
 
-<div class="grid gap-6 md:grid-cols-2">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
     <div class="card p-5 sm:p-6">
         <h2 class="card-title">پرفروش‌ترین محصولات</h2>
         {% if stats.top_products %}

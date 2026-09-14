@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=7">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {
@@ -23,7 +23,7 @@
         })();
     </script>
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    <script src="{% static 'js/app.js' %}" defer></script>
+    <script src="{% static 'js/app.js' %}?v=7" defer></script>
 </head>
 <body class="bg-surface dark:bg-midnight text-gray-900 dark:text-glacier font-sans min-h-screen flex flex-col transition-colors"
       hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -52,7 +52,7 @@
                 <span class="w-11 h-11 rounded-xl bg-brand-600 dark:bg-river-deep text-white text-xl font-bold flex items-center justify-center">{{ site_settings.store_name|first|upper }}</span>
                 <span class="leading-tight">
                     <span class="block text-xl font-bold text-gray-900 dark:text-glacier">{{ site_settings.store_name }}</span>
-                    <span class="block text-[11px] text-gray-400 dark:text-mist-dim">انتخابی برای خانه</span>
+                    <span class="hidden min-[380px]:block text-[11px] text-gray-400 dark:text-mist-dim">انتخابی برای خانه</span>
                 </span>
             </a>
 
@@ -68,7 +68,7 @@
                        hx-target="#live-search-wrap" hx-swap="beforeend"
                        hx-include="this"
                        hx-sync="closest form:replace"
-                       class="w-full h-12 rounded-xl border border-gray-200 dark:border-cedar/50 bg-gray-50 dark:bg-ember pr-4 pl-12 text-sm placeholder:text-gray-400 dark:placeholder:text-mist-dim focus:bg-white dark:focus:bg-ember focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
+                       class="w-full h-12 rounded-xl border border-gray-200 dark:border-cedar/50 bg-gray-50 dark:bg-ember pr-4 pl-12 text-base sm:text-sm placeholder:text-gray-400 dark:placeholder:text-mist-dim focus:bg-white dark:focus:bg-ember focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
                 <button type="submit" aria-label="جستجو" class="absolute left-2 top-6 -translate-y-1/2 p-2 text-brand-500 dark:text-river">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
@@ -185,8 +185,8 @@
 </main>
 
 <footer class="bg-brand-900 dark:bg-cedar/30 text-brand-100/75 dark:text-mist-dim mt-12 text-sm">
-    <div class="max-w-7xl mx-auto px-4 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-12">
-        <div class="lg:col-span-3">
+    <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-12">
+        <div class="col-span-2 lg:col-span-3">
             <a href="/" class="inline-flex items-center gap-2.5">
                 <span class="w-11 h-11 rounded-xl bg-brand-500 dark:bg-river-deep text-white text-xl font-bold flex items-center justify-center">{{ site_settings.store_name|first|upper }}</span>
                 <span class="text-2xl font-bold text-white dark:text-glacier">{{ site_settings.store_name }}</span>
@@ -218,7 +218,7 @@
             </ul>
         </div>
 
-        <div class="lg:col-span-2">
+        <div class="col-span-2 sm:col-span-1 lg:col-span-2">
             <p class="font-bold text-white dark:text-glacier mb-4">خدمات مشتریان</p>
             <ul class="space-y-2.5">
                 <li><a href="{% url 'common:faq' %}" class="hover:text-white dark:hover:text-river">پرسش‌های متداول</a></li>
@@ -228,7 +228,7 @@
             </ul>
         </div>
 
-        <div class="lg:col-span-3">
+        <div class="col-span-2 lg:col-span-3">
             <p class="font-bold text-white dark:text-glacier mb-4">خبرنامه</p>
             <p class="text-xs leading-6 mb-3">از تخفیف‌ها و محصولات جدید باخبر شوید.</p>
             <div class="[&_form]:flex-col [&_form]:max-w-none">
@@ -239,6 +239,10 @@
     <div class="border-t border-white/10">
         <div class="max-w-7xl mx-auto px-4 py-4 text-xs flex flex-wrap justify-between gap-2">
             <span>تمامی حقوق برای فروشگاه اینترنتی {{ site_settings.store_name }} محفوظ است.</span>
+            {# the header toggle is hidden on phones to leave room for cart/wishlist #}
+            <button type="button" data-theme-toggle class="sm:hidden inline-flex items-center gap-1.5 underline-offset-4 hover:underline">
+                <span class="dark:hidden">حالت تیره</span><span class="hidden dark:inline">حالت روشن</span>
+            </button>
             <span>پرداخت امن از طریق تمام کارت‌های بانکی</span>
         </div>
     </div>

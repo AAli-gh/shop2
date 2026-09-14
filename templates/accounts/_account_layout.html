@@ -10,7 +10,7 @@
     {% block breadcrumb_tail %}{% endblock %}
 </nav>
 
-<div class="grid items-start gap-6 lg:grid-cols-4">
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
     <aside class="card p-3 lg:sticky lg:top-6 lg:p-4">
         <div class="mb-3 hidden items-center gap-3 border-b border-gray-100 pb-4 lg:flex dark:border-cedar/60">
             <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-bold text-brand-600 dark:bg-ember dark:text-river">{{ user.name|default:user.email|first|upper }}</span>

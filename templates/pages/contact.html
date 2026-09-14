@@ -9,7 +9,7 @@
     <span class="text-gray-600 dark:text-glacier">تماس با ما</span>
 </nav>
 
-<div class="grid items-start gap-6 lg:grid-cols-3">
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
     <aside class="card space-y-5 p-6">
         <h2 class="card-title mb-2">راه‌های ارتباطی</h2>
         {% with icon="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river" %}
@@ -44,7 +44,7 @@
         <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">پیام شما در کوتاه‌ترین زمان ممکن پاسخ داده می‌شود.</p>
         <form method="post" class="mt-6 space-y-5">
             {% csrf_token %}
-            <div class="grid gap-5 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {% for field in form %}
                     <div class="{% if field.name == 'subject' or field.name == 'body' %}sm:col-span-2{% endif %}">
                         {% include "partials/field.html" %}

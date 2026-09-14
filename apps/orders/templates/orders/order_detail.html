@@ -69,7 +69,7 @@
     </div>
 
     <!-- Address & payment -->
-    <div class="grid gap-5 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div class="card p-5 text-sm sm:p-6">
             <h2 class="card-title"><span class="text-brand-500 dark:text-river">{% include "partials/icon.html" with name="pin" %}</span>آدرس تحویل</h2>
             <p class="font-medium">{{ order.shipping_address.full_name }} <span class="text-gray-400 dark:text-mist-dim">— <bdi>{{ order.shipping_address.phone }}</bdi></span></p>
