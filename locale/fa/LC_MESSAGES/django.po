@@ -1,0 +1,661 @@
+# Persian labels for model, field and choice names declared in English with gettext.
+# Edit here, then run: python manage.py compile_po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "FAQ"
+msgstr "پرسش‌های متداول"
+
+msgid "Markdown-like plain text; blank line = new paragraph"
+msgstr "متن ساده؛ خط خالی = پاراگراف جدید"
+
+msgid "SMS code"
+msgstr "کد پیامکی"
+
+msgid "SMS codes"
+msgstr "کدهای پیامکی"
+
+msgid "about text"
+msgstr "متن درباره ما"
+
+msgid "active"
+msgstr "فعال"
+
+msgid "address"
+msgstr "نشانی"
+
+msgid "addresses"
+msgstr "نشانی‌ها"
+
+msgid "admin adjust"
+msgstr "اصلاح دستی مدیر"
+
+msgid "alt text"
+msgstr "متن جایگزین"
+
+msgid "amount"
+msgstr "مبلغ"
+
+msgid "approved"
+msgstr "تأییدشده"
+
+msgid "attempts"
+msgstr "تعداد تلاش"
+
+msgid "attribute"
+msgstr "مشخصه"
+
+msgid "attributes"
+msgstr "مشخصه‌ها"
+
+msgid "author"
+msgstr "نویسنده"
+
+msgid "authority"
+msgstr "شناسه تراکنش"
+
+msgid "balance"
+msgstr "موجودی"
+
+msgid "banner"
+msgstr "بنر"
+
+msgid "banners"
+msgstr "بنرها"
+
+msgid "blank line = new paragraph"
+msgstr "خط خالی = پاراگراف جدید"
+
+msgid "blog post"
+msgstr "مطلب بلاگ"
+
+msgid "blog posts"
+msgstr "مطالب بلاگ"
+
+msgid "body"
+msgstr "متن"
+
+msgid "brand"
+msgstr "برند"
+
+msgid "brands"
+msgstr "برندها"
+
+msgid "cap for percent coupons, in Toman"
+msgstr "سقف تخفیف برای کوپن درصدی، به تومان"
+
+msgid "card pan"
+msgstr "شماره کارت"
+
+msgid "cart"
+msgstr "سبد خرید"
+
+msgid "cart item"
+msgstr "قلم سبد"
+
+msgid "cart items"
+msgstr "اقلام سبد"
+
+msgid "carts"
+msgstr "سبدهای خرید"
+
+msgid "categories"
+msgstr "دسته‌بندی‌ها"
+
+msgid "category"
+msgstr "دسته‌بندی"
+
+msgid "change phone"
+msgstr "تغییر شماره"
+
+msgid "city"
+msgstr "شهر"
+
+msgid "code"
+msgstr "کد"
+
+msgid "code hash"
+msgstr "هش کد"
+
+msgid "consumed at"
+msgstr "زمان مصرف"
+
+msgid "contact message"
+msgstr "پیام تماس"
+
+msgid "contact messages"
+msgstr "پیام‌های تماس"
+
+msgid "contact phone"
+msgstr "تلفن پشتیبانی"
+
+msgid "country"
+msgstr "کشور"
+
+msgid "country of origin"
+msgstr "کشور سازنده"
+
+msgid "coupon"
+msgstr "کوپن"
+
+msgid "coupon code"
+msgstr "کد تخفیف"
+
+msgid "coupons"
+msgstr "کوپن‌ها"
+
+msgid "cover image"
+msgstr "تصویر شاخص"
+
+msgid "created at"
+msgstr "تاریخ ثبت"
+
+msgid "data type"
+msgstr "نوع داده"
+
+msgid "default address"
+msgstr "نشانی پیش‌فرض"
+
+msgid "delivered at"
+msgstr "تاریخ تحویل"
+
+msgid "description"
+msgstr "توضیحات"
+
+msgid "discount amount"
+msgstr "مبلغ تخفیف"
+
+msgid "draft"
+msgstr "پیش‌نویس"
+
+msgid "economic code"
+msgstr "کد اقتصادی"
+
+msgid "email"
+msgstr "ایمیل"
+
+msgid "email address"
+msgstr "نشانی ایمیل"
+
+msgid "email verification token"
+msgstr "توکن تأیید ایمیل"
+
+msgid "email verification tokens"
+msgstr "توکن‌های تأیید ایمیل"
+
+msgid "email verified"
+msgstr "ایمیل تأییدشده"
+
+msgid "energy class"
+msgstr "رده انرژی"
+
+msgid "expires at"
+msgstr "زمان انقضا"
+
+msgid "featured"
+msgstr "ویژه"
+
+msgid "filterable"
+msgstr "قابل فیلتر"
+
+msgid "fixed amount"
+msgstr "مبلغ ثابت"
+
+msgid "flat shipping rate"
+msgstr "هزینه ثابت ارسال"
+
+msgid "free shipping threshold"
+msgstr "حداقل خرید برای ارسال رایگان"
+
+msgid "full name"
+msgstr "نام و نام خانوادگی"
+
+msgid "gateway fee"
+msgstr "کارمزد درگاه"
+
+msgid "gift card"
+msgstr "کارت هدیه"
+
+msgid "gift card charge"
+msgstr "شارژ با کارت هدیه"
+
+msgid "gift card redemption"
+msgstr "استفاده از کارت هدیه"
+
+msgid "gift card redemptions"
+msgstr "استفاده‌های کارت هدیه"
+
+msgid "gift cards"
+msgstr "کارت‌های هدیه"
+
+msgid "image"
+msgstr "تصویر"
+
+msgid "in Toman"
+msgstr "به تومان"
+
+msgid "in Toman, discounted price"
+msgstr "قیمت پس از تخفیف، به تومان"
+
+msgid "in Toman; 0 = free"
+msgstr "به تومان؛ ۰ = رایگان"
+
+msgid "install cost"
+msgstr "هزینه نصب"
+
+msgid "install date"
+msgstr "زمان نصب"
+
+msgid "install fee"
+msgstr "هزینه نصب"
+
+msgid "install requested"
+msgstr "درخواست نصب"
+
+msgid "installment down payment"
+msgstr "پیش‌پرداخت قسطی"
+
+msgid "installment months"
+msgstr "تعداد اقساط (ماه)"
+
+msgid "internal note"
+msgstr "یادداشت داخلی"
+
+msgid "internal notes"
+msgstr "یادداشت‌های داخلی"
+
+msgid "items subtotal"
+msgstr "جمع کالاها"
+
+msgid "key"
+msgstr "کلید"
+
+msgid "kind"
+msgstr "نوع"
+
+msgid "line total"
+msgstr "مبلغ کل ردیف"
+
+msgid "link"
+msgstr "لینک"
+
+msgid "login"
+msgstr "ورود"
+
+msgid "logo"
+msgstr "لوگو"
+
+msgid "max discount cap"
+msgstr "سقف تخفیف"
+
+msgid "message"
+msgstr "پیام"
+
+msgid "min order amount"
+msgstr "حداقل مبلغ سفارش"
+
+msgid "name"
+msgstr "نام"
+
+msgid "national ID"
+msgstr "شناسه ملی"
+
+msgid "newsletter campaign"
+msgstr "کمپین خبرنامه"
+
+msgid "newsletter campaigns"
+msgstr "کمپین‌های خبرنامه"
+
+msgid "newsletter subscriber"
+msgstr "مشترک خبرنامه"
+
+msgid "newsletter subscribers"
+msgstr "مشترکان خبرنامه"
+
+msgid "note"
+msgstr "یادداشت"
+
+msgid "notified"
+msgstr "اطلاع داده شد"
+
+msgid "order"
+msgstr "سفارش"
+
+msgid "order item"
+msgstr "قلم سفارش"
+
+msgid "order items"
+msgstr "اقلام سفارش"
+
+msgid "order number"
+msgstr "شماره سفارش"
+
+msgid "order payment"
+msgstr "پرداخت سفارش"
+
+msgid "order refund"
+msgstr "برگشت وجه سفارش"
+
+msgid "orders"
+msgstr "سفارش‌ها"
+
+msgid "paid from wallet"
+msgstr "پرداخت از کیف پول"
+
+msgid "parent"
+msgstr "دسته والد"
+
+msgid "payment"
+msgstr "پرداخت"
+
+msgid "payment reference"
+msgstr "کد پیگیری پرداخت"
+
+msgid "payments"
+msgstr "پرداخت‌ها"
+
+msgid "percentage"
+msgstr "درصدی"
+
+msgid "phone number"
+msgstr "شماره تلفن"
+
+msgid "phone verified"
+msgstr "موبایل تأییدشده"
+
+msgid "photo"
+msgstr "عکس"
+
+msgid "positive = credit, negative = debit"
+msgstr "مثبت = واریز، منفی = برداشت"
+
+msgid "postal code"
+msgstr "کد پستی"
+
+msgid "price"
+msgstr "قیمت"
+
+msgid "privacy policy"
+msgstr "حریم خصوصی"
+
+msgid "product"
+msgstr "محصول"
+
+msgid "product attribute value"
+msgstr "مقدار مشخصه محصول"
+
+msgid "product attribute values"
+msgstr "مقادیر مشخصه محصول"
+
+msgid "product image"
+msgstr "تصویر محصول"
+
+msgid "product images"
+msgstr "تصاویر محصول"
+
+msgid "product name"
+msgstr "نام محصول"
+
+msgid "products"
+msgstr "محصولات"
+
+msgid "provider"
+msgstr "درگاه"
+
+msgid "province"
+msgstr "استان"
+
+msgid "published"
+msgstr "منتشرشده"
+
+msgid "published at"
+msgstr "تاریخ انتشار"
+
+msgid "purpose"
+msgstr "کاربرد"
+
+msgid "quantity"
+msgstr "تعداد"
+
+msgid "rating"
+msgstr "امتیاز"
+
+msgid "raw response"
+msgstr "پاسخ خام درگاه"
+
+msgid "read"
+msgstr "خوانده‌شده"
+
+msgid "reason"
+msgstr "دلیل"
+
+msgid "reference id"
+msgstr "کد مرجع"
+
+msgid "refunded to wallet"
+msgstr "برگشت‌داده به کیف پول"
+
+msgid "reply to customer"
+msgstr "پاسخ به مشتری"
+
+msgid "requested resolution"
+msgstr "درخواست مشتری"
+
+msgid "requires install"
+msgstr "نیاز به نصب"
+
+msgid "restock notification"
+msgstr "درخواست «خبرم کن»"
+
+msgid "restock notifications"
+msgstr "درخواست‌های «خبرم کن»"
+
+msgid "return policy"
+msgstr "رویه بازگرداندن کالا"
+
+msgid "return request"
+msgstr "درخواست مرجوعی"
+
+msgid "return requests"
+msgstr "درخواست‌های مرجوعی"
+
+msgid "returned item"
+msgstr "کالای مرجوعی"
+
+msgid "returned items"
+msgstr "کالاهای مرجوعی"
+
+msgid "returned to stock"
+msgstr "برگشت به انبار"
+
+msgid "review"
+msgstr "نظر"
+
+msgid "review body"
+msgstr "متن نظر"
+
+msgid "reviews"
+msgstr "نظرات"
+
+msgid "sale price"
+msgstr "قیمت با تخفیف"
+
+msgid "search text"
+msgstr "متن جستجو"
+
+msgid "seller address"
+msgstr "نشانی فروشنده"
+
+msgid "seller legal name"
+msgstr "نام حقوقی فروشنده"
+
+msgid "seller postal code"
+msgstr "کد پستی فروشنده"
+
+msgid "sent"
+msgstr "ارسال‌شده"
+
+msgid "sent at"
+msgstr "زمان ارسال"
+
+msgid "sent count"
+msgstr "تعداد ارسال"
+
+msgid "session key"
+msgstr "کلید نشست"
+
+msgid "shipping address"
+msgstr "نشانی ارسال"
+
+msgid "shipping addresses"
+msgstr "نشانی‌های ارسال"
+
+msgid "shipping cost"
+msgstr "هزینه ارسال"
+
+msgid "shipping method"
+msgstr "روش ارسال"
+
+msgid "shipping methods"
+msgstr "روش‌های ارسال"
+
+msgid "shipping note"
+msgstr "توضیح ارسال"
+
+msgid "site settings"
+msgstr "تنظیمات سایت"
+
+msgid "slug"
+msgstr "نامک (slug)"
+
+msgid "sold count"
+msgstr "تعداد فروش"
+
+msgid "sort order"
+msgstr "ترتیب نمایش"
+
+msgid "spent amount"
+msgstr "مبلغ مصرف‌شده"
+
+msgid "static page"
+msgstr "صفحه ثابت"
+
+msgid "static pages"
+msgstr "صفحات ثابت"
+
+msgid "status"
+msgstr "وضعیت"
+
+msgid "stock"
+msgstr "موجودی"
+
+msgid "store name"
+msgstr "نام فروشگاه"
+
+msgid "subject"
+msgstr "موضوع"
+
+msgid "subtitle"
+msgstr "زیرعنوان"
+
+msgid "summary"
+msgstr "خلاصه"
+
+msgid "terms and conditions"
+msgstr "قوانین و مقررات"
+
+msgid "title"
+msgstr "عنوان"
+
+msgid "token"
+msgstr "توکن"
+
+msgid "total"
+msgstr "مبلغ کل"
+
+msgid "tracking code"
+msgstr "کد رهگیری"
+
+msgid "trust badges HTML"
+msgstr "کد نمادهای اعتماد"
+
+msgid "type"
+msgstr "نوع"
+
+msgid "unit"
+msgstr "واحد"
+
+msgid "unit price"
+msgstr "قیمت واحد"
+
+msgid "unsubscribe token"
+msgstr "توکن لغو عضویت"
+
+msgid "updated at"
+msgstr "آخرین تغییر"
+
+msgid "usage limit"
+msgstr "سقف استفاده"
+
+msgid "used count"
+msgstr "تعداد استفاده"
+
+msgid "user"
+msgstr "کاربر"
+
+msgid "users"
+msgstr "کاربران"
+
+msgid "valid from"
+msgstr "شروع اعتبار"
+
+msgid "valid to"
+msgstr "پایان اعتبار"
+
+msgid "value"
+msgstr "مقدار"
+
+msgid "value bool"
+msgstr "مقدار بله/خیر"
+
+msgid "value number"
+msgstr "مقدار عددی"
+
+msgid "value text"
+msgstr "مقدار متنی"
+
+msgid "verified"
+msgstr "تأییدشده"
+
+msgid "verify token"
+msgstr "توکن تأیید"
+
+msgid "video url"
+msgstr "لینک ویدیو"
+
+msgid "wallet"
+msgstr "کیف پول"
+
+msgid "wallet transaction"
+msgstr "تراکنش کیف پول"
+
+msgid "wallet transactions"
+msgstr "تراکنش‌های کیف پول"
+
+msgid "wallets"
+msgstr "کیف‌های پول"
+
+msgid "warranty"
+msgstr "گارانتی"
+
+msgid "weight (kg)"
+msgstr "وزن (کیلوگرم)"
+
+msgid "wishlist item"
+msgstr "مورد علاقه‌مندی"
+
+msgid "wishlist items"
+msgstr "موارد علاقه‌مندی"

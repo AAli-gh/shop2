@@ -1,0 +1,21 @@
+{% extends "admin/index.html" %}
+{% load admin_dashboard %}
+
+{% block content %}
+{% admin_pending_items as pending %}
+{% if pending %}
+    <div class="pending-grid" aria-label="کارهای در انتظار">
+        {% for item in pending %}
+            <a href="{{ item.url }}" class="pending-card{% if item.count %} is-hot{% endif %}">
+                {{ item.label }}
+                <strong>{{ item.count }}</strong>
+            </a>
+        {% endfor %}
+        <a href="/dashboard/" class="pending-card">
+            گزارش فروش
+            <strong>←</strong>
+        </a>
+    </div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

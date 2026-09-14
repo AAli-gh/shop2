@@ -110,6 +110,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # ---------------------------------------------------------------- i18n
 LANGUAGE_CODE = "fa"
+# Persian labels for English gettext strings (locale/fa/LC_MESSAGES/django.po -> manage.py compile_po)
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
