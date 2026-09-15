@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load persian seo %}
+{% load persian seo images analytics %}
 {% block title %}{{ product.name }} | {{ site_settings.store_name }}{% endblock %}
 
 {% block seo %}
@@ -15,6 +15,7 @@
 {% endblock %}
 
 {% block content %}
+{% ga_view_item product selected_variant %}
 <nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
     <a href="/">خانه</a>
     <span aria-hidden="true">‹</span>
@@ -28,20 +29,20 @@
         <!-- Gallery -->
         <div class="lg:col-span-5">
             <div class="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50 dark:bg-ember">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-full w-full object-cover">
+                {% with main_image=selected_variant.image|default:product.image %}
+                {% if main_image %}
+                    <img src="{{ main_image|thumb:900 }}" alt="{{ product.name }}" data-main-image class="h-full w-full object-cover">
                 {% else %}
                     {% include "partials/icon.html" with name="photo" cls="w-20 h-20 text-gray-300 dark:text-cedar-light" sw="1.2" %}
                 {% endif %}
-                {% if product.discount_percent %}
-                    <span class="absolute top-4 right-4 flex h-9 min-w-12 items-center justify-center rounded-full bg-red-500 px-3 text-sm font-bold text-white shadow">{{ product.discount_percent|fa_digits }}٪</span>
-                {% endif %}
+                {% endwith %}
+                <span data-discount-badge class="absolute top-4 right-4 flex h-9 min-w-12 items-center justify-center rounded-full bg-red-500 px-3 text-sm font-bold text-white shadow" {% if not offer.discount_percent %}hidden{% endif %}><span data-discount>{{ offer.discount_percent|fa_digits }}</span>٪</span>
             </div>
             {% if product.images.all %}
                 <div class="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
                     {% for img in product.images.all %}
                         <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 dark:border-cedar/60 dark:bg-ember">
-                            <img src="{{ img.image.url }}" alt="{{ img.alt }}" class="h-full w-full object-cover">
+                            <img src="{{ img.image|thumb:200 }}" loading="lazy" alt="{{ img.alt }}" class="h-full w-full object-cover">
                         </div>
                     {% endfor %}
                 </div>
@@ -66,14 +67,11 @@
                         <span class="text-gray-400 dark:text-mist-dim">({{ product.review_count|fa_digits }} نظر)</span>
                     </a>
                 {% endif %}
-                {% if product.in_stock %}
-                    <span class="flex items-center gap-1.5 text-green-600 dark:text-green-300">
-                        <span class="h-2 w-2 rounded-full bg-green-500"></span>موجود در انبار
-                        <span class="text-gray-400 dark:text-mist-dim">({{ product.stock|fa_digits }} عدد)</span>
-                    </span>
-                {% else %}
-                    <span class="flex items-center gap-1.5 text-red-500"><span class="h-2 w-2 rounded-full bg-red-500"></span>ناموجود</span>
-                {% endif %}
+                <span data-in-stock class="flex items-center gap-1.5 text-green-600 dark:text-green-300" {% if not offer.in_stock %}hidden{% endif %}>
+                    <span class="h-2 w-2 rounded-full bg-green-500"></span>موجود در انبار
+                    <span class="text-gray-400 dark:text-mist-dim">(<span data-stock-count>{{ offer.stock|fa_digits }}</span> عدد)</span>
+                </span>
+                <span data-out-of-stock class="flex items-center gap-1.5 text-red-500" {% if offer.in_stock %}hidden{% endif %}><span class="h-2 w-2 rounded-full bg-red-500"></span>ناموجود</span>
             </div>
 
             {% if product.warranty or product.energy_class or product.country or product.requires_install %}
@@ -107,16 +105,40 @@
                 </div>
             {% endif %}
 
+            {% if variants %}
+                <fieldset class="mt-6" data-variant-picker>
+                    <legend class="mb-2.5 text-sm font-bold">انتخاب مدل: <span class="font-medium text-gray-500 dark:text-mist-dim" data-variant-label>{{ selected_variant.label }}</span></legend>
+                    <div class="flex flex-wrap gap-2">
+                        {% for variant in variants %}
+                            <label class="cursor-pointer">
+                                <input type="radio" name="variant" value="{{ variant.pk }}" class="peer sr-only"
+                                       {% if variant == selected_variant %}checked{% endif %}
+                                       data-v-label="{{ variant.label }}"
+                                       data-v-price="{{ variant.effective_price|price|fa_digits }}"
+                                       data-v-old-price="{% if variant.discount_percent %}{{ variant.price|price|fa_digits }}{% endif %}"
+                                       data-v-discount="{% if variant.discount_percent %}{{ variant.discount_percent|fa_digits }}{% endif %}"
+                                       data-v-stock="{{ variant.stock }}"
+                                       data-v-stock-text="{{ variant.stock|fa_digits }}"
+                                       data-v-image="{% if variant.image %}{{ variant.image|thumb:900 }}{% elif product.image %}{{ product.image|thumb:900 }}{% endif %}">
+                                <span class="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-sm transition hover:border-brand-300 peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:font-bold peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300 dark:border-cedar/60 dark:peer-checked:border-river dark:peer-checked:bg-ember{% if not variant.in_stock %} opacity-60{% endif %}">
+                                    {% if variant.color_hex %}<span class="h-5 w-5 shrink-0 rounded-full border border-black/10 dark:border-white/25" style="background-color: {{ variant.color_hex }}"></span>{% endif %}
+                                    {{ variant.label }}
+                                    {% if not variant.in_stock %}<span class="text-xs font-normal text-red-500">ناموجود</span>{% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+            {% endif %}
+
             <!-- Price -->
             <div class="mt-6 rounded-2xl bg-brand-50 p-5 dark:bg-ember/60">
-                {% if product.discount_percent %}
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-400 line-through dark:text-mist-dim"><bdi>{{ product.price|price|fa_digits }}</bdi></span>
-                        <span class="chip bg-red-500 text-white">{{ product.discount_percent|fa_digits }}٪ تخفیف</span>
-                    </div>
-                {% endif %}
+                <div data-old-price-row class="flex items-center gap-2" {% if not offer.discount_percent %}hidden{% endif %}>
+                    <span class="text-sm text-gray-400 line-through dark:text-mist-dim"><bdi data-old-price>{{ offer.price|price|fa_digits }}</bdi></span>
+                    <span class="chip bg-red-500 text-white"><span data-discount>{{ offer.discount_percent|fa_digits }}</span>٪ تخفیف</span>
+                </div>
                 <p class="mt-1 text-3xl font-bold">
-                    <bdi>{{ product.effective_price|price|fa_digits }}</bdi>
+                    <bdi data-price>{{ offer.effective_price|price|fa_digits }}</bdi>
                     <span class="text-base font-medium text-gray-500 dark:text-mist-dim">تومان</span>
                 </p>
                 {% if product.has_installments %}
@@ -132,20 +154,23 @@
                 {% endif %}
             </div>
 
+            <div class="mt-3">{% include "catalog/partials/price_alert_button.html" %}</div>
+
             {% if product.in_stock %}
                 <div class="mt-5 flex flex-wrap items-center gap-3">
                     <div class="flex h-12 items-center rounded-xl border border-gray-200 dark:border-cedar/60">
                         <button type="button" data-step="-1" aria-label="کاهش" class="h-full w-11 text-lg hover:text-brand-600 dark:hover:text-river">&minus;</button>
-                        <input type="number" id="qty-input" name="quantity" value="1" min="1" max="{{ product.stock }}"
+                        <input type="number" id="qty-input" name="quantity" value="1" min="1" max="{{ offer.stock|default:1 }}"
                                class="no-spin h-full w-12 bg-transparent text-center text-sm font-bold focus:outline-none">
                         <button type="button" data-step="1" aria-label="افزایش" class="h-full w-11 text-lg hover:text-brand-600 dark:hover:text-river">+</button>
                     </div>
                     <button hx-post="{% url 'cart:htmx_add' product.pk %}"
-                            hx-include="#qty-input"
+                            hx-include="#qty-input, [name=variant]:checked"
                             hx-target="#cart-feedback" hx-swap="innerHTML"
-                            class="btn btn-primary order-last h-12 w-full sm:order-none sm:w-auto sm:flex-1 lg:flex-none lg:px-10">
+                            data-add-button {% if not offer.in_stock %}disabled{% endif %}
+                            class="btn btn-primary order-last h-12 w-full disabled:cursor-not-allowed disabled:opacity-60 sm:order-none sm:w-auto sm:flex-1 lg:flex-none lg:px-10">
                         {% include "partials/icon.html" with name="cart" %}
-                        افزودن به سبد خرید
+                        <span data-add-label>{% if offer.in_stock %}افزودن به سبد خرید{% else %}این مدل ناموجود است{% endif %}</span>
                     </button>
                     <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 dark:border-cedar/60">
                         {% include "wishlist/partials/heart_button.html" %}
@@ -207,6 +232,11 @@
 <!-- Reviews -->
 <div id="reviews-section" class="mt-6 scroll-mt-6">
     {% include "reviews/partials/reviews_section.html" %}
+</div>
+
+<!-- Questions -->
+<div id="questions-section" class="mt-6 scroll-mt-6">
+    {% include "reviews/partials/questions_section.html" %}
 </div>
 
 <!-- Related products -->

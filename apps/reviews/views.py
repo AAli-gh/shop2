@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Product
 from apps.common.ratelimit import ratelimit
@@ -50,4 +51,26 @@ def htmx_submit(request, product_id):
             "submitted": review is not None,
             "error": error,
         },
+    )
+
+
+@login_required
+@require_POST
+@ratelimit("question", limit=10, window=3600)
+def htmx_ask(request, product_id):
+    product = get_object_or_404(Product, pk=product_id, is_active=True)
+    body = (request.POST.get("body") or "").strip()
+
+    error = None
+    if len(body) < services.MIN_QUESTION_LENGTH:
+        error = "پرسش خیلی کوتاه است؛ کمی بیشتر توضیح دهید."
+    elif len(body) > services.MAX_QUESTION_LENGTH:
+        error = f"پرسش حداکثر {services.MAX_QUESTION_LENGTH} نویسه می‌تواند باشد."
+    else:
+        services.ask_question(user=request.user, product=product, body=body)
+
+    return render(
+        request,
+        "reviews/partials/questions_section.html",
+        {"product": product, "questions": services.published_questions_for(product), "asked": not error, "error": error},
     )

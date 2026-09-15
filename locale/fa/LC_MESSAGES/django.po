@@ -662,3 +662,72 @@ msgstr "موارد علاقه‌مندی"
 
 msgid "admin sign-in"
 msgstr "ورود به پنل مدیریت"
+
+msgid "product variant"
+msgstr "تنوع محصول"
+
+msgid "product variants"
+msgstr "تنوع‌های محصول"
+
+msgid "color"
+msgstr "رنگ"
+
+msgid "color code"
+msgstr "کد رنگ"
+
+msgid "option"
+msgstr "گزینه (ظرفیت/مدل)"
+
+msgid "SKU"
+msgstr "کد کالا"
+
+msgid "variant"
+msgstr "تنوع"
+
+msgid "reminded at"
+msgstr "زمان یادآوری"
+
+msgid "product question"
+msgstr "پرسش محصول"
+
+msgid "product questions"
+msgstr "پرسش‌های محصول"
+
+msgid "question"
+msgstr "پرسش"
+
+msgid "answer"
+msgstr "پاسخ"
+
+msgid "answered by"
+msgstr "پاسخ‌دهنده"
+
+msgid "answered at"
+msgstr "زمان پاسخ"
+
+msgid "price alert"
+msgstr "اطلاع کاهش قیمت"
+
+msgid "price alerts"
+msgstr "اطلاع‌های کاهش قیمت"
+
+msgid "price at signup"
+msgstr "قیمت هنگام ثبت"
+
+msgid "notified at"
+msgstr "زمان اطلاع"
+
+msgid "Google Analytics ID"
+msgstr "شناسه Google Analytics"
+
+msgid "analytics code"
+msgstr "کد سرویس آمار"
+
+msgid "WhatsApp number"
+msgstr "شماره واتس‌اپ"
+
+msgid "Telegram username"
+msgstr "نام کاربری تلگرام"
+
+msgid "live chat code"
+msgstr "کد گفتگوی آنلاین"

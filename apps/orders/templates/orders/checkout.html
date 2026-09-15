@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% load persian %}
+{% load persian analytics %}
 {% block title %}تسویه حساب | {{ site_settings.store_name }}{% endblock %}
 
 {% block content %}
+{% ga_begin_checkout summary %}
 <nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
     <a href="/">خانه</a>
     <span aria-hidden="true">‹</span>

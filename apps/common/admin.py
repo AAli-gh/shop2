@@ -22,6 +22,8 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ("ارتباط با مشتری", {"fields": ("contact_phone", "about_text")}),
         ("اطلاعات فروشنده (روی فاکتور)", {"fields": ("legal_name", "national_id", "economic_code", "address", "postal_code")}),
         ("نمادهای اعتماد", {"fields": ("trust_badges_html",)}),
+        ("آمار بازدید", {"fields": ("ga_measurement_id", "analytics_head_html"), "classes": ("collapse",)}),
+        ("گفتگو با مشتری", {"fields": ("whatsapp_number", "telegram_username", "chat_widget_html"), "classes": ("collapse",)}),
     )
 
     def has_add_permission(self, request):

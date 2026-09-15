@@ -19,8 +19,19 @@ def htmx_add(request, product_id):
     except (TypeError, ValueError):
         quantity = 1
     try:
-        summary = services.add_to_cart(request, product_id=product_id, quantity=quantity)
-        return render(request, "cart/partials/add_feedback.html", {"summary": summary})
+        variant_id = int(request.POST.get("variant") or 0) or None
+    except (TypeError, ValueError):
+        variant_id = None
+    try:
+        summary = services.add_to_cart(request, product_id=product_id, quantity=quantity, variant_id=variant_id)
+        added = next((row for row in summary["items"]
+                      if row["product"].pk == product_id and row["item"].variant_id == variant_id), None)
+        return render(request, "cart/partials/add_feedback.html", {
+            "summary": summary,
+            "added_product": added["product"] if added else None,
+            "added_variant": added["variant"] if added else None,
+            "added_quantity": quantity,
+        })
     except CartError as exc:
         summary = services.cart_summary(services.get_or_create_cart(request))
         return render(request, "cart/partials/add_feedback.html", {"summary": summary, "error": str(exc)})

@@ -1,0 +1,15 @@
+{% if user.is_authenticated %}
+    <form id="price-alert-{{ product.pk }}" hx-post="{% url 'catalog:price_alert' product.slug %}" hx-target="this" hx-swap="outerHTML">
+        <button type="submit" aria-pressed="{% if following_price %}true{% else %}false{% endif %}"
+                class="inline-flex items-center gap-1.5 text-xs font-medium {% if following_price %}text-brand-600 dark:text-river{% else %}text-gray-500 hover:text-brand-600 dark:text-mist-dim dark:hover:text-river{% endif %}">
+            {% include "partials/icon.html" with name="bell" cls="w-4 h-4" %}
+            {% if following_price %}کاهش قیمت را خبرتان می‌کنیم · لغو{% else %}اگر قیمت کم شد خبرم کن{% endif %}
+        </button>
+    </form>
+{% else %}
+    <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}"
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-brand-600 dark:text-mist-dim dark:hover:text-river">
+        {% include "partials/icon.html" with name="bell" cls="w-4 h-4" %}
+        اگر قیمت کم شد خبرم کن
+    </a>
+{% endif %}

@@ -1,0 +1,57 @@
+{% load persian %}
+<div class="card p-6 sm:p-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="page-title text-lg sm:text-xl">پرسش و پاسخ</h2>
+        {% if questions %}
+            <span class="text-xs text-gray-400 dark:text-mist-dim">{{ questions|length|fa_digits }} پرسش پاسخ‌داده‌شده</span>
+        {% endif %}
+    </div>
+
+    {% if asked %}
+        <div class="alert-success mb-4">پرسش شما ثبت شد و پس از پاسخ کارشناسان همین‌جا نمایش داده می‌شود؛ پاسخ را برایتان {% if user.phone and user.phone_verified %}پیامک{% else %}ایمیل{% endif %} می‌کنیم.</div>
+    {% endif %}
+    {% if error %}
+        <div class="alert-error mb-4">{{ error }}</div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <form hx-post="{% url 'reviews:ask' product.pk %}"
+              hx-target="#questions-section" hx-swap="innerHTML"
+              class="mb-8 space-y-3 rounded-2xl bg-gray-50 p-5 dark:bg-ember/40">
+            <label for="question-body" class="label">سؤالی درباره این محصول دارید؟</label>
+            <textarea id="question-body" name="body" rows="3" maxlength="1000" required
+                      placeholder="مثلاً ابعاد، مصرف برق یا شرایط گارانتی" class="input"></textarea>
+            <button type="submit" class="btn btn-primary">ثبت پرسش</button>
+        </form>
+    {% else %}
+        <div class="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 p-5 text-sm dark:bg-ember/40">
+            <span class="text-gray-600 dark:text-mist-dim">برای ثبت پرسش ابتدا وارد حساب کاربری شوید.</span>
+            <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}" class="btn btn-sm btn-outline">ورود / ثبت‌نام</a>
+        </div>
+    {% endif %}
+
+    {% if questions %}
+        <div class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for question in questions %}
+                <div class="py-5 first:pt-0">
+                    <div class="flex gap-3">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-600 dark:bg-ember dark:text-river" aria-hidden="true">؟</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm leading-7 font-bold whitespace-pre-line">{{ question.body }}</p>
+                            <p class="mt-0.5 text-xs text-gray-400 dark:text-mist-dim">{{ question.user.name|default:"کاربر" }} · {{ question.created_at|jalali|fa_digits }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex gap-3 rounded-2xl bg-brand-50/60 p-4 sm:mr-11 dark:bg-ember/50">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white dark:bg-river-deep" aria-hidden="true">پ</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm leading-7 whitespace-pre-line text-gray-700 dark:text-glacier">{{ question.answer }}</p>
+                            <p class="mt-0.5 text-xs text-gray-400 dark:text-mist-dim">پاسخ {{ site_settings.store_name }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="py-6 text-center text-sm text-gray-400 dark:text-mist-dim">هنوز پرسشی برای این محصول پاسخ داده نشده است.</p>
+    {% endif %}
+</div>

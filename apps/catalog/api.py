@@ -7,14 +7,22 @@ from apps.catalog.models import Product
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(read_only=True)
     price_toman = serializers.SerializerMethodField()
+    variants = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
             "id", "slug", "name", "description", "category", "price",
-            "price_toman", "stock", "is_active", "image", "created_at",
+            "price_toman", "stock", "is_active", "image", "created_at", "variants",
         ]
         read_only_fields = fields
+
+    def get_variants(self, obj):
+        return [
+            {"id": v.pk, "label": v.label, "color": v.color_name, "option": v.option, "sku": v.sku,
+             "price": v.price, "sale_price": v.sale_price, "stock": v.stock}
+            for v in obj.variants.all() if v.is_active
+        ]
 
     def get_price_toman(self, obj):
         return f"{obj.price:,} تومان"

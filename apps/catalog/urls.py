@@ -18,4 +18,5 @@ urlpatterns = [
     re_path(rf"^brand/(?P<brand_slug>{UNICODE_SLUG})/$", views.brand_page, name="brand"),
     re_path(rf"^product/(?P<slug>{UNICODE_SLUG})/$", views.product_detail, name="detail"),
     re_path(rf"^product/(?P<slug>{UNICODE_SLUG})/restock/$", views.restock_notify, name="restock_notify"),
+    re_path(rf"^product/(?P<slug>{UNICODE_SLUG})/price-alert/$", views.price_alert_toggle, name="price_alert"),
 ]

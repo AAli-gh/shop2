@@ -6,7 +6,8 @@ from django.db import transaction
 from django.db.models import F, Q
 from django.utils import timezone
 
-from apps.catalog.models import Product
+from apps.catalog.models import Product, ProductVariant
+from apps.catalog.stock import give_back_stock, take_stock
 from apps.common.services import get_settings
 from apps.discounts import services as discount_services
 from apps.discounts.models import Coupon
@@ -101,7 +102,7 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
     from apps.wallet.services import WalletError, debit_for_order, get_wallet
 
     with transaction.atomic():
-        items = list(cart.items.select_related("product"))
+        items = list(cart.items.select_related("product", "variant"))
         if not items:
             raise EmptyCartError()
 
@@ -110,22 +111,38 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
             p.pk: p
             for p in Product.objects.select_for_update().filter(pk__in=product_ids)
         }
+        variant_ids = [item.variant_id for item in items if item.variant_id]
+        variants = {v.pk: v for v in ProductVariant.objects.select_for_update().filter(pk__in=variant_ids)}
 
-        # validate stock + authoritative prices
+        # validate stock + authoritative prices (of the chosen variant, when there is one)
         subtotal = 0
         lines = []
         for item in items:
             product = products.get(item.product_id)
             if product is None or not product.is_active:
                 raise OutOfStockError(item.product.name if product else "")
-            if item.quantity > product.stock:
-                raise OutOfStockError(product.name)
-            line_total = product.effective_price * item.quantity
+            variant = variants.get(item.variant_id) if item.variant_id else None
+            if item.variant_id:
+                if variant is None or not variant.is_active or variant.product_id != product.pk:
+                    raise OutOfStockError(item.product.name)
+            elif product.has_variants:
+                # added before the product got variants: the customer has to pick one
+                raise OrderError(
+                    f"برای «{product.name}» رنگ یا مدل را انتخاب کنید؛ آن را از سبد حذف و دوباره اضافه کنید.",
+                    code="variant_required",
+                )
+            offer = variant or product
+            name = f"{product.name} — {variant.label}" if variant else product.name
+            if item.quantity > offer.stock:
+                raise OutOfStockError(name)
+            line_total = offer.effective_price * item.quantity
             subtotal += line_total
             lines.append({
                 "product": product,
-                "product_name": product.name,
-                "unit_price": product.effective_price,
+                "variant": variant,
+                "product_name": name[:200],
+                "variant_label": variant.label if variant else "",
+                "unit_price": offer.effective_price,
                 "quantity": item.quantity,
                 "line_total": line_total,
             })
@@ -174,12 +191,20 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
             OrderItem.objects.create(order=order, **line)
 
         # decrement stock with conditional update; abort placement if any fails
+        low_stock = []
         for line in lines:
-            updated = Product.objects.filter(
-                pk=line["product"].pk, stock__gte=line["quantity"]
-            ).update(stock=F("stock") - line["quantity"], sold_count=F("sold_count") + line["quantity"])
-            if updated == 0:
+            variant = line["variant"]
+            remaining = take_stock(
+                product_id=line["product"].pk, variant_id=variant.pk if variant else None, quantity=line["quantity"],
+            )
+            if remaining is None:
                 raise OutOfStockError(line["product_name"])
+            if remaining <= settings.LOW_STOCK_THRESHOLD < remaining + line["quantity"]:
+                low_stock.append((line["product_name"], remaining))
+        if low_stock:
+            from apps.orders.emails import low_stock_staff
+
+            transaction.on_commit(lambda: low_stock_staff(low_stock))
 
         cart.items.all().delete()
 
@@ -209,10 +234,7 @@ def _release_reservations(order: Order) -> None:
     """Give back the stock and coupon use an order reserved (caller holds the order lock)."""
     for item in order.items.all():
         if item.product_id:
-            Product.objects.filter(pk=item.product_id).update(
-                stock=F("stock") + item.quantity,
-                sold_count=F("sold_count") - item.quantity,
-            )
+            give_back_stock(product_id=item.product_id, variant_id=item.variant_id, quantity=item.quantity)
 
     if order.coupon_id:
         Coupon.objects.filter(pk=order.coupon_id, used_count__gt=0).update(

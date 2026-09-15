@@ -146,6 +146,11 @@ RETURN_WINDOW_DAYS = env.int("RETURN_WINDOW_DAYS", default=7)
 # managers alerted when an order is paid: SMS numbers, and emails (empty = ADMINS)
 ORDER_NOTIFY_PHONES = env.list("ORDER_NOTIFY_PHONES", default=[])
 ORDER_NOTIFY_EMAILS = env.list("ORDER_NOTIFY_EMAILS", default=[])
+# the same managers are told when a sale leaves this many units or fewer of a product/variant
+LOW_STOCK_THRESHOLD = env.int("LOW_STOCK_THRESHOLD", default=3)
+# abandoned-cart SMS (manage.py remind_abandoned_carts, hourly): after this many idle hours, never for older carts
+ABANDONED_CART_HOURS = env.int("ABANDONED_CART_HOURS", default=3)
+ABANDONED_CART_MAX_AGE_HOURS = env.int("ABANDONED_CART_MAX_AGE_HOURS", default=48)
 
 # ---------------------------------------------------------------- rate limiting
 RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)

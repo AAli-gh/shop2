@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% load persian %}
+{% load persian analytics %}
 {% block title %}سفارش ثبت شد | {{ site_settings.store_name }}{% endblock %}
 
 {% block content %}
+{% ga_purchase order %}
 <div class="card mx-auto max-w-xl p-6 text-center sm:p-10">
     <div class="icon-tile bg-green-50 text-green-600 dark:bg-ember dark:text-green-300">
         {% include "partials/icon.html" with name="check" cls="w-8 h-8" sw="2.2" %}

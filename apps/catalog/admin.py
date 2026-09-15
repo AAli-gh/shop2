@@ -7,12 +7,14 @@ from pathlib import Path
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
 
 from apps.catalog import importer
+from apps.catalog.stock import sync_variant_totals
 from apps.common.admin_jalali import jalali_column
 
 from apps.catalog.models import (
@@ -23,6 +25,7 @@ from apps.catalog.models import (
     Product,
     ProductAttributeValue,
     ProductImage,
+    ProductVariant,
     RestockNotification,
 )
 
@@ -44,6 +47,13 @@ class _nothing:
 
     def __exit__(self, *exc):
         return False
+
+
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 0
+    fields = ("color_name", "color_hex", "option", "sku", "price", "sale_price", "stock", "image", "is_active", "sort_order")
+    verbose_name_plural = "تنوع‌ها (رنگ / ظرفیت) — اگر محصول تنوع دارد، قیمت و موجودی فقط از همین‌جا تعیین می‌شود"
 
 
 class ProductImageInline(admin.TabularInline):
@@ -97,14 +107,14 @@ class ProductAdmin(admin.ModelAdmin):
         ("موجودی", {"fields": ("stock", "sold_count", "is_active")}),
         ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali")}),
     )
-    list_display = ("name", "brand", "category", "price", "sale_price", "stock", "warranty", "sold_count", "is_featured", "is_active")
+    list_display = ("name", "brand", "category", "price", "sale_price", "stock", "variant_count", "warranty", "sold_count", "is_featured", "is_active")
     list_filter = ("is_active", "is_featured", "brand", "category", "requires_install")
     search_fields = ("name", "description")
     list_editable = ("price", "sale_price", "stock", "is_featured", "is_active")
     autocomplete_fields = ("brand", "category")
     # Django 6 default; also keeps the list-editable changelist form free of the deprecation warning
     formfield_overrides = {models.URLField: {"assume_scheme": "https"}}
-    inlines = [ProductImageInline, ProductAttributeValueInline]
+    inlines = [ProductVariantInline, ProductImageInline, ProductAttributeValueInline]
     readonly_fields = ("created_jalali", "updated_jalali", "sold_count")
     actions = ["activate_selected", "deactivate_selected", "export_excel"]
 
@@ -260,13 +270,35 @@ class ProductAdmin(admin.ModelAdmin):
             extra_context["import_url"] = reverse("admin:catalog_product_import")
         return super().changelist_view(request, extra_context)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            active_variant_count=Count("variants", filter=Q(variants__is_active=True))
+        )
+
+    @admin.display(description="تنوع", ordering="active_variant_count")
+    def variant_count(self, obj):
+        return getattr(obj, "active_variant_count", 0) or "—"
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if obj is not None and obj.variants.exists():
+            fields = (*fields, "price", "sale_price", "stock")  # mirrored from the variants
+        return fields
+
     def save_model(self, request, obj, form, change):
-        was_out_of_stock = change and Product.objects.filter(pk=obj.pk, stock=0).exists()
+        obj._was_out_of_stock = change and Product.objects.filter(pk=obj.pk, stock=0).exists()
         super().save_model(request, obj, form, change)
-        if was_out_of_stock and obj.stock > 0:
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        product = form.instance
+        # variants edited inline decide price and stock; this also undoes list-editable edits of those
+        sync_variant_totals(product.pk)
+        product.refresh_from_db(fields=["price", "sale_price", "stock"])
+        if getattr(product, "_was_out_of_stock", False) and product.stock > 0:
             from apps.orders.emails import restock_available
 
-            restock_available(obj)
+            restock_available(product)
 
 
 @admin.register(Banner)

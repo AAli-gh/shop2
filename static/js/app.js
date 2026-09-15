@@ -99,3 +99,30 @@ document.body.addEventListener("htmx:configRequest", (e) => {
     (document.body.getAttribute("hx-headers") &&
       JSON.parse(document.body.getAttribute("hx-headers"))["X-CSRFToken"]) || "";
 });
+
+// Variant picker (product page): price, stock, photo and the add button follow the chosen colour/option
+document.addEventListener("change", (e) => {
+  const input = e.target.closest("[data-variant-picker] input[name=variant]");
+  if (!input) return;
+  const d = input.dataset;
+  const each = (selector, fn) => document.querySelectorAll(selector).forEach(fn);
+  const stock = parseInt(d.vStock, 10) || 0;
+  each("[data-variant-label]", (el) => (el.textContent = d.vLabel));
+  each("[data-price]", (el) => (el.textContent = d.vPrice));
+  each("[data-old-price]", (el) => (el.textContent = d.vOldPrice));
+  each("[data-discount]", (el) => (el.textContent = d.vDiscount));
+  each("[data-old-price-row], [data-discount-badge]", (el) => (el.hidden = !d.vDiscount));
+  each("[data-in-stock]", (el) => (el.hidden = stock === 0));
+  each("[data-out-of-stock]", (el) => (el.hidden = stock > 0));
+  each("[data-stock-count]", (el) => (el.textContent = d.vStockText));
+  each("[data-add-button]", (el) => (el.disabled = stock === 0));
+  each("[data-add-label]", (el) => (el.textContent = stock ? "افزودن به سبد خرید" : "این مدل ناموجود است"));
+  each("#qty-input", (el) => {
+    el.max = Math.max(stock, 1);
+    if (parseInt(el.value, 10) > stock) el.value = Math.max(stock, 1);
+  });
+  if (d.vImage) each("[data-main-image]", (el) => (el.src = d.vImage));
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", input.value);
+  history.replaceState(null, "", url);
+});

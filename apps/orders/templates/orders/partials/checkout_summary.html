@@ -5,7 +5,7 @@
     <ul class="mb-4 space-y-2.5 border-b border-gray-100 pb-4 text-sm dark:border-cedar/60">
         {% for row in summary.items %}
             <li class="flex justify-between gap-3">
-                <span class="min-w-0 truncate text-gray-600 dark:text-mist-dim">{{ row.product.name }} <span class="text-gray-400">× {{ row.item.quantity|fa_digits }}</span></span>
+                <span class="min-w-0 truncate text-gray-600 dark:text-mist-dim">{{ row.product.name }}{% if row.variant %} ({{ row.variant.label }}){% endif %} <span class="text-gray-400">× {{ row.item.quantity|fa_digits }}</span></span>
                 <span class="shrink-0 font-medium"><bdi>{{ row.line_total|toman|fa_digits }}</bdi></span>
             </li>
         {% endfor %}

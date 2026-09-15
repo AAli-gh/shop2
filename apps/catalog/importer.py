@@ -334,6 +334,9 @@ def _apply_row(values: dict, lookups: _Lookups, images: _Images, seen_slugs: dic
     def given(key):
         return values.get(key, "") != ""
 
+    if not creating and product.has_variants and any(given(key) for key in ("price", "sale_price", "stock")):
+        raise RowError("این محصول تنوع (رنگ یا ظرفیت) دارد؛ قیمت و موجودی را در صفحه محصول، بخش تنوع‌ها تغییر دهید.")
+
     for key in TEXT_KEYS:
         if given(key):
             setattr(product, key, values[key])
@@ -427,9 +430,12 @@ def build_workbook(products=None) -> bytes:
                       "۲۴ ماه گارانتی رسمی", "ایران", "A+", 72.5, "بله", 0, 0, "", "توضیحات محصول", "fridge-1.jpg|fridge-2.jpg"])
     else:
         for p in products.select_related("category", "brand"):
+            # variant products: price and stock live on the variants, so leave them out of the sheet
+            priced = not p.has_variants
             sheet.append([
-                p.slug, p.name, p.category.name, p.brand.name if p.brand_id else "", p.price, p.sale_price or "",
-                p.stock, yes_no(p.is_active), yes_no(p.is_featured), p.warranty, p.country, p.energy_class,
+                p.slug, p.name, p.category.name, p.brand.name if p.brand_id else "",
+                p.price if priced else "", (p.sale_price or "") if priced else "",
+                p.stock if priced else "", yes_no(p.is_active), yes_no(p.is_featured), p.warranty, p.country, p.energy_class,
                 float(p.weight_kg) if p.weight_kg is not None else "", yes_no(p.requires_install),
                 p.installment_months, p.installment_down_payment, p.video_url, p.description, "",
             ])

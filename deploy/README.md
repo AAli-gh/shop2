@@ -9,6 +9,7 @@
 | `shop2.service` | اجرای برنامه با gunicorn روی سوکت `/run/shop2/gunicorn.sock` |
 | `shop2-expire-orders.service` + `.timer` | لغو سفارش‌های پرداخت‌نشده هر ۱۰ دقیقه |
 | `shop2-backup.service` + `.timer` | بکاپ روزانه دیتابیس ساعت ۳:۳۰ در `/var/backups/shop2` |
+| `shop2-hourly.service` + `.timer` | یادآوری سبد رهاشده و اطلاع کاهش قیمت، هر ساعت بین ۹ و ۲۱ |
 | `nginx-shop2.conf` | HTTPS، هدایت www و http، سرو static و media |
 | `deploy.sh` | به‌روزرسانی‌های بعدی سایت با یک دستور |
 
@@ -110,7 +111,7 @@ sudo -u shop2 env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python m
 ```bash
 sudo cp /srv/shop2/deploy/*.service /srv/shop2/deploy/*.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now shop2 shop2-expire-orders.timer shop2-backup.timer
+sudo systemctl enable --now shop2 shop2-expire-orders.timer shop2-backup.timer shop2-hourly.timer
 systemctl status shop2
 systemctl list-timers 'shop2-*'
 ```

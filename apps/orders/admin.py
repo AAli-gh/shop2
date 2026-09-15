@@ -1,4 +1,3 @@
-import csv
 from datetime import datetime
 
 from django.contrib import admin, messages
@@ -126,7 +125,7 @@ class OrderAdmin(admin.ModelAdmin):
     def customer_name(self, obj):
         address = getattr(obj, "shipping_address", None)
         return address.full_name if address else "—"
-    actions = ["mark_shipped", "mark_processing", "mark_delivered", "export_csv"]
+    actions = ["mark_shipped", "mark_processing", "mark_delivered", "export_excel"]
 
     fieldsets = (
         ("وضعیت (طبق چرخه: پردازش ← پرداخت‌شده، ارسال ← پردازش، تحویل ← ارسال)", {"fields": ("status",)}),
@@ -221,19 +220,15 @@ class OrderAdmin(admin.ModelAdmin):
         for f in failed:
             messages.error(request, f)
 
-    @admin.action(description="خروجی CSV")
-    def export_csv(self, request, queryset):
-        response = HttpResponse(content_type="text/csv; charset=utf-8")
-        response["Content-Disposition"] = f'attachment; filename=orders-{datetime.now():%Y%m%d}.csv'
-        response.write("﻿")  # Excel UTF-8 BOM
-        writer = csv.writer(response)
-        writer.writerow(["شماره سفارش", "ایمیل", "وضعیت", "جمع کالا", "تخفیف", "ارسال", "جمع کل", "تاریخ"])
-        for o in queryset.select_related("user"):
-            writer.writerow([
-                o.order_number, o.user, o.get_status_display(),
-                o.items_subtotal, o.discount_amount, o.shipping_cost, o.total,
-                timezone.localtime(o.created_at).strftime("%Y/%m/%d %H:%M"),
-            ])
+    @admin.action(description="خروجی Excel برای حسابداری")
+    def export_excel(self, request, queryset):
+        from apps.orders.export import orders_workbook
+
+        response = HttpResponse(
+            orders_workbook(queryset),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="orders-{datetime.now():%Y%m%d}.xlsx"'
         return response
 
 

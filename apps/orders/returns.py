@@ -3,11 +3,10 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, Sum, Value
-from django.db.models.functions import Greatest
+from django.db.models import Sum
 from django.utils import timezone
 
-from apps.catalog.models import Product
+from apps.catalog.stock import give_back_stock
 from apps.orders.models import Order, ReturnRequest, ReturnRequestItem
 
 
@@ -123,9 +122,9 @@ def complete_return(*, return_request: ReturnRequest, refund_to_wallet: bool, re
         if restock:
             for item in current.items.select_related("order_item"):
                 if item.order_item.product_id:
-                    Product.objects.filter(pk=item.order_item.product_id).update(
-                        stock=F("stock") + item.quantity,
-                        sold_count=Greatest(F("sold_count") - item.quantity, Value(0)),
+                    give_back_stock(
+                        product_id=item.order_item.product_id, variant_id=item.order_item.variant_id,
+                        quantity=item.quantity,
                     )
 
         current.status = ReturnRequest.Status.COMPLETED

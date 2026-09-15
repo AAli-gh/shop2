@@ -79,22 +79,31 @@ def return_status_changed(return_request) -> None:
 
 def order_paid_staff(order) -> None:
     """Tell the shop managers a paid order is waiting to be prepared (SMS and email)."""
+    text = f"سفارش جدید {order.order_number}: {order.total:,} تومان، {order.items.count()} قلم"
+    _notify_staff(
+        text,
+        f"سفارش جدید پرداخت‌شده — {order.order_number}",
+        f"{text}\nمشتری: {order.user}\nمشاهده: {_admin_link('admin:orders_order_change', order.pk)}",
+    )
+
+
+def low_stock_staff(rows) -> None:
+    """Tell the managers which products just fell to the low-stock threshold; rows are (name, units left)."""
+    text = "کمبود موجودی: " + "، ".join(f"{name} ({left} عدد)" for name, left in rows)
+    _notify_staff(text, "هشدار کمبود موجودی", text)
+
+
+def _notify_staff(text: str, subject: str, body: str) -> None:
+    """SMS to ORDER_NOTIFY_PHONES and email to ORDER_NOTIFY_EMAILS (or ADMINS); failures never propagate."""
     from apps.common import sms
     from apps.common.services import get_settings
 
-    text = f"سفارش جدید {order.order_number}: {order.total:,} تومان، {order.items.count()} قلم"
     store = get_settings().store_name
     for phone in settings.ORDER_NOTIFY_PHONES:
         sms.notify(phone, f"{store}: {text}")
-
     recipients = settings.ORDER_NOTIFY_EMAILS or [email for _, email in settings.ADMINS]
     if recipients:
-        send_mail(
-            f"سفارش جدید پرداخت‌شده — {order.order_number}",
-            f"{text}\nمشتری: {order.user}\n"
-            f"مشاهده: {_admin_link('admin:orders_order_change', order.pk)}",
-            settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True,
-        )
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)
 
 
 def restock_available(product) -> int:

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load persian seo %}
+{% load persian seo images %}
 {% block title %}{{ site_settings.store_name }}{% endblock %}
 {% block seo %}{% json_ld_store %}{% endblock %}
 {% block main_class %}flex-1 w-full{% endblock %}
@@ -74,8 +74,8 @@
             <a href="{{ category.get_absolute_url }}"
                class="group rounded-2xl border border-gray-100 dark:border-cedar/60 bg-white dark:bg-cedar/40 p-2 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
                 <div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-ember flex items-center justify-center">
-                    {% if category.cover_url %}
-                        <img src="{{ category.cover_url }}" alt="{{ category.name }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                    {% if category.cover_image %}
+                        <img src="{{ category.cover_image|thumb:400 }}" alt="{{ category.name }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                     {% else %}
                         <svg class="w-10 h-10 text-brand-300 dark:text-cedar-light" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>

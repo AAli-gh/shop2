@@ -14,7 +14,7 @@ def admin_pending_items(context):
     from apps.catalog.models import Product
     from apps.common.models import ContactMessage
     from apps.orders.models import Order, ReturnRequest
-    from apps.reviews.models import Review
+    from apps.reviews.models import ProductQuestion, Review
 
     request = context.get("request")
     user = getattr(request, "user", None)
@@ -38,6 +38,9 @@ def admin_pending_items(context):
         ("reviews.view_review", "نظر در انتظار تأیید",
          lambda: Review.objects.filter(is_approved=False).count(),
          reverse("admin:reviews_review_changelist") + "?is_approved__exact=0"),
+        ("reviews.view_productquestion", "پرسش بی‌پاسخ",
+         lambda: ProductQuestion.objects.filter(answer="").count(),
+         reverse("admin:reviews_productquestion_changelist") + "?answered=no"),
         ("common.view_contactmessage", "پیام خوانده‌نشده",
          lambda: ContactMessage.objects.filter(is_read=False).count(),
          reverse("admin:common_contactmessage_changelist") + "?is_read__exact=0"),

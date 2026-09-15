@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -28,6 +29,32 @@ class SiteSettings(models.Model):
         _("trust badges HTML"), blank=True,
         help_text="کد HTML نماد اعتماد الکترونیکی (اینماد) و ساماندهی را دقیقاً همان‌طور که سامانه‌ها می‌دهند اینجا بچسبانید؛ "
                   "در فوتر همه صفحات نمایش داده می‌شود. فقط کد رسمی همان سامانه‌ها را وارد کنید.",
+    )
+    # visitor analytics and customer chat (templates/partials/analytics_head.html, contact_float.html)
+    ga_measurement_id = models.CharField(
+        _("Google Analytics ID"), max_length=20, blank=True,
+        validators=[RegexValidator(r"^G-[A-Z0-9]{4,16}$", "شناسه را به شکل G-XXXXXXXXXX وارد کنید.")],
+        help_text="شناسه اندازه‌گیری Google Analytics 4، مثلاً G-ABC123XYZ. بازدید کالا، افزودن به سبد، "
+                  "شروع پرداخت و خرید به‌صورت رویداد ثبت می‌شوند.",
+    )
+    analytics_head_html = models.TextField(
+        _("analytics code"), blank=True,
+        help_text="کد سرویس آمار دیگر را دقیقاً همان‌طور که سرویس می‌دهد اینجا بچسبانید؛ در head همه صفحات قرار می‌گیرد.",
+    )
+    whatsapp_number = models.CharField(
+        _("WhatsApp number"), max_length=15, blank=True,
+        validators=[RegexValidator(r"^98\d{10}$", "شماره را با کد کشور، بدون صفر و +، وارد کنید؛ مثلاً 989121234567.")],
+        help_text="دکمه شناور واتس‌اپ؛ به شکل 989121234567",
+    )
+    telegram_username = models.CharField(
+        _("Telegram username"), max_length=40, blank=True,
+        validators=[RegexValidator(r"^[A-Za-z0-9_]{5,32}$", "نام کاربری تلگرام را بدون @ وارد کنید.")],
+        help_text="دکمه شناور تلگرام؛ نام کاربری بدون @",
+    )
+    chat_widget_html = models.TextField(
+        _("live chat code"), blank=True,
+        help_text="کد ابزار گفتگوی آنلاین (مثلاً گفتینو یا رایچت) را دقیقاً همان‌طور که سرویس می‌دهد اینجا بچسبانید؛ "
+                  "در انتهای همه صفحات قرار می‌گیرد.",
     )
 
     class Meta:

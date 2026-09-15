@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Exists, OuterRef, Q
 
-from apps.catalog.models import Attribute, Banner, Brand, Category, Product
+from apps.catalog.models import Attribute, Banner, Brand, Category, Product, ProductVariant
 from apps.common.text import normalize_search
 
 SORT_CHOICES = {
@@ -13,6 +13,8 @@ SORT_CHOICES = {
 BASE_ANNOTATIONS = dict(
     avg_rating=Avg("reviews__rating", filter=Q(reviews__is_approved=True)),
     review_count=Count("reviews", distinct=True, filter=Q(reviews__is_approved=True)),
+    # read by Product.has_variants: cards link to the page to pick a colour/option instead of adding directly
+    has_variant_options=Exists(ProductVariant.objects.filter(product=OuterRef("pk"), is_active=True)),
 )
 
 
@@ -158,7 +160,7 @@ def home_categories(limit=6):
             .only("image")
             .first()
         )
-        category.cover_url = product.image.url if product else ""
+        category.cover_image = product.image if product else None
     return categories
 
 

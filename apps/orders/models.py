@@ -79,7 +79,12 @@ class OrderItem(models.Model):
         "catalog.Product", null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name=_("product"),
     )
+    variant = models.ForeignKey(
+        "catalog.ProductVariant", null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("variant"),
+    )
+    # includes the variant label, so invoices and emails need nothing else
     product_name = models.CharField(_("product name"), max_length=200)
+    variant_label = models.CharField(_("variant"), max_length=110, blank=True)
     unit_price = models.BigIntegerField(_("unit price"))
     quantity = models.PositiveSmallIntegerField(_("quantity"))
     line_total = models.BigIntegerField(_("line total"))

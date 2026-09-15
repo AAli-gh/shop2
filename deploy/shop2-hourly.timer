@@ -1,0 +1,11 @@
+# /etc/systemd/system/shop2-hourly.timer
+[Unit]
+Description=shop2: hourly customer notifications (daytime only, so texts don't wake anyone)
+
+[Timer]
+OnCalendar=*-*-* 09..21:15
+Persistent=false
+Unit=shop2-hourly.service
+
+[Install]
+WantedBy=timers.target

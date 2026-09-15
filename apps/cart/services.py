@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Product
@@ -25,25 +26,41 @@ def get_or_create_cart(request) -> Cart:
     return cart
 
 
+def _touch(cart: Cart) -> None:
+    """Item changes don't save the cart row; record them for abandoned-cart reminders."""
+    Cart.objects.filter(pk=cart.pk).update(updated_at=timezone.now())
+
+
 def cart_summary(cart: Cart) -> dict:
     items = []
     subtotal = 0
     item_count = 0
-    for item in cart.items.select_related("product"):
-        line_total = item.product.effective_price * item.quantity
+    for item in cart.items.select_related("product", "variant"):
+        unit_price = item.offer.effective_price
+        line_total = unit_price * item.quantity
         subtotal += line_total
         item_count += item.quantity
-        items.append({"item": item, "product": item.product, "line_total": line_total})
+        items.append({
+            "item": item, "product": item.product, "variant": item.variant,
+            "unit_price": unit_price, "line_total": line_total,
+        })
     return {"items": items, "subtotal": subtotal, "item_count": item_count}
 
 
-def add_to_cart(request, *, product_id: int, quantity: int = 1) -> dict:
-    try:
-        product = Product.objects.get(pk=product_id, is_active=True)
-    except Product.DoesNotExist:
+def add_to_cart(request, *, product_id: int, quantity: int = 1, variant_id: int | None = None) -> dict:
+    product = Product.objects.filter(pk=product_id, is_active=True).first()
+    if product is None:
         raise CartError("محصول یافت نشد")
 
-    if product.stock == 0:
+    variant = None
+    if product.has_variants:
+        if not variant_id:
+            raise CartError("ابتدا رنگ یا مدل را انتخاب کنید")
+        variant = product.variants.filter(pk=variant_id, is_active=True).first()
+        if variant is None:
+            raise CartError("این مدل در دسترس نیست")
+    offer = variant or product
+    if offer.stock == 0:
         raise CartError("این محصول موجود نیست")
 
     quantity = max(1, quantity)
@@ -51,35 +68,38 @@ def add_to_cart(request, *, product_id: int, quantity: int = 1) -> dict:
 
     with transaction.atomic():
         item, created = CartItem.objects.get_or_create(
-            cart=cart, product=product, defaults={"quantity": quantity}
+            cart=cart, product=product, variant=variant, defaults={"quantity": quantity}
         )
         if not created:
-            item.quantity = min(item.quantity + quantity, product.stock)
+            item.quantity = min(item.quantity + quantity, offer.stock)
         else:
-            item.quantity = min(item.quantity, product.stock)
+            item.quantity = min(item.quantity, offer.stock)
         item.save()
+        _touch(cart)
 
     return cart_summary(cart)
 
 
 def update_item_quantity(request, *, item_id: int, quantity: int) -> dict:
     cart = get_or_create_cart(request)
-    item = cart.items.filter(pk=item_id).select_related("product").first()
+    item = cart.items.filter(pk=item_id).select_related("product", "variant").first()
     if not item:
         raise CartError("ردیف سبد یافت نشد")
 
     quantity = max(0, quantity)
-    if quantity == 0 or quantity > item.product.stock:
+    if quantity == 0 or quantity > item.offer.stock:
         item.delete()
     else:
         item.quantity = quantity
         item.save()
+    _touch(cart)
     return cart_summary(cart)
 
 
 def remove_item(request, *, item_id: int) -> dict:
     cart = get_or_create_cart(request)
     cart.items.filter(pk=item_id).delete()
+    _touch(cart)
     return cart_summary(cart)
 
 
@@ -106,12 +126,10 @@ def merge_carts(request, user) -> None:
             guest_cart.session_key = None
             guest_cart.save()
         else:
-            for item in guest_cart.items.select_related("product"):
-                existing = user_cart.items.filter(product=item.product).first()
+            for item in guest_cart.items.select_related("product", "variant"):
+                existing = user_cart.items.filter(product=item.product, variant=item.variant).first()
                 if existing:
-                    existing.quantity = min(
-                        existing.quantity + item.quantity, item.product.stock or existing.quantity
-                    )
+                    existing.quantity = min(existing.quantity + item.quantity, item.offer.stock or existing.quantity)
                     existing.save()
                 else:
                     item.cart = user_cart
@@ -119,5 +137,6 @@ def merge_carts(request, user) -> None:
                 item.refresh_from_db()
             guest_cart.items.all().delete()
             guest_cart.delete()
+            _touch(user_cart)
 
     request.session.pop("cart_id", None)

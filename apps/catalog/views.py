@@ -166,18 +166,34 @@ def product_detail(request, slug):
 
         raise Http404("محصول یافت نشد")
 
+    from apps.catalog import price_alerts
     from apps.common import lastvisited
     from apps.reviews import services as review_services
 
     lastvisited.record_view(request, product)
+
+    # ?v=<id> opens a given colour/option (shareable); otherwise the first one in stock
+    variants = list(product.variants.filter(is_active=True)) if product.has_variants else []
+    selected_variant = None
+    if variants:
+        wanted = request.GET.get("v", "")
+        selected_variant = (
+            next((v for v in variants if str(v.pk) == wanted), None)
+            or next((v for v in variants if v.in_stock), variants[0])
+        )
 
     return render(
         request,
         "catalog/product_detail.html",
         {
             "product": product,
+            "variants": variants,
+            "selected_variant": selected_variant,
+            "offer": selected_variant or product,  # price and stock shown and sold
             "specs": services.product_specs(product),
             "reviews": review_services.approved_reviews_for(product),
+            "questions": review_services.published_questions_for(product),
+            "following_price": price_alerts.is_following(request.user, product),
             "has_reviewed": (
                 request.user.is_authenticated
                 and review_services.has_reviewed(user=request.user, product=product)
@@ -195,3 +211,20 @@ def brand_page(request, brand_slug):
 
         raise Http404("برند یافت نشد")
     return product_list(request, brand_slug=brand_slug)
+
+
+def price_alert_toggle(request, slug):
+    """Follow or unfollow a product's price (HTMX POST); guests get a sign-in link instead of the button."""
+    from django.http import HttpResponse, HttpResponseNotAllowed
+    from django.shortcuts import get_object_or_404, render
+
+    from apps.catalog import price_alerts
+    from apps.catalog.models import Product
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    if not request.user.is_authenticated:
+        return HttpResponse(status=403)
+    product = get_object_or_404(Product, slug=slug, is_active=True)
+    following = price_alerts.toggle(user=request.user, product=product)
+    return render(request, "catalog/partials/price_alert_button.html", {"product": product, "following_price": following})

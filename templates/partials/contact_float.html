@@ -1,0 +1,24 @@
+{# Floating WhatsApp / Telegram buttons and a live-chat widget, all configured in site settings #}
+{% if site_settings.whatsapp_number or site_settings.telegram_username %}
+    <div class="fixed bottom-4 left-4 z-40 flex flex-col gap-2 print:hidden">
+        {% if site_settings.whatsapp_number %}
+            <a href="https://wa.me/{{ site_settings.whatsapp_number }}?text={{ 'سلام، درباره این صفحه سؤال دارم: '|add:request.build_absolute_uri|urlencode }}"
+               target="_blank" rel="noopener" title="گفتگو در واتس‌اپ"
+               class="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/15 transition hover:scale-105">
+                {% include "partials/icon.html" with name="chat" cls="w-6 h-6" sw="1.8" %}
+                <span class="sr-only">گفتگو در واتس‌اپ</span>
+            </a>
+        {% endif %}
+        {% if site_settings.telegram_username %}
+            <a href="https://t.me/{{ site_settings.telegram_username }}" target="_blank" rel="noopener" title="گفتگو در تلگرام"
+               class="flex h-12 w-12 items-center justify-center rounded-full bg-[#229ED9] text-white shadow-lg shadow-black/15 transition hover:scale-105">
+                {% include "partials/icon.html" with name="send" cls="w-6 h-6" sw="1.8" %}
+                <span class="sr-only">گفتگو در تلگرام</span>
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+{% if site_settings.chat_widget_html %}
+    {# live chat service snippet (e.g. Goftino, Raychat) pasted by staff in site settings #}
+    {{ site_settings.chat_widget_html|safe }}
+{% endif %}

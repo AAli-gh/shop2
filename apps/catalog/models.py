@@ -1,3 +1,7 @@
+from functools import cached_property
+
+from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
 from django.urls import reverse
@@ -209,6 +213,14 @@ class Product(models.Model):
     def in_stock(self):
         return self.stock > 0
 
+    @cached_property
+    def has_variants(self) -> bool:
+        """Sold through colour/option variants (listing querysets annotate this to save a query per card)."""
+        annotated = getattr(self, "has_variant_options", None)
+        if annotated is not None:
+            return annotated
+        return self.variants.filter(is_active=True).exists()
+
     @property
     def effective_price(self):
         return self.sale_price if self.sale_price is not None else self.price
@@ -232,6 +244,83 @@ class Product(models.Model):
         if remaining <= 0:
             return 0
         return round(remaining / self.installment_months)
+
+
+class ProductVariant(models.Model):
+    """One buyable version of a product — a colour and/or an option such as capacity — with its own price and stock.
+
+    A product with active variants is sold only through them. Its own price, sale price and stock
+    mirror the variants (cheapest prices, total stock; apps.catalog.stock.sync_variant_totals), so
+    listings, price filters, sorting and search keep working on the product row alone.
+    """
+
+    product = models.ForeignKey(
+        Product, related_name="variants", on_delete=models.CASCADE, verbose_name=_("product")
+    )
+    color_name = models.CharField(_("color"), max_length=40, blank=True, help_text="مثلاً سفید یا استیل")
+    color_hex = models.CharField(
+        _("color code"), max_length=7, blank=True, help_text="برای نمونه رنگ، مثلاً #C0C0C0",
+        validators=[RegexValidator(r"^#[0-9A-Fa-f]{6}$", "کد رنگ را به شکل #C0C0C0 وارد کنید.")],
+    )
+    option = models.CharField(_("option"), max_length=60, blank=True, help_text="ظرفیت، سایز یا مدل؛ مثلاً ۲۴ فوت")
+    sku = models.CharField(_("SKU"), max_length=60, blank=True)
+    price = models.BigIntegerField(_("price"), help_text=_("in Toman"))
+    sale_price = models.BigIntegerField(
+        _("sale price"), null=True, blank=True, help_text=_("in Toman, discounted price")
+    )
+    stock = models.PositiveIntegerField(_("stock"), default=0)
+    image = models.ImageField(_("image"), upload_to="products/variants/", blank=True)
+    is_active = models.BooleanField(_("active"), default=True)
+    sort_order = models.PositiveSmallIntegerField(_("sort order"), default=0)
+
+    class Meta:
+        verbose_name = _("product variant")
+        verbose_name_plural = _("product variants")
+        ordering = ["sort_order", "pk"]
+        constraints = [
+            models.CheckConstraint(condition=Q(price__gte=0), name="variant_price_non_negative"),
+            models.CheckConstraint(condition=Q(sale_price__lt=F("price")), name="variant_sale_lt_price",
+                                   violation_error_message="قیمت تخفیف‌خورده باید کمتر از قیمت اصلی باشد"),
+            models.CheckConstraint(condition=~Q(color_name="") | ~Q(option=""), name="variant_has_label",
+                                   violation_error_message="رنگ یا گزینه (ظرفیت/مدل) را وارد کنید"),
+            models.UniqueConstraint(fields=["product", "color_name", "option"], name="unique_variant_per_product",
+                                    violation_error_message="این ترکیب رنگ و گزینه برای این محصول تکراری است"),
+        ]
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def label(self) -> str:
+        return " · ".join(part for part in (self.color_name, self.option) if part)
+
+    @property
+    def in_stock(self):
+        return self.stock > 0
+
+    @property
+    def effective_price(self):
+        return self.sale_price if self.sale_price is not None else self.price
+
+    @property
+    def discount_percent(self):
+        if self.sale_price is None or self.price <= 0:
+            return 0
+        return round((self.price - self.sale_price) * 100 / self.price)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from apps.catalog.stock import sync_variant_totals
+
+        sync_variant_totals(self.product_id)
+
+    def delete(self, *args, **kwargs):
+        product_id = self.product_id
+        result = super().delete(*args, **kwargs)
+        from apps.catalog.stock import sync_variant_totals
+
+        sync_variant_totals(product_id)
+        return result
 
 
 class ProductImage(models.Model):
@@ -277,3 +366,27 @@ class RestockNotification(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["product", "email"], name="unique_restock_request"),
         ]
+
+
+class PriceAlert(models.Model):
+    """A customer following a product's price; notified once it is cheaper than when they subscribed."""
+
+    product = models.ForeignKey(
+        Product, related_name="price_alerts", on_delete=models.CASCADE, verbose_name=_("product"),
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="price_alerts", on_delete=models.CASCADE, verbose_name=_("user"),
+    )
+    price_at_signup = models.BigIntegerField(_("price at signup"), help_text=_("in Toman"))
+    notified_at = models.DateTimeField(_("notified at"), null=True, blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("price alert")
+        verbose_name_plural = _("price alerts")
+        constraints = [
+            models.UniqueConstraint(fields=["product", "user"], name="unique_price_alert"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.product}"

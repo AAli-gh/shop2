@@ -10,7 +10,7 @@ from apps.common.admin_jalali import jalali_column
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
-    readonly_fields = ("product", "quantity")
+    readonly_fields = ("product", "variant", "quantity")
 
     def has_add_permission(self, request, obj=None):
         return False

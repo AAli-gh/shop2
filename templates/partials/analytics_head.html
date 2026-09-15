@@ -1,0 +1,15 @@
+{# Visitor analytics configured in site settings. The GA4 ID is validated (G-XXXX), so it is safe in the URL and script. #}
+{% if site_settings.ga_measurement_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.ga_measurement_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag("js", new Date());
+        gtag("config", "{{ site_settings.ga_measurement_id }}");
+    </script>
+{% endif %}
+<script>window.shopTrack = function (name, params) { if (window.gtag) window.gtag("event", name, params); };</script>
+{% if site_settings.analytics_head_html %}
+    {# snippet of another analytics service, pasted by staff in site settings #}
+    {{ site_settings.analytics_head_html|safe }}
+{% endif %}

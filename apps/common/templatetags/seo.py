@@ -69,6 +69,19 @@ def json_ld_product(context, product):
             "itemCondition": "https://schema.org/NewCondition",
         },
     }
+    variants = list(product.variants.filter(is_active=True)) if product.has_variants else []
+    if variants:
+        prices = [variant.effective_price * 10 for variant in variants]
+        data["offers"] = {
+            "@type": "AggregateOffer",
+            "url": url,
+            "priceCurrency": "IRR",
+            "lowPrice": min(prices),
+            "highPrice": max(prices),
+            "offerCount": len(variants),
+            "availability": "https://schema.org/InStock" if product.in_stock else "https://schema.org/OutOfStock",
+            "itemCondition": "https://schema.org/NewCondition",
+        }
     if product.description:
         data["description"] = product.description[:5000]
     images = [product.image.url] if product.image else []
