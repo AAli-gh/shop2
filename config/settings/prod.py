@@ -57,13 +57,20 @@ X_FRAME_OPTIONS = "DENY"
 
 # ---------------------------------------------------------------- static / media
 # collectstatic writes hashed files to STATIC_ROOT; nginx serves /static/ and /media/ directly
+# Hashed file names need a manifest built by our own collectstatic run. A PaaS that collects static
+# files itself (e.g. Liara) has no manifest, so it sets DJANGO_STATICFILES_STORAGE to the plain
+# backend; templates already cache-bust the assets that change with ?v=.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"},
+    "staticfiles": {"BACKEND": env(
+        "DJANGO_STATICFILES_STORAGE",
+        default="django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    )},
 }
 
 # ---------------------------------------------------------------- email (SMTP)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# a staging server without SMTP can set this to django.core.mail.backends.dummy.EmailBackend
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = env("EMAIL_HOST")  # required: verification, password reset and order emails
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")

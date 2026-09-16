@@ -31,7 +31,7 @@ def logs_view(request):
     n = min(int(request.GET.get("n", 200)), 1000)
     which = request.GET.get("file", "shop")
     name = "error.log" if which == "error" else "shop.log"
-    path = Path(settings.BASE_DIR) / "logs" / name
+    path = Path(settings.LOG_DIR) / name
     lines = []
     if path.exists():
         try:
@@ -55,7 +55,7 @@ def logs_download(request):
 
     which = request.GET.get("file", "shop")
     name = "error.log" if which == "error" else "shop.log"
-    path = Path(settings.BASE_DIR) / "logs" / name
+    path = Path(settings.LOG_DIR) / name
     if not path.exists():
         return HttpResponse("", content_type="text/plain; charset=utf-8")
     content = path.read_text(encoding="utf-8", errors="replace")

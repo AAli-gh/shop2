@@ -1,0 +1,5 @@
+{
+  "platform": "django",
+  "app": "djangoshop",
+  "port": 8000
+}

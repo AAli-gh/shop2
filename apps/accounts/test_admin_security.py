@@ -100,7 +100,9 @@ def test_2fa_storefront_session_does_not_open_staff_pages(client, staff, two_fac
 
 
 @pytest.mark.django_db
-def test_admin_login_is_rate_limited_per_account(client, staff):
+def test_admin_login_is_rate_limited_per_account(client, staff, monkeypatch):
+    # counters live in fixed windows; freeze the clock so the run can't straddle a window boundary
+    monkeypatch.setattr("apps.common.ratelimit.time.time", lambda: 1_700_000_000.0)
     for _ in range(5):
         assert _password_step(client, password="wrong-password").status_code == 200
     assert _password_step(client, password="wrong-password").status_code == 429

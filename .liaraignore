@@ -1,0 +1,29 @@
+# What never gets uploaded to Liara (same idea as .gitignore)
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# local secrets and data — set the values as environment variables in the Liara panel instead
+.env
+db.sqlite3
+db.sqlite3-journal
+backups/
+logs/
+cache/
+sent_emails/
+sent_sms/
+
+# uploads live on the mounted disk, not in the deployment
+media/
+
+# rebuilt during the deploy
+staticfiles/
+
+# development-only tools
+tools/
+.claude/
+.idea/
+.vscode/

@@ -165,7 +165,8 @@ ADMIN_2FA_ENABLED = env.bool("ADMIN_2FA_ENABLED", default=False)
 
 # ---------------------------------------------------------------- SMS / phone login
 SMS_BACKEND = env("SMS_BACKEND", default="apps.common.sms.FileSmsBackend")
-SMS_FILE_PATH = BASE_DIR / "sent_sms"  # FileSmsBackend output (development)
+# FileSmsBackend output (development); on a read-only host point it at a writable path such as /tmp
+SMS_FILE_PATH = Path(env("SMS_FILE_PATH", default=str(BASE_DIR / "sent_sms")))
 SMSIR = {
     "API_KEY": env("SMSIR_API_KEY", default=""),
     "LINE_NUMBER": env("SMSIR_LINE_NUMBER", default=""),
@@ -190,8 +191,26 @@ REST_FRAMEWORK = {
 }
 
 # ---------------------------------------------------------------- logging
-LOG_DIR = BASE_DIR / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = Path(env("DJANGO_LOG_DIR", default=str(BASE_DIR / "logs")))
+# hosts with a read-only filesystem (e.g. Liara) collect the platform's stdout instead of log files
+LOG_TO_STDOUT = env.bool("DJANGO_LOG_TO_STDOUT", default=False)
+if not LOG_TO_STDOUT:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _log_handler(filename: str, level: str) -> dict:
+    if LOG_TO_STDOUT:
+        return {"class": "logging.StreamHandler", "stream": "ext://sys.stdout",
+                "formatter": "verbose", "level": level}
+    return {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": LOG_DIR / filename,
+        "maxBytes": 5 * 1024 * 1024,
+        "backupCount": 5,
+        "formatter": "verbose",
+        "level": level,
+        "encoding": "utf-8",
+    }
 
 LOGGING = {
     "version": 1,
@@ -203,24 +222,8 @@ LOGGING = {
         },
     },
     "handlers": {
-        "error_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOG_DIR / "error.log",
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 5,
-            "formatter": "verbose",
-            "level": "ERROR",
-            "encoding": "utf-8",
-        },
-        "shop_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOG_DIR / "shop.log",
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 5,
-            "formatter": "verbose",
-            "level": "INFO",
-            "encoding": "utf-8",
-        },
+        "error_file": _log_handler("error.log", "ERROR"),
+        "shop_file": _log_handler("shop.log", "INFO"),
         "mail_admins": {
             "class": "django.utils.log.AdminEmailHandler",
             "level": "ERROR",
