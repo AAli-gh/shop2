@@ -74,8 +74,10 @@ python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```bash
 npm install -g @liara/cli
 liara login
-liara deploy
+liara deploy --app djangoshop --disks media:media
 ```
+
+> گزینهٔ `--disks media:media` را در **هر** استقرار بنویسید؛ دیسک عکس‌ها را به پوشهٔ `media/` وصل می‌کند. بدون آن، آپلود عکس محصول روی فایل‌سیستم فقط‌خواندنی خطا می‌دهد.
 
 یا از پنل: پوشهٔ پروژه را zip کنید و در بخش «استقرار جدید» بارگذاری کنید. در این حالت فایل‌های `.venv`، `db.sqlite3`، `media/`، `logs/` و `.env` را خودتان از zip حذف کنید.
 

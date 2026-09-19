@@ -1,0 +1,53 @@
+{% load persian %}
+{# shown when the search box is focused while empty: this visitor's recent searches and popular ones #}
+{% if recent or popular or categories %}
+<div id="live-search-results"
+     class="absolute inset-x-0 top-full z-50 mt-2 space-y-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-xl shadow-brand-900/10 dark:border-cedar/60 dark:bg-midnight">
+    {% if recent %}
+        <section>
+            <div class="mb-2.5 flex items-center justify-between gap-3">
+                <h3 class="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-mist-dim">
+                    {% include "partials/icon.html" with name="clock" cls="w-4 h-4" %}
+                    جستجوهای اخیر شما
+                </h3>
+                <button type="button" hx-post="{% url 'catalog:clear_recent_searches' %}"
+                        hx-target="#live-search-results" hx-swap="outerHTML"
+                        class="text-xs text-gray-400 hover:text-red-600 dark:text-mist-dim dark:hover:text-red-300">پاک کردن</button>
+            </div>
+            <ul class="flex flex-wrap gap-2">
+                {% for term in recent %}
+                    <li><a href="{% url 'catalog:product_list' %}?q={{ term|urlencode }}"
+                           class="inline-flex items-center rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:border-brand-400 hover:text-brand-600 dark:border-cedar/60 dark:text-glacier dark:hover:border-river dark:hover:text-river">{{ term }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    {% if popular %}
+        <section>
+            <h3 class="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-mist-dim">
+                {% include "partials/icon.html" with name="bolt" cls="w-4 h-4" %}
+                جستجوهای پرطرفدار
+            </h3>
+            <ul class="flex flex-wrap gap-2">
+                {% for term in popular %}
+                    <li><a href="{% url 'catalog:product_list' %}?q={{ term|urlencode }}"
+                           class="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-sm text-brand-700 hover:bg-brand-100 dark:bg-ember dark:text-river dark:hover:bg-cedar">{{ term }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% elif categories %}
+        <section>
+            <h3 class="mb-2.5 text-xs font-bold text-gray-500 dark:text-mist-dim">دسته‌بندی‌ها</h3>
+            <ul class="flex flex-wrap gap-2">
+                {% for category in categories %}
+                    <li><a href="{{ category.get_absolute_url }}"
+                           class="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-sm text-brand-700 hover:bg-brand-100 dark:bg-ember dark:text-river dark:hover:bg-cedar">{{ category.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+</div>
+{% else %}
+<span id="live-search-results" class="hidden"></span>
+{% endif %}

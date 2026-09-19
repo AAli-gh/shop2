@@ -58,6 +58,12 @@ document.addEventListener("click", (e) => {
       document.getElementById("live-search-results")?.remove();
     }
   });
+  // results are appended to the form: drop the previous dropdown so only the newest shows
+  document.body.addEventListener("htmx:beforeSwap", (e) => {
+    if (e.detail.target && e.detail.target.id === "live-search-wrap") {
+      document.getElementById("live-search-results")?.remove();
+    }
+  });
 })();
 
 // HTMX error responses (e.g. 429 rate limit) are not swapped — show a short toast instead

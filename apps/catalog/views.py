@@ -23,9 +23,9 @@ def home(request):
 
 def live_search(request):
     q = request.GET.get("q", "")
-    results = services.quick_search(q)
     if len(q.strip()) < 2:
-        return render(request, "catalog/partials/live_search_empty.html")
+        return _search_suggestions(request)
+    results = services.quick_search(q)
     return render(
         request,
         "catalog/partials/live_search_results.html",
@@ -62,6 +62,11 @@ def product_list(request, category_slug=None, brand_slug=None):
         max_price=max_price,
         filters=filters,
     )
+    query = request.GET.get("q")
+    if query and request.GET.get("page") in (None, "", "1"):
+        from apps.catalog import search_history
+
+        search_history.record_search(request, query, products.paginator.count)
     lo, hi = services.price_bounds()
     current_category_obj = None
     if category:
@@ -228,3 +233,26 @@ def price_alert_toggle(request, slug):
     product = get_object_or_404(Product, slug=slug, is_active=True)
     following = price_alerts.toggle(user=request.user, product=product)
     return render(request, "catalog/partials/price_alert_button.html", {"product": product, "following_price": following})
+
+
+def _search_suggestions(request):
+    """Dropdown for the empty search box: recent searches, popular ones (or categories until there are some)."""
+    from apps.catalog import search_history
+
+    popular = search_history.popular_searches()
+    return render(request, "catalog/partials/live_search_suggestions.html", {
+        "recent": search_history.recent_searches(request),
+        "popular": popular,
+        "categories": [] if popular else list(services.top_categories()[:8]),
+    })
+
+
+def clear_recent_searches(request):
+    from django.http import HttpResponseNotAllowed
+
+    from apps.catalog import search_history
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    search_history.clear_recent(request)
+    return _search_suggestions(request)

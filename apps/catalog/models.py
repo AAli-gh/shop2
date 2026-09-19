@@ -390,3 +390,25 @@ class PriceAlert(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.product}"
+
+
+class SearchTerm(models.Model):
+    """A search submitted on the shop, counted once per visitor session (apps.catalog.search_history)."""
+
+    term = models.CharField(_("term"), max_length=100, unique=True, help_text="شکل یکسان‌سازی‌شده برای شمارش")
+    display = models.CharField(_("search text"), max_length=100)
+    count = models.PositiveIntegerField(_("search count"), default=1, db_index=True)
+    results_count = models.PositiveIntegerField(_("results count"), default=0)
+    last_searched_at = models.DateTimeField(_("last searched at"), db_index=True)
+    is_hidden = models.BooleanField(
+        _("hidden"), default=False,
+        help_text="از فهرست «جستجوهای پرطرفدار» حذف شود (مثلاً عبارت نامناسب یا تبلیغاتی).",
+    )
+
+    class Meta:
+        verbose_name = _("search term")
+        verbose_name_plural = _("search terms")
+        ordering = ["-count"]
+
+    def __str__(self):
+        return self.display

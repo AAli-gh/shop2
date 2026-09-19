@@ -11,6 +11,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("products/", views.product_list, name="product_list"),
     path("search/live/", views.live_search, name="live_search"),
+    path("search/recent/clear/", views.clear_recent_searches, name="clear_recent_searches"),
     path("compare/", views.compare_page, name="compare"),
     path("compare/toggle/<path:slug>/", views.compare_toggle, name="compare_toggle"),
     path("compare/remove/<path:slug>/", views.compare_remove, name="compare_remove"),

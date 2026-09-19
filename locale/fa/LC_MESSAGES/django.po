@@ -731,3 +731,24 @@ msgstr "نام کاربری تلگرام"
 
 msgid "live chat code"
 msgstr "کد گفتگوی آنلاین"
+
+msgid "search term"
+msgstr "عبارت جستجو"
+
+msgid "search terms"
+msgstr "عبارت‌های جستجو"
+
+msgid "term"
+msgstr "عبارت یکسان‌سازی‌شده"
+
+msgid "search count"
+msgstr "تعداد جستجو"
+
+msgid "results count"
+msgstr "تعداد نتیجه"
+
+msgid "last searched at"
+msgstr "آخرین جستجو"
+
+msgid "hidden"
+msgstr "پنهان"

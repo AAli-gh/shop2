@@ -27,6 +27,7 @@ from apps.catalog.models import (
     ProductImage,
     ProductVariant,
     RestockNotification,
+    SearchTerm,
 )
 
 
@@ -322,3 +323,20 @@ class RestockNotificationAdmin(admin.ModelAdmin):
     search_fields = ("email", "product__name")
 
     created_jalali = jalali_column("created_at", "تاریخ درخواست")
+
+
+@admin.register(SearchTerm)
+class SearchTermAdmin(admin.ModelAdmin):
+    """What customers look for: popular terms, and the ones that found nothing (products to add?)."""
+
+    list_display = ("display", "count", "results_count", "is_hidden", "last_searched_jalali")
+    list_editable = ("is_hidden",)
+    list_filter = ("is_hidden",)
+    search_fields = ("display", "term")
+    readonly_fields = ("term", "display", "count", "results_count", "last_searched_jalali")
+    fields = ("display", "term", "count", "results_count", "last_searched_jalali", "is_hidden")
+
+    last_searched_jalali = jalali_column("last_searched_at", "آخرین جستجو")
+
+    def has_add_permission(self, request):
+        return False

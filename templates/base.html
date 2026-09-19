@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=13">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {
@@ -23,7 +23,7 @@
         })();
     </script>
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    <script src="{% static 'js/app.js' %}?v=9" defer></script>
+    <script src="{% static 'js/app.js' %}?v=10" defer></script>
     {% include "partials/analytics_head.html" %}
 </head>
 <body class="bg-surface dark:bg-midnight text-gray-900 dark:text-glacier font-sans min-h-screen flex flex-col transition-colors"
@@ -65,7 +65,7 @@
                        placeholder="جستجو در میان کالاهای اصل..."
                        autocomplete="off"
                        hx-get="{% url 'catalog:live_search' %}"
-                       hx-trigger="input changed delay:300ms, search"
+                       hx-trigger="focus, click, input changed delay:300ms, search"
                        hx-target="#live-search-wrap" hx-swap="beforeend"
                        hx-include="this"
                        hx-sync="closest form:replace"
