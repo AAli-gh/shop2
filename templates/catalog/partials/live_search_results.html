@@ -27,6 +27,15 @@
             {% include "partials/icon.html" with name="chevron-left" cls="w-3.5 h-3.5" sw="2" %}
         </a>
     {% else %}
-        <p class="px-4 py-5 text-center text-sm text-gray-400 dark:text-mist-dim">نتیجه‌ای برای «{{ q }}» یافت نشد.</p>
+        <p class="px-4 pt-5 text-center text-sm text-gray-400 dark:text-mist-dim">نتیجه‌ای برای «{{ q }}» یافت نشد.</p>
+        {% if did_you_mean %}
+            <p class="px-4 pt-2 pb-5 text-center text-sm">
+                منظورتان
+                {% for term in did_you_mean %}<a href="/products/?q={{ term|urlencode }}" class="font-bold text-brand-600 hover:underline dark:text-river">{{ term }}</a>{% if not forloop.last %} یا {% endif %}{% endfor %}
+                بود؟
+            </p>
+        {% else %}
+            <span class="block pb-5"></span>
+        {% endif %}
     {% endif %}
 </div>

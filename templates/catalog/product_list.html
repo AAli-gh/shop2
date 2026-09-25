@@ -135,6 +135,7 @@
                 {% if only_on_sale %}<input type="hidden" name="sale" value="1">{% endif %}
                 <label for="sort" class="shrink-0 text-gray-500 dark:text-mist-dim">مرتب‌سازی:</label>
                 <select id="sort" name="sort" onchange="this.form.submit()" class="input h-10 w-auto pl-8">
+                    {% if current_q %}<option value="relevance" {% if current_sort == 'relevance' %}selected{% endif %}>مرتبط‌ترین</option>{% endif %}
                     <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>جدیدترین</option>
                     <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>ارزان‌ترین</option>
                     <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>گران‌ترین</option>
@@ -152,10 +153,28 @@
         {% else %}
             <div class="empty-state">
                 <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="bag" cls="w-8 h-8" sw="1.5" %}</div>
-                <p class="mt-5 font-bold">محصولی یافت نشد</p>
-                <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">فیلترها را تغییر دهید یا عبارت دیگری جستجو کنید.</p>
+                <p class="mt-5 font-bold">{% if current_q %}نتیجه‌ای برای «{{ current_q }}» پیدا نشد{% else %}محصولی یافت نشد{% endif %}</p>
+                {% if did_you_mean %}
+                    <p class="mt-3 text-sm text-gray-600 dark:text-mist-dim">
+                        منظورتان
+                        {% for term in did_you_mean %}<a href="?q={{ term|urlencode }}" class="font-bold text-brand-600 hover:underline dark:text-river">{{ term }}</a>{% if not forloop.last %} یا {% endif %}{% endfor %}
+                        بود؟
+                    </p>
+                {% else %}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">فیلترها را تغییر دهید یا عبارت دیگری جستجو کنید.</p>
+                {% endif %}
                 <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">مشاهده همه محصولات</a>
             </div>
+            {% if fallback_products %}
+                <section class="mt-10">
+                    <h2 class="page-title mb-6 text-lg">پرفروش‌ترین کالاها</h2>
+                    <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 xl:gap-5">
+                        {% for product in fallback_products %}
+                            {% include "catalog/partials/product_card.html" %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
         {% endif %}
     </div>
 </div>

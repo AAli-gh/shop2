@@ -137,6 +137,23 @@
     </div>
 
     <div class="card p-5 sm:p-6">
+        <h2 class="card-title">جستجوهای بی‌نتیجه</h2>
+        {% if stats.no_result_searches %}
+            <p class="mb-3 text-xs leading-6 text-gray-500 dark:text-mist-dim">مشتری‌ها دنبال این‌ها بودند و چیزی پیدا نکردند؛ شاید باید این کالاها را اضافه کنید.</p>
+            <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+                {% for term in stats.no_result_searches %}
+                    <li class="flex items-center justify-between gap-3 py-2.5">
+                        <span class="truncate">{{ term.display }}</span>
+                        <span class="chip shrink-0 bg-gray-100 text-gray-600 dark:bg-ember dark:text-mist-dim">{{ term.count|fa_digits }} بار</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-sm text-gray-400 dark:text-mist-dim">هر جستجویی نتیجه داشته است.</p>
+        {% endif %}
+    </div>
+
+    <div class="card p-5 sm:p-6">
         <h2 class="card-title">کالاهای راکد (بدون فروش در ۶۰ روز)</h2>
         {% if stats.stale_products %}
             <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">

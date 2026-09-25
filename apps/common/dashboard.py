@@ -4,7 +4,7 @@ from django.db.models import BigIntegerField, Count, Exists, ExpressionWrapper, 
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
-from apps.catalog.models import Product
+from apps.catalog.models import Product, SearchTerm
 from apps.orders.models import Order, OrderItem
 
 PROFIT = ExpressionWrapper((F("unit_price") - F("unit_cost")) * F("quantity"), output_field=BigIntegerField())
@@ -128,6 +128,9 @@ def sales_stats():
         "top_products": top_products,
         "low_stock": list(
             Product.objects.filter(is_active=True, stock__lte=3).order_by("stock")[:8]
+        ),
+        "no_result_searches": list(
+            SearchTerm.objects.filter(results_count=0, is_hidden=False).order_by("-count", "-last_searched_at")[:8]
         ),
         "comparison": period_comparison(),
         "profit": profit_report(),

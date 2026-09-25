@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.db.models import Avg, Count, Exists, OuterRef, Q
+from django.db.models import Avg, Case, Count, Exists, IntegerField, OuterRef, Q, Value, When
 
 from apps.catalog.models import Attribute, Banner, Brand, Category, Product, ProductVariant
 from apps.common.text import normalize_search
@@ -10,6 +10,12 @@ SORT_CHOICES = {
     "price_asc": "price",
     "price_desc": "-price",
 }
+# a search is sorted by how well it matches unless the customer picks another order
+RELEVANCE = "relevance"
+
+
+def default_sort(q=None) -> str:
+    return RELEVANCE if q else "newest"
 
 BASE_ANNOTATIONS = dict(
     avg_rating=Avg("reviews__rating", filter=Q(reviews__is_approved=True)),
@@ -70,8 +76,17 @@ def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, pag
             attributes__attribute__name=attr_name,
             attributes__value_text__in=values,
         )
-    order_by = SORT_CHOICES.get(sort, SORT_CHOICES["newest"])
-    qs = qs.order_by(order_by)
+    sort = sort if sort in SORT_CHOICES or sort == RELEVANCE else default_sort(q)
+    if sort == RELEVANCE and q:
+        # a name that starts with the search beats one that merely mentions it; then best sellers
+        folded = normalize_search(q)
+        qs = qs.annotate(match_score=Case(
+            When(search_text__startswith=folded, then=Value(2)),
+            When(search_text__contains=folded, then=Value(1)),
+            default=Value(0), output_field=IntegerField(),
+        )).order_by("-match_score", "-sold_count", "-created_at")
+    else:
+        qs = qs.order_by(SORT_CHOICES.get(sort, SORT_CHOICES["newest"]))
     paginator = Paginator(qs.distinct(), per_page)
     return paginator.get_page(page)
 
@@ -140,6 +155,34 @@ def flash_sale_products(limit=8):
     """Discounts with a deadline, the one ending soonest first."""
     return list(
         _active_qs().filter(live_discount_q(), sale_ends_at__gte=timezone.now()).order_by("sale_ends_at")[:limit]
+    )
+
+
+def personalized_products(request, limit=8):
+    """Products from the categories this visitor has been looking at, or bought from before."""
+    from apps.common import lastvisited
+
+    viewed = lastvisited.get_viewed_products(request)
+    category_ids = {product.category_id for product in viewed}
+    seen_ids = {product.pk for product in viewed}
+
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        from apps.orders.models import OrderItem
+
+        bought = (
+            OrderItem.objects.filter(order__user=user, product__isnull=False)
+            .select_related("product").order_by("-id")[:10]
+        )
+        category_ids |= {item.product.category_id for item in bought}
+        seen_ids |= {item.product_id for item in bought}
+
+    if not category_ids:
+        return []
+    return list(
+        _active_qs().filter(category_id__in=category_ids, stock__gt=0)
+        .exclude(pk__in=seen_ids)
+        .order_by("-sold_count", "-created_at")[:limit]
     )
 
 

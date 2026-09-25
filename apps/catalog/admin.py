@@ -330,13 +330,30 @@ class RestockNotificationAdmin(admin.ModelAdmin):
     created_jalali = jalali_column("created_at", "تاریخ درخواست")
 
 
+class ResultsFilter(admin.SimpleListFilter):
+    """Searches that found nothing are a shopping list of products to add."""
+
+    title = "نتیجه"
+    parameter_name = "results"
+
+    def lookups(self, request, model_admin):
+        return (("none", "بدون نتیجه"), ("some", "دارای نتیجه"))
+
+    def queryset(self, request, queryset):
+        if self.value() == "none":
+            return queryset.filter(results_count=0)
+        if self.value() == "some":
+            return queryset.filter(results_count__gt=0)
+        return queryset
+
+
 @admin.register(SearchTerm)
 class SearchTermAdmin(admin.ModelAdmin):
     """What customers look for: popular terms, and the ones that found nothing (products to add?)."""
 
     list_display = ("display", "count", "results_count", "is_hidden", "last_searched_jalali")
     list_editable = ("is_hidden",)
-    list_filter = ("is_hidden",)
+    list_filter = (ResultsFilter, "is_hidden")
     search_fields = ("display", "term")
     readonly_fields = ("term", "display", "count", "results_count", "last_searched_jalali")
     fields = ("display", "term", "count", "results_count", "last_searched_jalali", "is_hidden")

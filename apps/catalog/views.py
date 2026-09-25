@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404, render
 
-from apps.catalog import services
+from apps.catalog import search_suggest, services
 from apps.common import lastvisited
 from apps.common.ratelimit import ratelimit
 
 
 def home(request):
     flash_sale = services.flash_sale_products()
+    for_you = services.personalized_products(request)
     return render(
         request,
         "catalog/home.html",
@@ -17,6 +18,7 @@ def home(request):
             "featured": services.featured_products(),
             "on_sale": services.on_sale_products(),
             "flash_sale": flash_sale,
+            "for_you": for_you,
             "flash_ends_at": flash_sale[0].sale_ends_at if flash_sale else None,
             "best_sellers": services.best_sellers(),
             "recently_viewed": lastvisited.get_viewed_products(request),
@@ -32,7 +34,7 @@ def live_search(request):
     return render(
         request,
         "catalog/partials/live_search_results.html",
-        {"results": results, "q": q},
+        {"results": results, "q": q, "did_you_mean": [] if results else search_suggest.suggest(q)},
     )
 
 
@@ -102,7 +104,9 @@ def product_list(request, category_slug=None, brand_slug=None):
             "current_category": category,
             "current_brand": brand,
             "current_brand_name": brand_obj.name if brand_obj else "",
-            "current_sort": request.GET.get("sort") or "newest",
+            "current_sort": request.GET.get("sort") or services.default_sort(query),
+            "did_you_mean": search_suggest.suggest(query) if query and not products.paginator.count else [],
+            "fallback_products": services.best_sellers(4) if query and not products.paginator.count else [],
             "current_q": request.GET.get("q") or "",
             "only_in_stock": only_in_stock,
             "only_on_sale": only_on_sale,
