@@ -91,6 +91,15 @@
                     </svg>
                 </button>
 
+                {% if user.is_staff %}
+                    {# staff only, so the hidden admin address never appears on pages customers see #}
+                    <a href="{% url 'admin:index' %}" title="پنل مدیریت" data-admin-link
+                       class="h-11 rounded-xl bg-brand-600 dark:bg-river-deep px-2.5 sm:px-3.5 flex items-center gap-2 text-sm font-bold text-white hover:bg-brand-700 dark:hover:bg-river">
+                        {% include "partials/icon.html" with name="key" %}
+                        <span class="hidden sm:block">پنل مدیریت</span>
+                    </a>
+                {% endif %}
+
                 {% if user.is_authenticated %}
                     <details class="relative group/account">
                         <summary class="list-none cursor-pointer h-11 rounded-xl border border-gray-200 dark:border-cedar/60 px-2.5 sm:px-3.5 flex items-center gap-2 text-sm font-medium hover:border-brand-300 [&::-webkit-details-marker]:hidden">
