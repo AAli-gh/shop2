@@ -48,6 +48,8 @@ class Order(models.Model):
     install_date = models.CharField(_("install date"), max_length=30, blank=True, help_text="ترجیح زمانی نصب")
     wallet_used = models.BigIntegerField(_("paid from wallet"), default=0, help_text=_("مبلغ کسرشده از کیف پول"))
     delivered_at = models.DateTimeField(_("delivered at"), null=True, blank=True)  # starts the return window
+    # set by `manage.py request_reviews`, so a customer is asked for a review only once
+    review_requested_at = models.DateTimeField(_("review requested at"), null=True, blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
@@ -86,8 +88,15 @@ class OrderItem(models.Model):
     product_name = models.CharField(_("product name"), max_length=200)
     variant_label = models.CharField(_("variant"), max_length=110, blank=True)
     unit_price = models.BigIntegerField(_("unit price"))
+    # what the shop paid for one unit when the order was placed, for the profit report
+    unit_cost = models.BigIntegerField(_("unit cost"), null=True, blank=True)
     quantity = models.PositiveSmallIntegerField(_("quantity"))
     line_total = models.BigIntegerField(_("line total"))
+    # after-sales: filled in by staff when the goods leave the warehouse
+    serial_numbers = models.CharField(
+        _("serial numbers"), max_length=200, blank=True, help_text="شماره سریال کالاهای این ردیف؛ چندتایی را با ، جدا کنید",
+    )
+    warranty_ends_at = models.DateField(_("warranty ends at"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("order item")

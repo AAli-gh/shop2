@@ -6,6 +6,7 @@ from apps.common.ratelimit import ratelimit
 
 
 def home(request):
+    flash_sale = services.flash_sale_products()
     return render(
         request,
         "catalog/home.html",
@@ -15,6 +16,8 @@ def home(request):
             "product_total": services.active_product_count(),
             "featured": services.featured_products(),
             "on_sale": services.on_sale_products(),
+            "flash_sale": flash_sale,
+            "flash_ends_at": flash_sale[0].sale_ends_at if flash_sale else None,
             "best_sellers": services.best_sellers(),
             "recently_viewed": lastvisited.get_viewed_products(request),
         },
@@ -52,6 +55,8 @@ def product_list(request, category_slug=None, brand_slug=None):
         for key in request.GET
         if key.startswith("filter_") and request.GET.getlist(key)
     }
+    only_in_stock = request.GET.get("stock") == "1"
+    only_on_sale = request.GET.get("sale") == "1"
     products = services.list_products(
         category_slug=category,
         brand_slug=brand,
@@ -61,6 +66,8 @@ def product_list(request, category_slug=None, brand_slug=None):
         min_price=min_price,
         max_price=max_price,
         filters=filters,
+        in_stock=only_in_stock,
+        on_sale=only_on_sale,
     )
     query = request.GET.get("q")
     if query and request.GET.get("page") in (None, "", "1"):
@@ -97,6 +104,8 @@ def product_list(request, category_slug=None, brand_slug=None):
             "current_brand_name": brand_obj.name if brand_obj else "",
             "current_sort": request.GET.get("sort") or "newest",
             "current_q": request.GET.get("q") or "",
+            "only_in_stock": only_in_stock,
+            "only_on_sale": only_on_sale,
             "active_filters": filters,
             "active_filter_pairs": [{"name": k, "value": v} for k, vs in filters.items() for v in vs],
             "min_price": min_price,
@@ -171,7 +180,7 @@ def product_detail(request, slug):
 
         raise Http404("محصول یافت نشد")
 
-    from apps.catalog import price_alerts
+    from apps.catalog import price_alerts, video
     from apps.common import lastvisited
     from apps.reviews import services as review_services
 
@@ -198,6 +207,7 @@ def product_detail(request, slug):
             "specs": services.product_specs(product),
             "reviews": review_services.approved_reviews_for(product),
             "questions": review_services.published_questions_for(product),
+            "video_embed": video.embed_url(product.video_url),
             "following_price": price_alerts.is_following(request.user, product),
             "has_reviewed": (
                 request.user.is_authenticated

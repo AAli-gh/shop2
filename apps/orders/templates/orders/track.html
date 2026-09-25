@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}پیگیری سفارش | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+    <nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+        <a href="/">خانه</a>
+        <span aria-hidden="true">‹</span>
+        <span class="text-gray-600 dark:text-glacier">پیگیری سفارش</span>
+    </nav>
+
+    <div class="card p-5 sm:p-6">
+        <h1 class="page-title text-lg sm:text-xl">پیگیری سفارش</h1>
+        <p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+            بدون ورود به حساب، با شمارهٔ سفارش و موبایلی که هنگام خرید وارد کرده‌اید وضعیت سفارشتان را ببینید.
+        </p>
+
+        {% if error %}<div class="alert-error mt-4">{{ error }}</div>{% endif %}
+
+        <form method="post" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {% csrf_token %}
+            <div class="sm:col-span-1">
+                <label for="order_number" class="label">شماره سفارش</label>
+                <input type="text" id="order_number" name="order_number" value="{{ order_number|default:'' }}"
+                       dir="ltr" placeholder="SH-XXXXXXXX" required class="input">
+            </div>
+            <div class="sm:col-span-1">
+                <label for="phone" class="label">موبایل</label>
+                <input type="tel" id="phone" name="phone" value="{{ phone|default:'' }}"
+                       dir="ltr" inputmode="numeric" placeholder="09121234567" required class="input">
+            </div>
+            <div class="flex items-end sm:col-span-1">
+                <button type="submit" class="btn btn-primary h-12 w-full">پیگیری</button>
+            </div>
+        </form>
+    </div>
+
+    {% if order %}
+        <div class="card mt-6 flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+            <div>
+                <h2 class="text-lg font-bold">سفارش <span dir="ltr">{{ order.order_number }}</span></h2>
+                <p class="mt-2 text-xs text-gray-400 dark:text-mist-dim">ثبت‌شده در {{ order.created_at|jalali|fa_digits }}</p>
+            </div>
+            {% include "orders/partials/status_chip.html" %}
+        </div>
+
+        {% if order.status != 'cancelled' %}
+            <div class="mt-6">{% include "orders/partials/progress.html" %}</div>
+        {% else %}
+            <div class="alert-error mt-6 flex items-center gap-2">{% include "partials/icon.html" with name="warning" %}این سفارش لغو شده است.</div>
+        {% endif %}
+
+        <div class="card mt-6 divide-y divide-gray-100 dark:divide-cedar/60">
+            <div class="px-5 py-4 sm:px-6"><h2 class="card-title mb-0">کالاهای سفارش</h2></div>
+            {% for item in order.items.all %}
+                <div class="px-5 py-4 text-sm sm:px-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="font-medium">{{ item.product_name }} <span class="text-gray-400 dark:text-mist-dim">× {{ item.quantity|fa_digits }}</span></span>
+                        <span class="shrink-0 font-bold"><bdi>{{ item.line_total|toman|fa_digits }}</bdi></span>
+                    </div>
+                    {% include "orders/partials/item_warranty.html" %}
+                </div>
+            {% endfor %}
+            <div class="flex items-center justify-between px-5 py-4 text-sm font-bold sm:px-6">
+                <span>مبلغ کل</span>
+                <bdi>{{ order.total|toman|fa_digits }}</bdi>
+            </div>
+        </div>
+
+        {% if order.tracking_code %}
+            <div class="card mt-6 p-5 text-sm sm:p-6">
+                <span class="text-gray-500 dark:text-mist-dim">کد رهگیری مرسوله:</span>
+                <bdi class="font-bold">{{ order.tracking_code }}</bdi>
+                {% if order.shipping_note %}<p class="mt-2 text-xs text-gray-500 dark:text-mist-dim">{{ order.shipping_note }}</p>{% endif %}
+            </div>
+        {% endif %}
+
+        <p class="mt-6 text-center text-sm text-gray-500 dark:text-mist-dim">
+            برای دیدن فاکتور و ثبت درخواست مرجوعی،
+            <a href="{% url 'accounts:login' %}?next={% url 'orders:detail' order.order_number %}" class="font-bold text-brand-600 hover:underline dark:text-river">وارد حساب خود شوید</a>.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

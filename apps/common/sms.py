@@ -29,6 +29,7 @@ EVENT_PARAMETERS = {
     "cart_reminder": ("COUNT",),
     "price_drop": ("PRODUCT", "PRICE"),
     "question_answered": ("PRODUCT",),
+    "review_request": ("PRODUCT",),
 }
 # template parameter values are kept short (long product names are cut)
 PARAM_MAX_LENGTH = 25

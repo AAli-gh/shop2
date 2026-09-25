@@ -29,6 +29,7 @@ class ShippingMethodAdmin(admin.ModelAdmin):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
+    fields = ("product_name", "quantity", "unit_price", "line_total", "serial_numbers", "warranty_ends_at")
     readonly_fields = ("product", "product_name", "unit_price", "quantity", "line_total")
 
     def has_add_permission(self, request, obj=None):
@@ -89,9 +90,9 @@ class OrderAdmin(admin.ModelAdmin):
     # order number, customer email/mobile/name, or the name/phone on the shipping address
     search_fields = (
         "order_number", "user__email", "user__phone", "user__name",
-        "shipping_address__full_name", "shipping_address__phone",
+        "shipping_address__full_name", "shipping_address__phone", "items__serial_numbers",
     )
-    search_help_text = "شماره سفارش، موبایل، نام یا ایمیل مشتری"
+    search_help_text = "شماره سفارش، موبایل، نام یا ایمیل مشتری، یا شماره سریال کالا"
     readonly_fields = (
         "order_number", "user", "items_subtotal", "discount_amount",
         "shipping_cost", "total", "coupon", "coupon_code", "payment_ref",

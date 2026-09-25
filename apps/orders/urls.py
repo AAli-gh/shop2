@@ -10,6 +10,7 @@ urlpatterns = [
     path("checkout/place/", views.PlaceOrderView.as_view(), name="place"),
     path("checkout/pay/<str:order_number>/", views.PayView.as_view(), name="pay"),
     path("orders/", views.OrderListView.as_view(), name="list"),
+    path("orders/track/", views.OrderTrackView.as_view(), name="track"),
     # before orders/<order_number>/ so "returns" isn't read as an order number
     path("orders/returns/", views.ReturnRequestListView.as_view(), name="returns"),
     path("orders/<str:order_number>/", views.OrderDetailView.as_view(), name="detail"),

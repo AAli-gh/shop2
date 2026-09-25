@@ -53,7 +53,18 @@
                 {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}">{% endif %}
                 {% if current_sort and current_sort != 'newest' %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
 
-                <div>
+                <div class="space-y-2.5">
+                    <label class="flex cursor-pointer items-center gap-2.5 text-sm">
+                        <input type="checkbox" name="stock" value="1" {% if only_in_stock %}checked{% endif %} class="h-4 w-4">
+                        <span>فقط کالاهای موجود</span>
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2.5 text-sm">
+                        <input type="checkbox" name="sale" value="1" {% if only_on_sale %}checked{% endif %} class="h-4 w-4">
+                        <span>فقط تخفیف‌دار</span>
+                    </label>
+                </div>
+
+                <div class="border-t border-gray-100 pt-4 dark:border-cedar/60">
                     <h2 class="mb-3 text-sm font-bold">محدوده قیمت (تومان)</h2>
                     <div class="flex gap-2">
                         <input type="number" name="min_price" value="{{ min_price|default_if_none:'' }}" placeholder="از" class="input h-10 px-3">
@@ -96,7 +107,7 @@
 
                 <div class="space-y-2 border-t border-gray-100 pt-4 dark:border-cedar/60">
                     <button type="submit" class="btn btn-primary w-full">اعمال فیلترها</button>
-                    {% if min_price or max_price or current_brand or active_filter_pairs %}
+                    {% if min_price or max_price or current_brand or active_filter_pairs or only_in_stock or only_on_sale %}
                         <a href="{{ request.path }}{% if current_category and not request.resolver_match.kwargs.category_slug %}?category={{ current_category }}{% endif %}" class="btn btn-ghost w-full">حذف فیلترها</a>
                     {% endif %}
                 </div>
@@ -120,6 +131,8 @@
                 {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
                 {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
                 {% for pair in active_filter_pairs %}<input type="hidden" name="filter_{{ pair.name }}" value="{{ pair.value }}">{% endfor %}
+                {% if only_in_stock %}<input type="hidden" name="stock" value="1">{% endif %}
+                {% if only_on_sale %}<input type="hidden" name="sale" value="1">{% endif %}
                 <label for="sort" class="shrink-0 text-gray-500 dark:text-mist-dim">مرتب‌سازی:</label>
                 <select id="sort" name="sort" onchange="this.form.submit()" class="input h-10 w-auto pl-8">
                     <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>جدیدترین</option>

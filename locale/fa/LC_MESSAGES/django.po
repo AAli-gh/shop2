@@ -752,3 +752,12 @@ msgstr "آخرین جستجو"
 
 msgid "hidden"
 msgstr "پنهان"
+
+msgid "sale starts at"
+msgstr "شروع تخفیف"
+
+msgid "sale ends at"
+msgstr "پایان تخفیف"
+
+msgid "cost price"
+msgstr "قیمت خرید"

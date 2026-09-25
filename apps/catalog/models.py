@@ -5,6 +5,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -144,6 +145,16 @@ class Product(models.Model):
     sale_price = models.BigIntegerField(
         _("sale price"), null=True, blank=True, help_text=_("in Toman, discounted price")
     )
+    # a timed discount ("شگفت‌انگیز"): outside the window the sale price is ignored
+    sale_starts_at = models.DateTimeField(_("sale starts at"), null=True, blank=True, help_text="خالی = از همین حالا")
+    sale_ends_at = models.DateTimeField(
+        _("sale ends at"), null=True, blank=True,
+        help_text="پایان تخفیف؛ با پر کردن آن، کالا با شمارش معکوس در «شگفت‌انگیز امروز» صفحه اول می‌آید. خالی = بدون مهلت",
+    )
+    cost_price = models.BigIntegerField(
+        _("cost price"), null=True, blank=True,
+        help_text="قیمت خرید به تومان؛ فقط برای گزارش سود و هرگز به مشتری نشان داده نمی‌شود",
+    )
     stock = models.PositiveIntegerField(_("stock"), default=0)
     sold_count = models.PositiveIntegerField(_("sold count"), default=0)
     is_featured = models.BooleanField(_("featured"), default=False)
@@ -222,12 +233,29 @@ class Product(models.Model):
         return self.variants.filter(is_active=True).exists()
 
     @property
+    def sale_window_open(self) -> bool:
+        """Whether a discount may apply now; a discount without dates is always on."""
+        now = timezone.now()
+        if self.sale_starts_at and now < self.sale_starts_at:
+            return False
+        return not (self.sale_ends_at and now > self.sale_ends_at)
+
+    @property
+    def on_sale(self) -> bool:
+        return self.sale_price is not None and self.sale_window_open
+
+    @property
+    def flash_sale(self) -> bool:
+        """A discount with a deadline, shown with a countdown."""
+        return bool(self.sale_ends_at) and self.on_sale
+
+    @property
     def effective_price(self):
-        return self.sale_price if self.sale_price is not None else self.price
+        return self.sale_price if self.on_sale else self.price
 
     @property
     def discount_percent(self):
-        if self.sale_price is None or self.price <= 0:
+        if not self.on_sale or self.price <= 0:
             return 0
         return round((self.price - self.sale_price) * 100 / self.price)
 
@@ -299,12 +327,17 @@ class ProductVariant(models.Model):
         return self.stock > 0
 
     @property
+    def on_sale(self) -> bool:
+        # the product's sale window gates its variants' discounts too
+        return self.sale_price is not None and self.product.sale_window_open
+
+    @property
     def effective_price(self):
-        return self.sale_price if self.sale_price is not None else self.price
+        return self.sale_price if self.on_sale else self.price
 
     @property
     def discount_percent(self):
-        if self.sale_price is None or self.price <= 0:
+        if not self.on_sale or self.price <= 0:
             return 0
         return round((self.price - self.sale_price) * 100 / self.price)
 

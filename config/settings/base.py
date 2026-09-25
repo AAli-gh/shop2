@@ -143,6 +143,9 @@ ORDER_PAYMENT_TIMEOUT_MINUTES = env.int("ORDER_PAYMENT_TIMEOUT_MINUTES", default
 ORDER_PAYMENT_GRACE_MINUTES = env.int("ORDER_PAYMENT_GRACE_MINUTES", default=15)
 # days after delivery a customer can open a return request (7 = statutory withdrawal period for online purchases)
 RETURN_WINDOW_DAYS = env.int("RETURN_WINDOW_DAYS", default=7)
+# `manage.py request_reviews` asks for a review this many days after delivery (and never after the second number)
+REVIEW_REQUEST_DAYS = env.int("REVIEW_REQUEST_DAYS", default=5)
+REVIEW_REQUEST_MAX_DAYS = env.int("REVIEW_REQUEST_MAX_DAYS", default=30)
 # managers alerted when an order is paid: SMS numbers, and emails (empty = ADMINS)
 ORDER_NOTIFY_PHONES = env.list("ORDER_NOTIFY_PHONES", default=[])
 ORDER_NOTIFY_EMAILS = env.list("ORDER_NOTIFY_EMAILS", default=[])
@@ -178,7 +181,7 @@ SMSIR = {
         event: env.int(f"SMSIR_TEMPLATE_{event.upper()}", default=0)
         for event in (
             "order_placed", "order_status", "return_status", "order_paid_staff", "low_stock",
-            "cart_reminder", "price_drop", "question_answered",
+            "cart_reminder", "price_drop", "question_answered", "review_request",
         )
     },
 }

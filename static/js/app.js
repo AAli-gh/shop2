@@ -132,3 +132,67 @@ document.addEventListener("change", (e) => {
   url.searchParams.set("v", input.value);
   history.replaceState(null, "", url);
 });
+
+// Countdown chips (flash sale): <span data-countdown="2026-09-30T20:00:00+03:30">
+(function () {
+  const boxes = () => document.querySelectorAll("[data-countdown]");
+  const fa = (n) => String(n).padStart(2, "0").replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+  function tick() {
+    boxes().forEach((el) => {
+      const end = new Date(el.dataset.countdown).getTime();
+      if (isNaN(end)) return;
+      let left = Math.floor((end - Date.now()) / 1000);
+      if (left <= 0) { el.textContent = "پایان یافت"; return; }
+      const days = Math.floor(left / 86400);
+      left -= days * 86400;
+      const clock = `${fa(Math.floor(left / 3600))}:${fa(Math.floor((left % 3600) / 60))}:${fa(left % 60)}`;
+      el.textContent = days ? `${fa(days)} روز و ${clock}` : clock;
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+// Product gallery: thumbnails swap the main photo, clicking it opens a zoomable overlay
+(function () {
+  let overlay = null;
+  function close() {
+    overlay?.remove();
+    overlay = null;
+    document.body.style.overflow = "";
+  }
+  function open(src, alt) {
+    close();
+    overlay = document.createElement("div");
+    overlay.dataset.lightbox = "";
+    overlay.className = "fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4";
+    overlay.innerHTML = `<img src="${src}" alt="${alt || ""}" class="max-h-full max-w-full cursor-zoom-in rounded-xl transition-transform duration-200">
+      <button type="button" data-lightbox-close aria-label="بستن" class="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-2xl text-white">×</button>`;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+  }
+  document.addEventListener("click", (e) => {
+    const thumb = e.target.closest("[data-gallery-thumb]");
+    if (thumb) {
+      const main = document.querySelector("[data-main-image]");
+      if (main) {
+        main.src = thumb.dataset.preview || thumb.dataset.full;
+        main.dataset.full = thumb.dataset.full;
+      }
+      return;
+    }
+    const main = e.target.closest("[data-main-image]");
+    if (main) { open(main.dataset.full || main.src, main.alt); return; }
+    if (!overlay) return;
+    const picture = e.target.closest("[data-lightbox] img");
+    if (picture && !e.target.closest("[data-lightbox-close]")) {
+      const zoomed = picture.style.transform !== "";
+      picture.style.transform = zoomed ? "" : "scale(2)";
+      picture.className = picture.className.replace(zoomed ? "cursor-zoom-out" : "cursor-zoom-in",
+                                                    zoomed ? "cursor-zoom-in" : "cursor-zoom-out");
+      return;
+    }
+    close();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+})();

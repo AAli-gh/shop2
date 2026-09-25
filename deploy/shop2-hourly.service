@@ -11,3 +11,4 @@ Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
 EnvironmentFile=/srv/shop2/.env
 ExecStart=/srv/shop2/.venv/bin/python manage.py remind_abandoned_carts
 ExecStart=/srv/shop2/.venv/bin/python manage.py send_price_alerts
+ExecStart=/srv/shop2/.venv/bin/python manage.py request_reviews

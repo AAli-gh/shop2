@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import jdatetime
 from django import template
 from django.utils import timezone
@@ -22,9 +24,12 @@ def absval(value):
 
 @register.filter
 def jalali(value, fmt="%Y/%m/%d"):
+    """Jalali date of a datetime (in the shop's timezone) or of a plain date."""
     if not value:
         return ""
-    local = timezone.localtime(value)
+    if not isinstance(value, datetime):
+        return jdatetime.date.fromgregorian(date=value).strftime(fmt)
+    local = timezone.localtime(value) if timezone.is_aware(value) else value
     return jdatetime.datetime.fromgregorian(datetime=local).strftime(fmt)
 
 

@@ -82,6 +82,8 @@ def json_ld_product(context, product):
             "availability": "https://schema.org/InStock" if product.in_stock else "https://schema.org/OutOfStock",
             "itemCondition": "https://schema.org/NewCondition",
         }
+    if product.sale_ends_at and product.on_sale:
+        data["offers"]["priceValidUntil"] = product.sale_ends_at.date().isoformat()
     if product.description:
         data["description"] = product.description[:5000]
     images = [product.image.url] if product.image else []

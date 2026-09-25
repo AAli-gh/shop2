@@ -137,6 +137,30 @@
 </section>
 {% endif %}
 
+<!-- Flash sale: discounts with a deadline -->
+{% if flash_sale %}
+<section id="flash-sale" class="max-w-7xl mx-auto px-4 mt-14 scroll-mt-6">
+    <div class="rounded-3xl bg-gradient-to-l from-red-600 to-red-500 p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5 text-white">
+            <h2 class="flex items-center gap-2.5 text-xl sm:text-2xl font-bold">
+                {% include "partials/icon.html" with name="bolt" cls="w-7 h-7" %}
+                شگفت‌انگیز امروز
+            </h2>
+            <div class="flex items-center gap-2 text-sm">
+                <span class="hidden sm:inline">تا پایان پیشنهاد:</span>
+                <span data-countdown="{{ flash_ends_at|date:'c' }}"
+                      class="rounded-xl bg-white/20 px-3 py-1.5 font-bold tabular-nums" dir="ltr">…</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+            {% for product in flash_sale %}
+                {% include "catalog/partials/product_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- Sale products -->
 {% if on_sale %}
 <section id="on-sale" class="max-w-7xl mx-auto px-4 mt-14 scroll-mt-6">

@@ -24,6 +24,7 @@ from pathlib import PurePosixPath
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.catalog.models import Brand, Category, Product, ProductImage, ProductVariant
@@ -54,6 +55,12 @@ COLUMNS = [
     Column("brand", "برند", "برندی که وجود نداشته باشد ساخته می‌شود.", width=16),
     Column("price", "قیمت", "به تومان؛ برای محصول جدید الزامی.", ("قیمت (تومان)",), 14),
     Column("sale_price", "قیمت با تخفیف", "به تومان و کمتر از قیمت. عدد ۰ تخفیف را حذف می‌کند.", ("قیمت تخفیف",), 14),
+    Column("sale_starts_at", "شروع تخفیف", "تاریخ شمسی مثل ۱۴۰۵/۰۷/۰۵ یا با ساعت ۱۴۰۵/۰۷/۰۵ ۰۹:۰۰؛ خالی = از همین حالا.",
+           ("شروع فروش ویژه",), 18),
+    Column("sale_ends_at", "پایان تخفیف",
+           "پایان تخفیف؛ با پر کردن آن کالا با شمارش معکوس در «شگفت‌انگیز امروز» می‌آید. خالی = بدون مهلت.",
+           ("پایان فروش ویژه",), 18),
+    Column("cost_price", "قیمت خرید", "قیمت تمام‌شده به تومان؛ فقط برای گزارش سود و به مشتری نشان داده نمی‌شود.", (), 14),
     Column("stock", "موجودی", "تعداد در انبار.", width=10),
     Column("is_active", "فعال", "بله یا خیر — محصول غیرفعال در سایت دیده نمی‌شود.", ("active",), 8),
     Column("is_featured", "ویژه", "بله یا خیر — نمایش در ویترین صفحه اول.", ("featured", "ویترین"), 8),
@@ -71,7 +78,8 @@ COLUMNS = [
 ]
 COLUMN_BY_KEY = {column.key: column for column in COLUMNS}
 BOOL_KEYS = {"is_active", "is_featured", "requires_install"}
-INT_KEYS = {"price", "sale_price", "stock", "installment_months", "installment_down_payment"}
+INT_KEYS = {"price", "sale_price", "stock", "installment_months", "installment_down_payment", "cost_price"}
+DATE_KEYS = {"sale_starts_at", "sale_ends_at"}
 TEXT_KEYS = {"name", "warranty", "country", "energy_class", "video_url", "description"}
 
 PRODUCTS_SHEET = "محصولات"
@@ -233,6 +241,29 @@ def _to_int(value: str, title: str):
     if number != number.to_integral_value() or number < 0:
         raise RowError(f"«{title}» باید عدد صحیح و بدون علامت منفی باشد («{value}»).")
     return int(number)
+
+
+def _to_datetime(value: str, title: str):
+    """Jalali (۱۴۰۵/۰۷/۰۵ ۰۹:۰۰) or Gregorian dates, with or without a time."""
+    text = value.translate(FA_DIGITS).strip().replace("-", "/")
+    if not text:
+        return None
+    date_part, _, time_part = text.partition(" ")
+    try:
+        year, month, day = (int(part) for part in date_part.split("/"))
+        clock = [int(part) for part in time_part.split(":")[:2]] if time_part.strip() else []
+        hour, minute = (clock + [0, 0])[:2]
+        if year < 1700:  # Jalali years are far below Gregorian ones
+            import jdatetime
+
+            moment = jdatetime.datetime(year, month, day, hour, minute).togregorian()
+        else:
+            from datetime import datetime
+
+            moment = datetime(year, month, day, hour, minute)
+    except (ValueError, TypeError):
+        raise RowError(f"«{title}» باید تاریخ باشد، مثل ۱۴۰۵/۰۷/۰۵ یا ۱۴۰۵/۰۷/۰۵ ۰۹:۰۰ («{value}»).")
+    return timezone.make_aware(moment) if timezone.is_naive(moment) else moment
 
 
 def _to_decimal(value: str, title: str):
@@ -499,6 +530,9 @@ def _apply_row(values: dict, lookups: _Lookups, images: _Images, seen_slugs: dic
             setattr(product, key, _to_bool(values[key], COLUMN_BY_KEY[key].title))
     if given("sale_price"):
         product.sale_price = _to_int(values["sale_price"], COLUMN_BY_KEY["sale_price"].title) or None
+    for key in DATE_KEYS:
+        if given(key):
+            setattr(product, key, _to_datetime(values[key], COLUMN_BY_KEY[key].title))
     if given("weight_kg"):
         product.weight_kg = _to_decimal(values["weight_kg"], COLUMN_BY_KEY["weight_kg"].title)
     if given("category"):
@@ -577,8 +611,14 @@ def build_workbook(products=None) -> bytes:
     def yes_no(value):
         return "بله" if value else "خیر"
 
+    def _jalali_or_blank(moment):
+        from apps.common.admin_jalali import to_jalali
+
+        return to_jalali(moment) if moment else ""
+
     if products is None:
-        sheet.append(["", "یخچال فریزر نمونه مدل X", "یخچال و فریزر", "نمونه", 45000000, 42500000, 5, "بله", "خیر",
+        sheet.append(["", "یخچال فریزر نمونه مدل X", "یخچال و فریزر", "نمونه", 45000000, 42500000,
+                      "", "۱۴۰۵/۰۷/۰۵ ۲۳:۵۹", 38000000, 5, "بله", "خیر",
                       "۲۴ ماه گارانتی رسمی", "ایران", "A+", 72.5, "بله", 0, 0, "", "توضیحات محصول", "fridge-1.jpg|fridge-2.jpg"])
     else:
         for p in products.select_related("category", "brand"):
@@ -587,6 +627,7 @@ def build_workbook(products=None) -> bytes:
             sheet.append([
                 p.slug, p.name, p.category.name, p.brand.name if p.brand_id else "",
                 p.price if priced else "", (p.sale_price or "") if priced else "",
+                _jalali_or_blank(p.sale_starts_at), _jalali_or_blank(p.sale_ends_at), p.cost_price or "",
                 p.stock if priced else "", yes_no(p.is_active), yes_no(p.is_featured), p.warranty, p.country, p.energy_class,
                 float(p.weight_kg) if p.weight_kg is not None else "", yes_no(p.requires_install),
                 p.installment_months, p.installment_down_payment, p.video_url, p.description, "",
@@ -595,7 +636,7 @@ def build_workbook(products=None) -> bytes:
         return get_column_letter([c.key for c in COLUMNS].index(key) + 1)
 
     last_row = max(sheet.max_row, 2) + 500
-    for key in ("price", "sale_price", "installment_down_payment"):  # thousands separators
+    for key in ("price", "sale_price", "cost_price", "installment_down_payment"):  # thousands separators
         for row in range(2, last_row + 1):
             sheet[f"{column_letter(key)}{row}"].number_format = "#,##0"
 

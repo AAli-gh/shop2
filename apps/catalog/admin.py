@@ -100,7 +100,8 @@ class CategoryAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("name", "category", "brand", "description", "image", "video_url")}),
-        ("قیمت و تخفیف", {"fields": ("price", "sale_price", "is_featured")}),
+        ("قیمت و تخفیف", {"fields": ("price", "sale_price", "sale_starts_at", "sale_ends_at", "cost_price", "is_featured"),
+                          "description": "با پر کردن «پایان تخفیف»، کالا با شمارش معکوس در بخش «شگفت‌انگیز امروز» صفحه اول نمایش داده می‌شود."}),
         ("اقساط", {"fields": ("installment_months", "installment_down_payment"),
                    "classes": ("collapse",), "description": "برای فروش قسطی — ماه‌ها: ۰ = بدون قسط"}),
         ("مشخصات کالا", {"fields": ("country", "warranty", "energy_class", "weight_kg", "requires_install"),
@@ -108,7 +109,8 @@ class ProductAdmin(admin.ModelAdmin):
         ("موجودی", {"fields": ("stock", "sold_count", "is_active")}),
         ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali")}),
     )
-    list_display = ("name", "brand", "category", "price", "sale_price", "stock", "variant_count", "warranty", "sold_count", "is_featured", "is_active")
+    list_display = ("name", "brand", "category", "price", "sale_price", "sale_ends_jalali", "stock", "variant_count",
+                    "sold_count", "is_featured", "is_active")
     list_filter = ("is_active", "is_featured", "brand", "category", "requires_install")
     search_fields = ("name", "description")
     list_editable = ("price", "sale_price", "stock", "is_featured", "is_active")
@@ -121,6 +123,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     created_jalali = jalali_column("created_at", "تاریخ ثبت")
     updated_jalali = jalali_column("updated_at", "آخرین تغییر")
+    sale_ends_jalali = jalali_column("sale_ends_at", "پایان تخفیف")
 
     @admin.action(description="فعال‌سازی محصولات انتخاب‌شده")
     def activate_selected(self, request, queryset):

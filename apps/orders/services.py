@@ -143,6 +143,7 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
                 "product_name": name[:200],
                 "variant_label": variant.label if variant else "",
                 "unit_price": offer.effective_price,
+                "unit_cost": product.cost_price,
                 "quantity": item.quantity,
                 "line_total": line_total,
             })

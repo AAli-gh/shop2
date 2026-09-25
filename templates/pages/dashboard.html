@@ -77,6 +77,82 @@
     </div>
 
     <div class="card p-5 sm:p-6">
+        <h2 class="card-title">سود ۳۰ روز اخیر</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-gray-500 dark:text-mist-dim">فروش (کالاهای دارای قیمت خرید)</dt>
+                <dd><bdi>{{ stats.profit.revenue|toman|fa_digits }}</bdi></dd>
+            </div>
+            <div class="flex justify-between border-t border-gray-100 pt-3 text-base font-bold dark:border-cedar/60">
+                <dt>سود</dt>
+                <dd class="{% if stats.profit.profit > 0 %}text-green-600 dark:text-green-300{% elif stats.profit.profit < 0 %}text-red-600 dark:text-red-300{% endif %}">
+                    <bdi>{{ stats.profit.profit|toman|fa_digits }}</bdi>
+                </dd>
+            </div>
+        </dl>
+        {% if stats.profit.unpriced_lines %}
+            <p class="mt-3 text-xs leading-6 text-amber-700 dark:text-amber-300">
+                {{ stats.profit.unpriced_lines|fa_digits }} ردیف فروش، «قیمت خرید» ندارند و در این عدد نیامده‌اند.
+                قیمت خرید را در صفحه هر محصول (بخش قیمت و تخفیف) یا با فایل Excel وارد کنید.
+            </p>
+        {% endif %}
+        {% if stats.profit.products %}
+            <ul class="mt-4 divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+                {% for row in stats.profit.products %}
+                    <li class="flex items-center justify-between gap-3 py-2.5">
+                        <span class="truncate">{{ row.product_name }} <span class="text-gray-400 dark:text-mist-dim">× {{ row.units|fa_digits }}</span></span>
+                        <span class="shrink-0 font-bold"><bdi>{{ row.profit|toman|fa_digits }}</bdi></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">مقایسه با دوره قبل</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex items-center justify-between gap-3">
+                <dt class="text-gray-500 dark:text-mist-dim">فروش ۳۰ روز اخیر</dt>
+                <dd class="flex items-center gap-2">
+                    <bdi class="font-bold">{{ stats.comparison.current.total|toman|fa_digits }}</bdi>
+                    <span class="chip {% if stats.comparison.total_change >= 0 %}bg-green-50 text-green-700 dark:bg-ember dark:text-green-300{% else %}bg-red-50 text-red-600 dark:bg-ember dark:text-red-300{% endif %}">
+                        {% if stats.comparison.total_change >= 0 %}+{% endif %}{{ stats.comparison.total_change|fa_digits }}٪
+                    </span>
+                </dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+                <dt class="text-gray-500 dark:text-mist-dim">تعداد سفارش</dt>
+                <dd class="flex items-center gap-2">
+                    <bdi class="font-bold">{{ stats.comparison.current.count|fa_digits }}</bdi>
+                    <span class="chip {% if stats.comparison.count_change >= 0 %}bg-green-50 text-green-700 dark:bg-ember dark:text-green-300{% else %}bg-red-50 text-red-600 dark:bg-ember dark:text-red-300{% endif %}">
+                        {% if stats.comparison.count_change >= 0 %}+{% endif %}{{ stats.comparison.count_change|fa_digits }}٪
+                    </span>
+                </dd>
+            </div>
+            <div class="flex justify-between border-t border-gray-100 pt-3 text-xs text-gray-400 dark:border-cedar/60 dark:text-mist-dim">
+                <dt>۳۰ روز پیش از آن</dt>
+                <dd><bdi>{{ stats.comparison.previous.total|toman|fa_digits }}</bdi> · {{ stats.comparison.previous.count|fa_digits }} سفارش</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">کالاهای راکد (بدون فروش در ۶۰ روز)</h2>
+        {% if stats.stale_products %}
+            <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+                {% for p in stats.stale_products %}
+                    <li class="flex items-center justify-between gap-3 py-2.5">
+                        <span class="truncate">{{ p.name }}</span>
+                        <span class="chip shrink-0 bg-gray-100 text-gray-600 dark:bg-ember dark:text-mist-dim">{{ p.stock|fa_digits }} عدد در انبار</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-sm text-gray-400 dark:text-mist-dim">کالای راکدی نیست.</p>
+        {% endif %}
+    </div>
+
+    <div class="card p-5 sm:p-6">
         <h2 class="card-title">موجودی کم (≤ ۳)</h2>
         {% if stats.low_stock %}
             <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">

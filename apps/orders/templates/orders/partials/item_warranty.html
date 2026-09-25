@@ -1,0 +1,8 @@
+{% load persian %}
+{% comment %}Serial number and warranty of one order item, filled in by staff{% endcomment %}
+{% if item.serial_numbers or item.warranty_ends_at %}
+    <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-mist-dim">
+        {% if item.serial_numbers %}<span>شماره سریال: <bdi class="font-medium">{{ item.serial_numbers }}</bdi></span>{% endif %}
+        {% if item.warranty_ends_at %}<span>گارانتی تا: <bdi class="font-medium">{{ item.warranty_ends_at|jalali|fa_digits }}</bdi></span>{% endif %}
+    </p>
+{% endif %}

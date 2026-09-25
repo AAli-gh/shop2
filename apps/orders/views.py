@@ -316,3 +316,42 @@ class OrderCancelView(LoginRequiredMixin, View):
         except OrderError as exc:
             messages.error(request, str(exc))
         return redirect("orders:detail", order_number=order.order_number)
+
+
+TRACK_NOT_FOUND = "سفارشی با این شماره و موبایل پیدا نشد. شماره سفارش و موبایلی که هنگام خرید وارد کرده‌اید را بررسی کنید."
+
+
+@method_decorator(
+    ratelimit("order_track", limit=20, window=3600, key_fields=("order_number",), key_limit=8), name="dispatch"
+)
+class OrderTrackView(View):
+    """Order status without signing in: the order number plus the mobile that ordered it."""
+
+    template_name = "orders/track.html"
+
+    def get(self, request):
+        return render(request, self.template_name, {})
+
+    def post(self, request):
+        from django.db.models import Q
+
+        from apps.accounts.otp import normalize_phone
+
+        typed_number = (request.POST.get("order_number") or "").strip()
+        typed_phone = (request.POST.get("phone") or "").strip()
+        phone = normalize_phone(typed_phone)
+        order = None
+        if typed_number and phone:
+            order = (
+                Order.objects.filter(order_number__iexact=typed_number)
+                .filter(Q(shipping_address__phone__in=[phone, typed_phone]) | Q(user__phone=phone))
+                .select_related("shipping_address")
+                .prefetch_related("items")
+                .first()
+            )
+        return render(request, self.template_name, {
+            "order": order,
+            "order_number": typed_number,
+            "phone": typed_phone,
+            "error": "" if order else TRACK_NOT_FOUND,
+        })

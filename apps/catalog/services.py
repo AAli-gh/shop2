@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.utils import timezone
 from django.db.models import Avg, Count, Exists, OuterRef, Q
 
 from apps.catalog.models import Attribute, Banner, Brand, Category, Product, ProductVariant
@@ -18,6 +19,16 @@ BASE_ANNOTATIONS = dict(
 )
 
 
+def live_discount_q() -> Q:
+    """Products whose discount is running right now (an open-ended discount always is)."""
+    now = timezone.now()
+    return (
+        Q(sale_price__isnull=False)
+        & (Q(sale_starts_at__isnull=True) | Q(sale_starts_at__lte=now))
+        & (Q(sale_ends_at__isnull=True) | Q(sale_ends_at__gte=now))
+    )
+
+
 def _active_qs():
     return (
         Product.objects.filter(is_active=True)
@@ -34,7 +45,8 @@ def _search(qs, q):
 
 
 def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, page=1,
-                  per_page=12, min_price=None, max_price=None, filters=None):
+                  per_page=12, min_price=None, max_price=None, filters=None,
+                  in_stock=False, on_sale=False):
     qs = _active_qs()
     if category_slug:
         qs = qs.filter(Q(category__slug=category_slug) | Q(category__parent__slug=category_slug))
@@ -46,6 +58,10 @@ def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, pag
         qs = qs.filter(price__gte=min_price)
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
+    if in_stock:
+        qs = qs.filter(stock__gt=0)
+    if on_sale:
+        qs = qs.filter(live_discount_q())
     # advanced spec filters: {attribute_name: [value_text, ...]} — OR within an attribute
     for attr_name, values in (filters or {}).items():
         if not values:
@@ -117,7 +133,14 @@ def featured_products(limit=4):
 
 
 def on_sale_products(limit=4):
-    return list(_active_qs().filter(sale_price__isnull=False)[:limit])
+    return list(_active_qs().filter(live_discount_q())[:limit])
+
+
+def flash_sale_products(limit=8):
+    """Discounts with a deadline, the one ending soonest first."""
+    return list(
+        _active_qs().filter(live_discount_q(), sale_ends_at__gte=timezone.now()).order_by("sale_ends_at")[:limit]
+    )
 
 
 def best_sellers(limit=4):

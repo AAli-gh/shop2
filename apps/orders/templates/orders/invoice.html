@@ -91,7 +91,11 @@
             {% for item in order.items.all %}
                 <tr>
                     <td class="text-center">{{ forloop.counter|fa_digits }}</td>
-                    <td>{{ item.product_name }}</td>
+                    <td>
+                        {{ item.product_name }}
+                        {% if item.serial_numbers %}<br><span class="text-[11px] text-gray-500">سریال: <bdi>{{ item.serial_numbers }}</bdi></span>{% endif %}
+                        {% if item.warranty_ends_at %}<br><span class="text-[11px] text-gray-500">گارانتی تا: <bdi>{{ item.warranty_ends_at|jalali|fa_digits }}</bdi></span>{% endif %}
+                    </td>
                     <td class="text-center">{{ item.quantity|fa_digits }}</td>
                     <td class="text-center"><bdi>{{ item.unit_price|price|fa_digits }}</bdi></td>
                     <td class="text-center"><bdi>{{ item.line_total|price|fa_digits }}</bdi></td>

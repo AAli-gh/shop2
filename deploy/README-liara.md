@@ -82,6 +82,7 @@ python -c "import secrets; print(secrets.token_urlsafe(50))"
 | `SMSIR_TEMPLATE_CART_REMINDER` | `#COUNT#` | #COUNT# کالا در سبد خرید شما منتظر است |
 | `SMSIR_TEMPLATE_PRICE_DROP` | `#PRODUCT#` `#PRICE#` | قیمت «#PRODUCT#» به #PRICE# تومان کاهش یافت |
 | `SMSIR_TEMPLATE_QUESTION_ANSWERED` | `#PRODUCT#` | به پرسش شما درباره «#PRODUCT#» پاسخ داده شد |
+| `SMSIR_TEMPLATE_REVIEW_REQUEST` | `#PRODUCT#` | از «#PRODUCT#» راضی بودید؟ نظرتان را در سایت ثبت کنید |
 
 - نام پارامترها باید دقیقاً همین‌ها باشد (حروف بزرگ). نام فروشگاه و آدرس سایت را در خود متن قالب بنویسید.
 - مقدار هر پارامتر حداکثر ۲۵ نویسه فرستاده می‌شود؛ نام‌های طولانی محصول کوتاه می‌شوند.
@@ -122,6 +123,7 @@ python manage.py createsuperuser
 | `*/10 * * * *` | `python manage.py expire_unpaid_orders` | لغو سفارش‌های پرداخت‌نشده و آزادسازی موجودی |
 | `15 9-21 * * *` | `python manage.py remind_abandoned_carts` | یادآوری سبد رهاشده |
 | `20 9-21 * * *` | `python manage.py send_price_alerts` | خبر کاهش قیمت |
+| `25 9-21 * * *` | `python manage.py request_reviews` | درخواست نظر از مشتریانی که سفارششان تحویل شده |
 
 ## ۶. دامنه و پشتیبان‌گیری
 

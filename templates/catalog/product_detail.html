@@ -31,7 +31,8 @@
             <div class="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-50 dark:bg-ember">
                 {% with main_image=selected_variant.image|default:product.image %}
                 {% if main_image %}
-                    <img src="{{ main_image|thumb:900 }}" alt="{{ product.name }}" data-main-image class="h-full w-full object-cover">
+                    <img src="{{ main_image|thumb:900 }}" data-full="{{ main_image|thumb:1600 }}" alt="{{ product.name }}"
+                         data-main-image title="برای بزرگ‌نمایی کلیک کنید" class="h-full w-full cursor-zoom-in object-cover">
                 {% else %}
                     {% include "partials/icon.html" with name="photo" cls="w-20 h-20 text-gray-300 dark:text-cedar-light" sw="1.2" %}
                 {% endif %}
@@ -40,10 +41,17 @@
             </div>
             {% if product.images.all %}
                 <div class="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+                    {% if product.image %}
+                        <button type="button" data-gallery-thumb data-full="{{ product.image|thumb:1600 }}" data-preview="{{ product.image|thumb:900 }}"
+                                class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 dark:border-cedar/60 dark:bg-ember">
+                            <img src="{{ product.image|thumb:200 }}" loading="lazy" alt="{{ product.name }}" class="h-full w-full object-cover">
+                        </button>
+                    {% endif %}
                     {% for img in product.images.all %}
-                        <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 dark:border-cedar/60 dark:bg-ember">
+                        <button type="button" data-gallery-thumb data-full="{{ img.image|thumb:1600 }}" data-preview="{{ img.image|thumb:900 }}"
+                                class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 dark:border-cedar/60 dark:bg-ember">
                             <img src="{{ img.image|thumb:200 }}" loading="lazy" alt="{{ img.alt }}" class="h-full w-full object-cover">
-                        </div>
+                        </button>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -219,6 +227,10 @@
 {% if product.video_url %}
 <section class="card mt-6 p-6 sm:p-8">
     <h2 class="page-title mb-5 text-lg sm:text-xl">ویدیو معرفی محصول</h2>
+    {% if video_embed %}
+        <iframe src="{{ video_embed }}" title="ویدیو معرفی {{ product.name }}" loading="lazy" allowfullscreen
+                class="aspect-video w-full rounded-2xl border border-gray-100 dark:border-cedar/60"></iframe>
+    {% else %}
     <a href="{{ product.video_url }}" target="_blank" rel="noopener"
        class="group flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-brand-200 via-brand-400 to-brand-600 dark:from-cedar dark:via-river-deep dark:to-midnight">
         <span class="flex items-center gap-3 rounded-full bg-white/90 py-3 pr-3 pl-6 text-sm font-bold text-brand-700 shadow-lg transition group-hover:scale-105 dark:bg-midnight/80 dark:text-river">
@@ -226,6 +238,7 @@
             تماشای ویدیو محصول
         </span>
     </a>
+    {% endif %}
 </section>
 {% endif %}
 

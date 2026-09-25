@@ -26,24 +26,7 @@
     {% if order.status == 'cancelled' %}
         <div class="alert-error flex items-center gap-2">{% include "partials/icon.html" with name="warning" %}این سفارش لغو شده است.</div>
     {% else %}
-        <div class="card overflow-x-auto p-5 sm:p-6">
-            <ol class="flex min-w-[32rem] items-start">
-                {% for s in order.progress_steps %}
-                    <li class="relative flex flex-1 flex-col items-center text-center text-xs">
-                        {% if not forloop.first %}
-                            <span class="absolute top-4 -right-1/2 left-1/2 h-0.5 {% if s.done or s.current %}bg-brand-500 dark:bg-river{% else %}bg-gray-200 dark:bg-cedar/60{% endif %}" aria-hidden="true"></span>
-                        {% endif %}
-                        <span class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full
-                            {% if s.done %}bg-brand-600 text-white dark:bg-river-deep
-                            {% elif s.current %}border-2 border-brand-600 bg-white font-bold text-brand-600 dark:border-river dark:bg-midnight dark:text-river
-                            {% else %}border border-gray-200 bg-white text-gray-300 dark:border-cedar/60 dark:bg-midnight{% endif %}">
-                            {% if s.done %}{% include "partials/icon.html" with name="check" cls="w-4 h-4" sw="2.5" %}{% else %}{{ forloop.counter|fa_digits }}{% endif %}
-                        </span>
-                        <span class="mt-2 {% if s.current %}font-bold text-brand-600 dark:text-river{% elif s.done %}text-gray-700 dark:text-glacier{% else %}text-gray-400 dark:text-mist-dim{% endif %}">{{ s.label }}</span>
-                    </li>
-                {% endfor %}
-            </ol>
-        </div>
+        {% include "orders/partials/progress.html" %}
     {% endif %}
 
     <!-- Items -->
@@ -51,9 +34,12 @@
         <h2 class="card-title mb-0 px-5 pt-5 sm:px-6">اقلام سفارش</h2>
         <ul class="mt-2 divide-y divide-gray-100 dark:divide-cedar/60">
             {% for item in order.items.all %}
-                <li class="flex items-center justify-between gap-4 px-5 py-4 text-sm sm:px-6">
-                    <span class="font-medium">{{ item.product_name }} <span class="text-gray-400 dark:text-mist-dim">× {{ item.quantity|fa_digits }}</span></span>
-                    <span class="shrink-0 font-bold"><bdi>{{ item.line_total|toman|fa_digits }}</bdi></span>
+                <li class="px-5 py-4 text-sm sm:px-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="font-medium">{{ item.product_name }} <span class="text-gray-400 dark:text-mist-dim">× {{ item.quantity|fa_digits }}</span></span>
+                        <span class="shrink-0 font-bold"><bdi>{{ item.line_total|toman|fa_digits }}</bdi></span>
+                    </div>
+                    {% include "orders/partials/item_warranty.html" %}
                 </li>
             {% endfor %}
         </ul>
