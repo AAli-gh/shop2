@@ -20,6 +20,10 @@
         <div class="import-counts">
             <span class="import-count is-create">{{ report.created }} محصول جدید</span>
             <span class="import-count is-update">{{ report.updated }} به‌روزرسانی</span>
+            {% if report.variants_created or report.variants_updated %}
+                <span class="import-count is-create">{{ report.variants_created }} تنوع جدید</span>
+                <span class="import-count is-update">{{ report.variants_updated }} تنوع به‌روزرسانی</span>
+            {% endif %}
             <span class="import-count {% if report.errors %}is-error{% endif %}">{{ report.errors|length }} ردیف با خطا</span>
         </div>
         {% if report.new_categories %}<p class="import-note">دسته‌بندی‌های جدیدی که ساخته می‌شوند: <strong>{{ report.new_categories|join:"، " }}</strong> — اگر اشتباه تایپی است، فایل را اصلاح کنید.</p>{% endif %}
@@ -30,10 +34,11 @@
     <div class="module">
         <div class="import-table-wrap">
             <table class="import-table">
-                <thead><tr><th>ردیف</th><th>محصول</th><th>نتیجه</th></tr></thead>
+                <thead><tr><th>برگه</th><th>ردیف</th><th>محصول</th><th>نتیجه</th></tr></thead>
                 <tbody>
                 {% for row in report.rows %}
                     <tr class="{% if row.action == 'error' %}is-error{% endif %}">
+                        <td class="nowrap">{{ row.sheet }}</td>
                         <td>{{ row.row }}</td>
                         <td>{{ row.name|default:"—" }}</td>
                         <td>
@@ -43,7 +48,7 @@
                         </td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="3">ردیفی در فایل نیست.</td></tr>
+                    <tr><td colspan="4">ردیفی در فایل نیست.</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
@@ -54,12 +59,12 @@
         {% csrf_token %}
         <input type="hidden" name="step" value="confirm">
         <input type="hidden" name="token" value="{{ token }}">
-        {% if report.created or report.updated %}
-            <input type="submit" class="default" value="تأیید و ذخیره {{ report.created|add:report.updated }} محصول">
+        {% if report.saved %}
+            <input type="submit" class="default" value="تأیید و ذخیره {{ report.saved }} ردیف">
         {% endif %}
         <a href="{% url 'admin:catalog_product_import' %}" class="closelink">بارگذاری فایل دیگر</a>
     </form>
-    {% if report.errors and report.created|add:report.updated %}
+    {% if report.errors and report.saved %}
         <p class="help">ردیف‌های دارای خطا ذخیره نمی‌شوند؛ می‌توانید بعداً فقط همان‌ها را اصلاح و دوباره وارد کنید.</p>
     {% endif %}
 
@@ -95,6 +100,7 @@
             <li>محصولی که «شناسه» آن در سایت باشد ویرایش می‌شود و بقیه ردیف‌ها محصول جدید می‌سازند.</li>
             <li>در ویرایش، خانه خالی مقدار فعلی را تغییر نمی‌دهد؛ برای تغییر گروهی قیمت کافی است فقط ستون‌های «شناسه» و «قیمت» در فایل باشد.</li>
             <li>پیش از ذخیره، نتیجه هر ردیف را می‌بینید؛ تا دکمه تأیید را نزنید چیزی ذخیره نمی‌شود.</li>
+            <li>رنگ‌ها و ظرفیت‌ها در برگهٔ دوم فایل، «تنوع‌ها»، می‌آیند: هر ردیف یک تنوع با «شناسه محصول»، رنگ یا گزینه، قیمت و موجودی. محصول تازه و تنوع‌هایش می‌توانند در همان فایل باشند.</li>
         </ul>
         <div class="import-table-wrap">
             <table class="import-table">

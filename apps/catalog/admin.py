@@ -181,6 +181,8 @@ class ProductAdmin(admin.ModelAdmin):
 
             shoplog.product_imported(report.created, report.updated, len(report.errors), pending["filename"])
             text = f"ورود محصولات انجام شد: {report.created} محصول جدید، {report.updated} به‌روزرسانی."
+            if report.variants_created or report.variants_updated:
+                text += f" تنوع‌ها: {report.variants_created} جدید، {report.variants_updated} به‌روزرسانی."
             if report.errors:
                 text += f" {len(report.errors)} ردیف به دلیل خطا وارد نشد."
             messages.success(request, text)

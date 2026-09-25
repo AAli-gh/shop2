@@ -188,7 +188,7 @@ def test_exported_workbook_imports_back_unchanged(admin_client, fridge):
 def test_template_download_and_changelist_button(admin_client):
     response = admin_client.get("/admin/catalog/product/import/template/")
     workbook = openpyxl.load_workbook(io.BytesIO(response.content))
-    assert workbook.sheetnames == ["محصولات", "فهرست‌ها", "راهنما"]
+    assert workbook.sheetnames == ["محصولات", "تنوع‌ها", "فهرست‌ها", "راهنما"]
 
     assert IMPORT_URL in admin_client.get("/admin/catalog/product/").content.decode()
 

@@ -60,7 +60,10 @@ def notify_answer(question: ProductQuestion) -> None:
     user, product = question.user, question.product
     url = f"{settings.SITE_URL.rstrip('/')}{product.get_absolute_url()}#questions-section"
     if user.phone and user.phone_verified:
-        sms.notify(user.phone, f"{get_settings().store_name}: به پرسش شما درباره «{product.name}» پاسخ داده شد. {url}")
+        sms.notify(
+            user.phone, f"{get_settings().store_name}: به پرسش شما درباره «{product.name}» پاسخ داده شد. {url}",
+            event="question_answered", params={"PRODUCT": product.name},
+        )
     elif user.email:
         send_mail(
             f"پاسخ پرسش شما درباره {product.name}",

@@ -18,13 +18,13 @@ def _admin_link(url_name: str, pk) -> str:
     return settings.SITE_URL.rstrip("/") + reverse(url_name, args=[pk])
 
 
-def _sms(order, text: str) -> None:
+def _sms(order, text: str, *, event: str, params: dict) -> None:
     user = order.user
     if user.phone and user.phone_verified:
         from apps.common import sms
         from apps.common.services import get_settings
 
-        sms.notify(user.phone, f"{get_settings().store_name}: {text}")
+        sms.notify(user.phone, f"{get_settings().store_name}: {text}", event=event, params=params)
 
 
 def order_placed(order) -> None:
@@ -34,7 +34,8 @@ def order_placed(order) -> None:
         "orders/emails/order_placed.txt",
         {"order": order},
     )
-    _sms(order, f"سفارش {order.order_number} ثبت شد. مبلغ: {order.total:,} تومان")
+    _sms(order, f"سفارش {order.order_number} ثبت شد. مبلغ: {order.total:,} تومان",
+         event="order_placed", params={"ORDER": order.order_number, "AMOUNT": f"{order.total:,}"})
 
 
 def order_status_changed(order) -> None:
@@ -44,7 +45,8 @@ def order_status_changed(order) -> None:
         "orders/emails/order_status.txt",
         {"order": order},
     )
-    _sms(order, f"وضعیت سفارش {order.order_number}: {order.get_status_display()}")
+    _sms(order, f"وضعیت سفارش {order.order_number}: {order.get_status_display()}",
+         event="order_status", params={"ORDER": order.order_number, "STATUS": order.get_status_display()})
 
 
 def return_requested(return_request) -> None:
@@ -74,14 +76,15 @@ def return_status_changed(return_request) -> None:
     text = f"درخواست مرجوعی سفارش {order.order_number}: {return_request.get_status_display()}"
     if return_request.refund_amount:
         text += f". {return_request.refund_amount:,} تومان به کیف پول شما برگشت داده شد."
-    _sms(order, text)
+    _sms(order, text, event="return_status",
+         params={"ORDER": order.order_number, "STATUS": return_request.get_status_display()})
 
 
 def order_paid_staff(order) -> None:
     """Tell the shop managers a paid order is waiting to be prepared (SMS and email)."""
     text = f"سفارش جدید {order.order_number}: {order.total:,} تومان، {order.items.count()} قلم"
-    _notify_staff(
-        text,
+    _staff_sms(text, event="order_paid_staff", params={"ORDER": order.order_number, "AMOUNT": f"{order.total:,}"})
+    _staff_email(
         f"سفارش جدید پرداخت‌شده — {order.order_number}",
         f"{text}\nمشتری: {order.user}\nمشاهده: {_admin_link('admin:orders_order_change', order.pk)}",
     )
@@ -89,18 +92,23 @@ def order_paid_staff(order) -> None:
 
 def low_stock_staff(rows) -> None:
     """Tell the managers which products just fell to the low-stock threshold; rows are (name, units left)."""
-    text = "کمبود موجودی: " + "، ".join(f"{name} ({left} عدد)" for name, left in rows)
-    _notify_staff(text, "هشدار کمبود موجودی", text)
+    for name, left in rows:  # one text per product, so each fits its template
+        _staff_sms(f"کمبود موجودی: {name} ({left} عدد)", event="low_stock", params={"PRODUCT": name, "COUNT": left})
+    _staff_email("هشدار کمبود موجودی", "کمبود موجودی: " + "، ".join(f"{name} ({left} عدد)" for name, left in rows))
 
 
-def _notify_staff(text: str, subject: str, body: str) -> None:
-    """SMS to ORDER_NOTIFY_PHONES and email to ORDER_NOTIFY_EMAILS (or ADMINS); failures never propagate."""
+def _staff_sms(text: str, *, event: str, params: dict) -> None:
+    """SMS to ORDER_NOTIFY_PHONES; failures never propagate."""
     from apps.common import sms
     from apps.common.services import get_settings
 
     store = get_settings().store_name
     for phone in settings.ORDER_NOTIFY_PHONES:
-        sms.notify(phone, f"{store}: {text}")
+        sms.notify(phone, f"{store}: {text}", event=event, params=params)
+
+
+def _staff_email(subject: str, body: str) -> None:
+    """Email to ORDER_NOTIFY_EMAILS (or ADMINS); failures never propagate."""
     recipients = settings.ORDER_NOTIFY_EMAILS or [email for _, email in settings.ADMINS]
     if recipients:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)

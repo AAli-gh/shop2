@@ -38,7 +38,8 @@ def remind_abandoned_carts(*, now=None) -> int:
     store = get_settings().store_name
     sent = 0
     for cart in carts_to_remind(now):
-        if sms.notify(cart.user.phone, f"{store}: کالاهای سبد خریدتان هنوز منتظر شماست. تکمیل خرید: {link}"):
+        text = f"{store}: کالاهای سبد خریدتان هنوز منتظر شماست. تکمیل خرید: {link}"
+        if sms.notify(cart.user.phone, text, event="cart_reminder", params={"COUNT": cart.items.count()}):
             Cart.objects.filter(pk=cart.pk).update(reminded_at=now)  # update() leaves updated_at alone
             sent += 1
     return sent

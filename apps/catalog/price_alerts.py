@@ -42,7 +42,8 @@ def send_price_alerts(*, now=None) -> int:
         url = f"{settings.SITE_URL.rstrip('/')}{product.get_absolute_url()}"
         text = f"قیمت «{product.name}» از {alert.price_at_signup:,} به {price:,} تومان کاهش یافت. {url}"
         if user.phone and user.phone_verified:
-            delivered = sms.notify(user.phone, f"{store}: {text}")
+            delivered = sms.notify(user.phone, f"{store}: {text}", event="price_drop",
+                                   params={"PRODUCT": product.name, "PRICE": f"{price:,}"})
         elif user.email:
             send_mail(f"کاهش قیمت: {product.name}", text, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
             delivered = True

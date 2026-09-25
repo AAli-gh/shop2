@@ -172,6 +172,15 @@ SMSIR = {
     "LINE_NUMBER": env("SMSIR_LINE_NUMBER", default=""),
     "OTP_TEMPLATE_ID": env.int("SMSIR_OTP_TEMPLATE_ID", default=0),
     "OTP_PARAMETER": env("SMSIR_OTP_PARAMETER", default="CODE"),
+    # Verify templates for notifications (0 = text it from the line instead). Unlike line texts they
+    # also reach numbers on the operators' blacklist; parameter names are in apps.common.sms.EVENT_PARAMETERS
+    "TEMPLATES": {
+        event: env.int(f"SMSIR_TEMPLATE_{event.upper()}", default=0)
+        for event in (
+            "order_placed", "order_status", "return_status", "order_paid_staff", "low_stock",
+            "cart_reminder", "price_drop", "question_answered",
+        )
+    },
 }
 OTP_LENGTH = 5
 OTP_TTL_SECONDS = env.int("OTP_TTL_SECONDS", default=120)

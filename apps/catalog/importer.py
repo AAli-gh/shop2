@@ -8,6 +8,10 @@ On update, an empty cell leaves the current value alone and a column missing fro
 file is never touched, so a sheet with only «شناسه» and «قیمت» is a bulk price change.
 `run_import(..., commit=False)` does every step inside a transaction and rolls it back,
 which is the preview shown before anything is saved.
+
+An xlsx file may carry a second sheet, «تنوع‌ها», with one row per colour/option of a product
+(matched by the product's slug, then by the variant's SKU or its colour + option). The products
+sheet is applied first, so a new product and its variants can arrive in the same file.
 """
 import csv
 import io
@@ -22,7 +26,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils.text import slugify
 
-from apps.catalog.models import Brand, Category, Product, ProductImage
+from apps.catalog.models import Brand, Category, Product, ProductImage, ProductVariant
 from apps.common.text import normalize_search
 
 MAX_ROWS = 5000
@@ -70,6 +74,24 @@ BOOL_KEYS = {"is_active", "is_featured", "requires_install"}
 INT_KEYS = {"price", "sale_price", "stock", "installment_months", "installment_down_payment"}
 TEXT_KEYS = {"name", "warranty", "country", "energy_class", "video_url", "description"}
 
+PRODUCTS_SHEET = "محصولات"
+VARIANTS_SHEET = "تنوع‌ها"
+VARIANT_COLUMNS = [
+    Column("product", "شناسه محصول", "شناسهٔ محصولی که این رنگ یا ظرفیت مال آن است (ستون «شناسه» در برگهٔ محصولات).",
+           ("شناسه", "product slug"), 28),
+    Column("color_name", "رنگ", "مثلاً سفید یا استیل. «رنگ» یا «گزینه»، حداقل یکی لازم است.", ("color",), 14),
+    Column("color_hex", "کد رنگ", "برای نمونهٔ رنگ در سایت، مثلاً #C0C0C0 (اختیاری).", ("color code",), 12),
+    Column("option", "گزینه", "ظرفیت، سایز یا مدل؛ مثلاً ۲۴ فوت.", ("ظرفیت", "مدل"), 16),
+    Column("sku", "کد کالا", "کد انبار این تنوع (اختیاری). اگر پر باشد، تنوع با همین کد پیدا و ویرایش می‌شود.", (), 16),
+    Column("price", "قیمت", "به تومان؛ برای تنوع جدید الزامی.", ("قیمت (تومان)",), 14),
+    Column("sale_price", "قیمت با تخفیف", "به تومان و کمتر از قیمت. عدد ۰ تخفیف را حذف می‌کند.", ("قیمت تخفیف",), 14),
+    Column("stock", "موجودی", "تعداد در انبار.", width=10),
+    Column("is_active", "فعال", "بله یا خیر.", ("active",), 8),
+    Column("sort_order", "ترتیب", "ترتیب نمایش در صفحهٔ محصول؛ عدد کوچک‌تر اول.", ("sort order",), 8),
+    Column("image", "تصویر", "نام یک فایل داخل ZIP تصاویر، مخصوص همین رنگ (اختیاری).", ("images", "تصاویر"), 22),
+]
+VARIANT_COLUMN_BY_KEY = {column.key: column for column in VARIANT_COLUMNS}
+
 
 class ImportFileError(Exception):
     """The file as a whole can't be read (wrong format, no header, too many rows)."""
@@ -85,6 +107,7 @@ class RowResult:
     name: str
     action: str  # "create" | "update" | "error"
     message: str = ""
+    sheet: str = PRODUCTS_SHEET
 
 
 @dataclass
@@ -95,8 +118,8 @@ class ImportReport:
     ignored_columns: list = field(default_factory=list)
     committed: bool = False
 
-    def _count(self, action):
-        return sum(1 for row in self.rows if row.action == action)
+    def _count(self, action, sheet=PRODUCTS_SHEET):
+        return sum(1 for row in self.rows if row.action == action and row.sheet == sheet)
 
     @property
     def created(self):
@@ -105,6 +128,19 @@ class ImportReport:
     @property
     def updated(self):
         return self._count("update")
+
+    @property
+    def variants_created(self):
+        return self._count("create", VARIANTS_SHEET)
+
+    @property
+    def variants_updated(self):
+        return self._count("update", VARIANTS_SHEET)
+
+    @property
+    def saved(self):
+        """Rows of both sheets that will be (or were) written."""
+        return sum(1 for row in self.rows if row.action != "error")
 
     @property
     def errors(self):
@@ -117,10 +153,12 @@ def _header_key(title) -> str:
     return normalize_search(str(title or "").replace("_", " ")).replace(" ", "")
 
 
-_HEADER_LOOKUP = {}
-for _column in COLUMNS:
-    for _name in (_column.key, _column.title, *_column.aliases):
-        _HEADER_LOOKUP[_header_key(_name)] = _column.key
+def _lookup(columns) -> dict:
+    return {_header_key(name): column.key for column in columns for name in (column.key, column.title, *column.aliases)}
+
+
+_HEADER_LOOKUP = _lookup(COLUMNS)
+_VARIANT_HEADER_LOOKUP = _lookup(VARIANT_COLUMNS)
 
 
 def _cell_text(value) -> str:
@@ -131,26 +169,8 @@ def _cell_text(value) -> str:
     return str(value).strip()
 
 
-def read_table(file_obj, filename: str) -> tuple[list[str], list[list[str]]]:
-    """Header cells and data rows (as text) from an xlsx or CSV file."""
-    name = (filename or "").lower()
-    if name.endswith((".xlsx", ".xlsm")):
-        import openpyxl
-
-        try:
-            workbook = openpyxl.load_workbook(file_obj, read_only=True, data_only=True)
-        except Exception as exc:  # openpyxl raises many types for a damaged or non-xlsx file
-            raise ImportFileError("فایل Excel خوانده نشد؛ آن را با فرمت xlsx ذخیره کنید.") from exc
-        rows = ([_cell_text(cell) for cell in row] for row in workbook.worksheets[0].iter_rows(values_only=True))
-    elif name.endswith(".csv"):
-        try:
-            text = file_obj.read().decode("utf-8-sig")
-        except UnicodeDecodeError as exc:
-            raise ImportFileError("فایل CSV باید با کدگذاری UTF-8 ذخیره شده باشد.") from exc
-        rows = ([cell.strip() for cell in row] for row in csv.reader(io.StringIO(text)))
-    else:
-        raise ImportFileError("فقط فایل Excel (xlsx) یا CSV پذیرفته می‌شود.")
-
+def _table(rows):
+    """(header, data rows) of a sheet, or None when it has no header row."""
     header = None
     data = []
     for cells in rows:
@@ -161,10 +181,43 @@ def read_table(file_obj, filename: str) -> tuple[list[str], list[list[str]]]:
         if any(cells):
             data.append(cells)
             if len(data) > MAX_ROWS:
-                raise ImportFileError(f"حداکثر {MAX_ROWS} ردیف در هر فایل؛ فایل را چند بخش کنید.")
-    if header is None:
+                raise ImportFileError(f"حداکثر {MAX_ROWS} ردیف در هر برگه؛ فایل را چند بخش کنید.")
+    return (header, data) if header is not None else None
+
+
+# sheets of the downloadable template that hold no data to import
+_REFERENCE_SHEETS = {_header_key("فهرست‌ها"), _header_key("راهنما")}
+
+
+def read_sheets(file_obj, filename: str):
+    """The products table and the variants table ((header, rows) or None) of an xlsx or CSV file."""
+    name = (filename or "").lower()
+    products = variants = None
+    if name.endswith((".xlsx", ".xlsm")):
+        import openpyxl
+
+        try:
+            workbook = openpyxl.load_workbook(file_obj, read_only=True, data_only=True)
+        except Exception as exc:  # openpyxl raises many types for a damaged or non-xlsx file
+            raise ImportFileError("فایل Excel خوانده نشد؛ آن را با فرمت xlsx ذخیره کنید.") from exc
+        for sheet in workbook.worksheets:
+            rows = ([_cell_text(cell) for cell in row] for row in sheet.iter_rows(values_only=True))
+            title = _header_key(sheet.title)
+            if title in (_header_key(VARIANTS_SHEET), "variants"):
+                variants = _table(rows)
+            elif title not in _REFERENCE_SHEETS and products is None:
+                products = _table(rows)
+    elif name.endswith(".csv"):
+        try:
+            text = file_obj.read().decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ImportFileError("فایل CSV باید با کدگذاری UTF-8 ذخیره شده باشد.") from exc
+        products = _table([cell.strip() for cell in row] for row in csv.reader(io.StringIO(text)))
+    else:
+        raise ImportFileError("فقط فایل Excel (xlsx) یا CSV پذیرفته می‌شود.")
+    if products is None and variants is None:
         raise ImportFileError("فایل خالی است.")
-    return header, data
+    return products, variants
 
 
 # ---------------------------------------------------------------- values
@@ -276,25 +329,25 @@ def run_import(data_file, filename: str, images_zip=None, *, commit: bool) -> Im
 
     With commit=False nothing is kept (not even photo files), so the report is a preview.
     """
-    header, rows = read_table(data_file, filename)
+    products_table, variants_table = read_sheets(data_file, filename)
     report = ImportReport()
-    positions = {}
-    for index, title in enumerate(header):
-        key = _HEADER_LOOKUP.get(_header_key(title))
-        if key is None:
-            if title:
-                report.ignored_columns.append(title)
-        else:
-            positions.setdefault(key, index)
-    if "name" not in positions and "slug" not in positions:
+    positions = _positions(products_table, _HEADER_LOOKUP, report, "")
+    variant_positions = _positions(variants_table, _VARIANT_HEADER_LOOKUP, report, f"{VARIANTS_SHEET}: ")
+    product_rows = products_table[1] if products_table else []
+    variant_rows = variants_table[1] if variants_table else []
+    if products_table and "name" not in positions and "slug" not in positions and (product_rows or not variants_table):
         raise ImportFileError("ستون «نام محصول» یا «شناسه» در ردیف اول فایل پیدا نشد؛ از فایل نمونه استفاده کنید.")
+    if variant_rows and "product" not in variant_positions:
+        raise ImportFileError(f"در برگهٔ «{VARIANTS_SHEET}» ستون «شناسه محصول» پیدا نشد؛ از فایل نمونه استفاده کنید.")
 
     images = _Images(images_zip)
     lookups = _Lookups(report)
     seen_slugs = {}
+    seen_variants = {}
+    touched = {}  # product id -> it was out of stock before its variants changed
 
     with transaction.atomic():
-        for offset, cells in enumerate(rows):
+        for offset, cells in enumerate(product_rows):
             row_number = offset + 2  # the header is row 1
             values = {key: (cells[i] if i < len(cells) else "") for key, i in positions.items()}
             savepoint = transaction.savepoint()
@@ -306,11 +359,109 @@ def run_import(data_file, filename: str, images_zip=None, *, commit: bool) -> Im
             else:
                 transaction.savepoint_commit(savepoint)
                 report.rows.append(RowResult(row_number, product.name, action))
+
+        for offset, cells in enumerate(variant_rows):
+            row_number = offset + 2
+            values = {key: (cells[i] if i < len(cells) else "") for key, i in variant_positions.items()}
+            savepoint = transaction.savepoint()
+            try:
+                action, variant = _apply_variant_row(values, images, seen_variants, touched, row_number, commit=commit)
+            except RowError as exc:
+                transaction.savepoint_rollback(savepoint)
+                label = " · ".join(v for v in (values.get("product"), values.get("color_name"), values.get("option")) if v)
+                report.rows.append(RowResult(row_number, label, "error", str(exc), VARIANTS_SHEET))
+            else:
+                transaction.savepoint_commit(savepoint)
+                report.rows.append(RowResult(row_number, f"{variant.product.name} — {variant.label}", action, "", VARIANTS_SHEET))
+
+        _notify_restocked(touched)
         if commit:
             report.committed = True
         else:
             transaction.set_rollback(True)
     return report
+
+
+def _positions(table, lookup: dict, report: ImportReport, prefix: str) -> dict:
+    """Column index of each known field in the header; unknown titles are reported as ignored."""
+    positions = {}
+    if not table:
+        return positions
+    for index, title in enumerate(table[0]):
+        key = lookup.get(_header_key(title))
+        if key is None:
+            if title:
+                report.ignored_columns.append(prefix + title)
+        else:
+            positions.setdefault(key, index)
+    return positions
+
+
+def _notify_restocked(touched: dict) -> None:
+    """Restock subscribers hear about products that were sold out before their variants came in."""
+    from apps.orders.emails import restock_available
+
+    for product_id, was_out_of_stock in touched.items():
+        if not was_out_of_stock:
+            continue
+        product = Product.objects.filter(pk=product_id, stock__gt=0).first()
+        if product is not None:
+            transaction.on_commit(lambda p=product: restock_available(p))
+
+
+def _apply_variant_row(values: dict, images: "_Images", seen: dict, touched: dict, row_number: int, *, commit: bool):
+    def given(key):
+        return values.get(key, "") != ""
+
+    def title(key):
+        return VARIANT_COLUMN_BY_KEY[key].title
+
+    slug = values.get("product", "")
+    if not slug:
+        raise RowError("«شناسه محصول» خالی است.")
+    product = Product.objects.filter(slug=slug).first()
+    if product is None:
+        raise RowError(f"محصولی با شناسهٔ «{slug}» پیدا نشد؛ اول آن را در برگهٔ «{PRODUCTS_SHEET}» بسازید.")
+
+    color, option, sku = values.get("color_name", ""), values.get("option", ""), values.get("sku", "")
+    identity = (product.pk, f"sku:{sku}" if sku else f"{color}|{option}")
+    if identity in seen:
+        raise RowError(f"این تنوع در ردیف {seen[identity]} هم آمده است.")
+    seen[identity] = row_number
+
+    variant = product.variants.filter(sku=sku).first() if sku else None
+    if variant is None and (color or option):
+        variant = product.variants.filter(color_name=color, option=option).first()
+    creating = variant is None
+    if creating:
+        if not (color or option):
+            raise RowError("برای تنوع جدید «رنگ» یا «گزینه» لازم است.")
+        if not given("price"):
+            raise RowError("برای تنوع جدید «قیمت» لازم است.")
+        variant = ProductVariant(product=product)
+    touched.setdefault(product.pk, product.stock == 0)
+
+    for key in ("color_name", "color_hex", "option", "sku"):
+        if given(key):
+            setattr(variant, key, values[key])
+    for key in ("price", "stock", "sort_order"):
+        if given(key):
+            setattr(variant, key, _to_int(values[key], title(key)))
+    if given("sale_price"):
+        variant.sale_price = _to_int(values["sale_price"], title("sale_price")) or None
+    if given("is_active"):
+        variant.is_active = _to_bool(values["is_active"], title("is_active"))
+    photo = images.load(values["image"]) if given("image") else None
+
+    try:
+        variant.full_clean(exclude=["image"])
+    except ValidationError as exc:
+        raise RowError(" ".join(_validation_messages(exc, ProductVariant)))
+
+    if commit and photo:
+        variant.image.save(photo[0], ContentFile(photo[1]), save=False)
+    variant.save()  # also refreshes the product's price range and total stock
+    return ("create" if creating else "update"), variant
 
 
 def _apply_row(values: dict, lookups: _Lookups, images: _Images, seen_slugs: dict, row_number: int, *, commit: bool):
@@ -383,13 +534,13 @@ def _apply_row(values: dict, lookups: _Lookups, images: _Images, seen_slugs: dic
     return ("create" if creating else "update"), product
 
 
-def _validation_messages(exc: ValidationError) -> list[str]:
+def _validation_messages(exc: ValidationError, model=Product) -> list[str]:
     if not hasattr(exc, "error_dict"):
         return list(exc.messages)
     messages = []
     for field_name, errors in exc.error_dict.items():
         try:
-            label = str(Product._meta.get_field(field_name).verbose_name)
+            label = str(model._meta.get_field(field_name).verbose_name)
         except Exception:
             label = ""
         for error in errors:
@@ -401,7 +552,8 @@ def _validation_messages(exc: ValidationError) -> list[str]:
 # ---------------------------------------------------------------- template / export
 
 def build_workbook(products=None) -> bytes:
-    """xlsx in the import format: the given products (an export to edit and re-import), or one sample row."""
+    """xlsx in the import format: the given products and their variants (an export to edit and re-import),
+    or one sample product with sample variants."""
     import openpyxl
     from openpyxl.styles import Alignment, Font, PatternFill
     from openpyxl.utils import get_column_letter
@@ -409,7 +561,7 @@ def build_workbook(products=None) -> bytes:
 
     workbook = openpyxl.Workbook()
     sheet = workbook.active
-    sheet.title = "محصولات"
+    sheet.title = PRODUCTS_SHEET
     sheet.sheet_view.rightToLeft = True
     sheet.freeze_panes = "C2"
     sheet.append([column.title for column in COLUMNS])
@@ -447,6 +599,36 @@ def build_workbook(products=None) -> bytes:
         for row in range(2, last_row + 1):
             sheet[f"{column_letter(key)}{row}"].number_format = "#,##0"
 
+    # ---- variants: one row per colour / option
+    variants_sheet = workbook.create_sheet(VARIANTS_SHEET)
+    variants_sheet.sheet_view.rightToLeft = True
+    variants_sheet.freeze_panes = "B2"
+    variants_sheet.append([column.title for column in VARIANT_COLUMNS])
+    for index, column in enumerate(VARIANT_COLUMNS, start=1):
+        cell = variants_sheet.cell(row=1, column=index)
+        cell.font, cell.fill = header_font, header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        variants_sheet.column_dimensions[get_column_letter(index)].width = column.width
+    if products is None:
+        sample = slugify("یخچال فریزر نمونه مدل X", allow_unicode=True)
+        variants_sheet.append([sample, "سفید", "#F5F5F5", "", "", 45000000, 42500000, 3, "بله", 1, "fridge-white.jpg"])
+        variants_sheet.append([sample, "استیل", "#9CA3AF", "", "", 47000000, "", 2, "بله", 2, ""])
+    else:
+        for variant in ProductVariant.objects.filter(product__in=products).select_related("product").order_by(
+            "product__name", "sort_order", "pk"
+        ):
+            variants_sheet.append([
+                variant.product.slug, variant.color_name, variant.color_hex, variant.option, variant.sku,
+                variant.price, variant.sale_price or "", variant.stock, yes_no(variant.is_active), variant.sort_order, "",
+            ])
+
+    def variant_letter(key):
+        return get_column_letter([c.key for c in VARIANT_COLUMNS].index(key) + 1)
+
+    for key in ("price", "sale_price"):
+        for row in range(2, last_row + 1):
+            variants_sheet[f"{variant_letter(key)}{row}"].number_format = "#,##0"
+
     lists = workbook.create_sheet("فهرست‌ها")
     lists.sheet_view.rightToLeft = True
     lists.append(["دسته‌بندی‌ها", "برندها", "بله/خیر"])
@@ -473,6 +655,9 @@ def build_workbook(products=None) -> bytes:
         add_list("brand", f"='فهرست‌ها'!$B$2:$B${len(brands) + 1}")
     for key in BOOL_KEYS:
         add_list(key, "='فهرست‌ها'!$C$2:$C$3")
+    active_list = DataValidation(type="list", formula1="='فهرست‌ها'!$C$2:$C$3", allow_blank=True, showErrorMessage=False)
+    active_list.add(f"{variant_letter('is_active')}2:{variant_letter('is_active')}{last_row}")
+    variants_sheet.add_data_validation(active_list)
 
     guide = workbook.create_sheet("راهنما")
     guide.sheet_view.rightToLeft = True
@@ -480,6 +665,10 @@ def build_workbook(products=None) -> bytes:
     for cell in guide[1]:
         cell.font, cell.fill = header_font, header_fill
     for column in COLUMNS:
+        guide.append([column.title, column.help])
+    guide.append([])
+    guide.append([f"برگهٔ «{VARIANTS_SHEET}»", "هر ردیف یک رنگ یا ظرفیت از یک محصول؛ اگر محصولی تنوع دارد، قیمت و موجودی‌اش از همین برگه می‌آید."])
+    for column in VARIANT_COLUMNS:
         guide.append([column.title, column.help])
     guide.append([])
     guide.append(["نکته", "در ویرایش محصول موجود، خانه خالی مقدار فعلی را تغییر نمی‌دهد و ستونی که در فایل نباشد دست نمی‌خورد."])

@@ -67,6 +67,26 @@ ORDER_NOTIFY_PHONES=09120000000
 python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
+### قالب‌های پیامک (Verify)
+
+پیامک‌هایی که از خط فرستاده می‌شوند به شماره‌هایی که تبلیغات را بسته‌اند (لیست سیاه مخابرات) نمی‌رسند؛ پیامک با **قالب Verify** می‌رسد. برای هر اطلاع‌رسانی در پنل SMS.ir (بخش ارسال سریع / قالب‌ها) یک قالب بسازید و پس از تأیید، شناسه‌اش را در متغیر گفته‌شده بگذارید. رویدادی که شناسه نداشته باشد مثل قبل از خط فرستاده می‌شود.
+
+| متغیر | پارامترها | متن پیشنهادی قالب |
+|---|---|---|
+| `SMSIR_OTP_TEMPLATE_ID` | `#CODE#` | کد ورود شما: #CODE# |
+| `SMSIR_TEMPLATE_ORDER_PLACED` | `#ORDER#` `#AMOUNT#` | سفارش #ORDER# ثبت شد. مبلغ: #AMOUNT# تومان |
+| `SMSIR_TEMPLATE_ORDER_STATUS` | `#ORDER#` `#STATUS#` | وضعیت سفارش #ORDER#: #STATUS# |
+| `SMSIR_TEMPLATE_RETURN_STATUS` | `#ORDER#` `#STATUS#` | درخواست مرجوعی سفارش #ORDER#: #STATUS# |
+| `SMSIR_TEMPLATE_ORDER_PAID_STAFF` | `#ORDER#` `#AMOUNT#` | سفارش جدید #ORDER# به مبلغ #AMOUNT# تومان پرداخت شد |
+| `SMSIR_TEMPLATE_LOW_STOCK` | `#PRODUCT#` `#COUNT#` | کمبود موجودی: #PRODUCT# — #COUNT# عدد مانده |
+| `SMSIR_TEMPLATE_CART_REMINDER` | `#COUNT#` | #COUNT# کالا در سبد خرید شما منتظر است |
+| `SMSIR_TEMPLATE_PRICE_DROP` | `#PRODUCT#` `#PRICE#` | قیمت «#PRODUCT#» به #PRICE# تومان کاهش یافت |
+| `SMSIR_TEMPLATE_QUESTION_ANSWERED` | `#PRODUCT#` | به پرسش شما درباره «#PRODUCT#» پاسخ داده شد |
+
+- نام پارامترها باید دقیقاً همین‌ها باشد (حروف بزرگ). نام فروشگاه و آدرس سایت را در خود متن قالب بنویسید.
+- مقدار هر پارامتر حداکثر ۲۵ نویسه فرستاده می‌شود؛ نام‌های طولانی محصول کوتاه می‌شوند.
+- قالب‌های «سبد رهاشده» و «کاهش قیمت» جنبهٔ تبلیغی دارند و ممکن است SMS.ir تأییدشان نکند؛ در آن صورت همان پیامک خط فرستاده می‌شود.
+
 ## ۳. استقرار
 
 با Liara CLI (پیشنهادی، چون `.liaraignore` را رعایت می‌کند):
