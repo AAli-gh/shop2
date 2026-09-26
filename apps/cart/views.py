@@ -5,8 +5,13 @@ from apps.cart.services import CartError
 
 
 def detail(request):
+    from apps.catalog import recommendations
+
     cart = services.get_or_create_cart(request)
-    return render(request, "cart/cart.html", {"summary": services.cart_summary(cart)})
+    return render(request, "cart/cart.html", {
+        "summary": services.cart_summary(cart),
+        "bought_together": recommendations.bought_together_with_cart(cart),
+    })
 
 
 def _cart_page_response(request, summary, template="cart/partials/cart_with_badge.html"):

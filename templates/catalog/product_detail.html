@@ -252,6 +252,18 @@
     {% include "reviews/partials/questions_section.html" %}
 </div>
 
+<!-- Bought together, from real orders -->
+{% if bought_together %}
+<section class="mt-12">
+    <h2 class="page-title mb-6">معمولاً با هم خریده می‌شوند</h2>
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-5">
+        {% for product in bought_together %}
+            {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 <!-- Related products -->
 {% if related_products %}
 <section class="mt-12">

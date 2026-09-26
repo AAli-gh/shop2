@@ -184,7 +184,7 @@ def product_detail(request, slug):
 
         raise Http404("محصول یافت نشد")
 
-    from apps.catalog import price_alerts, video
+    from apps.catalog import price_alerts, recommendations, video
     from apps.common import lastvisited
     from apps.reviews import services as review_services
 
@@ -212,6 +212,7 @@ def product_detail(request, slug):
             "reviews": review_services.approved_reviews_for(product),
             "questions": review_services.published_questions_for(product),
             "video_embed": video.embed_url(product.video_url),
+            "bought_together": recommendations.bought_together(product),
             "following_price": price_alerts.is_following(request.user, product),
             "has_reviewed": (
                 request.user.is_authenticated

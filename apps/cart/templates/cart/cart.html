@@ -14,4 +14,15 @@
 <div id="cart-region">
     {% include "cart/partials/cart_body.html" %}
 </div>
+
+{% if bought_together %}
+<section class="mt-12">
+    <h2 class="page-title mb-6">مشتری‌ها این‌ها را با هم می‌خرند</h2>
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-5">
+        {% for product in bought_together %}
+            {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 {% endblock %}
