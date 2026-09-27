@@ -18,7 +18,11 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     list_display = ("store_name", "shipping_flat_rate", "free_shipping_threshold")
     fieldsets = (
         (None, {"fields": ("store_name",)}),
-        ("ارسال", {"fields": ("shipping_flat_rate", "free_shipping_threshold")}),
+        ("ارسال و نصب", {"fields": ("shipping_flat_rate", "free_shipping_threshold", "install_fee")}),
+        ("باشگاه مشتریان و معرفی دوستان", {"fields": (
+            "loyalty_enabled", "loyalty_toman_per_point", "loyalty_point_value", "loyalty_min_redeem_points",
+            "referral_referrer_points", "referral_friend_points", "referral_min_order_amount",
+        )}),
         ("ارتباط با مشتری", {"fields": ("contact_phone", "about_text")}),
         ("اطلاعات فروشنده (روی فاکتور)", {"fields": ("legal_name", "national_id", "economic_code", "address", "postal_code")}),
         ("نمادهای اعتماد", {"fields": ("trust_badges_html",)}),

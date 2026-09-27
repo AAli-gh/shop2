@@ -8,12 +8,17 @@ To plug in a real gateway later, set in .env:
 `Payment` rows record every attempt (create/verify/fail), so callbacks stay
 idempotent and support can inspect the raw provider response.
 """
+import json
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from django.conf import settings
 from django.urls import reverse
+
+
+class GatewayUnavailable(Exception):
+    """The provider could not be reached or answered with something that isn't its JSON."""
 
 
 @dataclass
@@ -101,6 +106,24 @@ class ZarinPalGateway(PaymentGateway):
 
         return requests
 
+    def _post(self, url: str, payload: dict):
+        """POST to ZarinPal; (response, parsed JSON). Timeouts and non-JSON pages raise GatewayUnavailable."""
+        import requests
+
+        try:
+            resp = self._client().post(url, json=payload, timeout=15)
+            data = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            raise GatewayUnavailable(str(exc)) from exc
+        return resp, data if isinstance(data, dict) else {}
+
+    @staticmethod
+    def _error_message(data: dict, default: str) -> str:
+        errors = data.get("errors")
+        if isinstance(errors, dict):
+            return errors.get("message") or errors.get("error_message") or default
+        return default
+
     def create(self, order) -> PaymentIntent:
         if not self.merchant_id:
             raise RuntimeError("ZARINPAL_MERCHANT_ID تنظیم نشده است")
@@ -110,13 +133,13 @@ class ZarinPalGateway(PaymentGateway):
             "description": f"سفارش {order.order_number}"[:100],
             "callback_url": self.callback_url(order),
         }
-        resp = self._client().post(f"{self.base}/request.json", json=payload, timeout=15)
-        data = resp.json()
-        authority = (data.get("data") or {}).get("authority", "")
+        resp, data = self._post(f"{self.base}/request.json", payload)
+        inner = data.get("data") if isinstance(data.get("data"), dict) else {}
+        authority = inner.get("authority", "")
         ok = resp.status_code == 200 and authority
         result = PaymentResult(
             success=bool(ok), authority=authority, raw=resp.text[:4000],
-            message="" if ok else (data.get("errors") or {}).get("error_message") or "خطا در ایجاد پرداخت",
+            message="" if ok else self._error_message(data, "خطا در ایجاد پرداخت"),
         )
         url = f"{self.start_pay}/{authority}" if ok else self.callback_url(order)
         return PaymentIntent(redirect_url=url, result=result)
@@ -133,9 +156,8 @@ class ZarinPalGateway(PaymentGateway):
             "authority": payment.authority,
             "amount": payment.amount_toman * 10,
         }
-        resp = self._client().post(f"{self.base}/verify.json", json=payload, timeout=15)
-        data = resp.json()
-        inner = data.get("data") or {}
+        _, data = self._post(f"{self.base}/verify.json", payload)
+        inner = data.get("data") if isinstance(data.get("data"), dict) else {}
         code = inner.get("code")
         ok = code in (100, 101)  # 101 = قبلاً تأیید شده — idempotent
         result = PaymentResult(
@@ -143,8 +165,8 @@ class ZarinPalGateway(PaymentGateway):
             ref=str(inner.get("ref_id", "")),
             fee_toman=int(round((inner.get("fee") or 0) / 10)) or None,  # Rial -> Toman
             card_pan=str(inner.get("card_pan", "")),
-            message="" if ok else (data.get("errors") or {}).get("error_message") or "تأیید ناموفق",
-            raw=resp.text[:4000],
+            message="" if ok else self._error_message(data, "تأیید ناموفق"),
+            raw=json.dumps(data, ensure_ascii=False)[:4000],
         )
         return result
 

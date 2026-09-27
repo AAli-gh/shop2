@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.http import require_POST
 
 from apps.catalog import search_suggest, services
 from apps.common import lastvisited
@@ -120,6 +121,7 @@ def product_list(request, category_slug=None, brand_slug=None):
     )
 
 
+@require_POST
 @ratelimit("restock", limit=10, window=3600)
 def restock_notify(request, slug):
     product = services.get_product_detail(slug)
@@ -138,6 +140,7 @@ def restock_notify(request, slug):
     )
 
 
+@require_POST
 def compare_toggle(request, slug):
     from apps.catalog import compare
 
@@ -154,6 +157,7 @@ def compare_toggle(request, slug):
     )
 
 
+@require_POST
 def compare_remove(request, slug):
     from apps.catalog import compare
 

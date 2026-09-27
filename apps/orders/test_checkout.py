@@ -1,4 +1,5 @@
 import pytest
+from django.urls import reverse
 
 from apps.catalog.models import Category, Product
 from apps.common.models import SiteSettings
@@ -93,3 +94,48 @@ def test_wallet_insufficient_aborts_and_rolls_back(user, cart_with_item, product
     assert product.stock == before_stock
     cart_with_item.refresh_from_db()
     assert cart_with_item.items.count() == 1
+
+
+def test_full_value_coupon_with_free_shipping_needs_no_payment(user, cart_with_item):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.discounts.models import Coupon
+
+    s = SiteSettings.load()
+    s.free_shipping_threshold = 1
+    s.save()
+    Coupon.objects.create(
+        code="GIFT100", kind="percent", value=100,
+        valid_from=timezone.now() - timedelta(days=1), valid_to=timezone.now() + timedelta(days=1),
+    )
+    order = place_order(user=user, cart=cart_with_item, address_data=ADDRESS, coupon_code="GIFT100")
+    assert order.total == 0
+    assert order.status == Order.Status.PAID
+
+
+def _checkout_post(client, user, **overrides):
+    client.force_login(user)
+    return client.post(reverse("orders:place"), {**ADDRESS, **overrides})
+
+
+def test_overlong_typed_address_is_rejected_not_crashing(client, user, cart_with_item):
+    response = _checkout_post(client, user, postal_code="1" * 40)
+    assert response.status_code == 302 and response.url.endswith("/checkout/")
+    assert not Order.objects.exists()
+
+
+def test_malformed_ids_in_checkout_form_do_not_crash(client, user, cart_with_item):
+    assert _checkout_post(client, user, address_id="abc").status_code == 404
+    response = _checkout_post(client, user, shipping_method="abc")
+    assert response.status_code == 302
+    assert Order.objects.count() == 1
+
+
+def test_typed_address_is_saved_only_when_order_goes_through(client, user, cart_with_item, product):
+    from apps.accounts.models import Address
+
+    Product.objects.filter(pk=product.pk).update(stock=0)
+    _checkout_post(client, user, save_address="on")
+    assert not Address.objects.exists()

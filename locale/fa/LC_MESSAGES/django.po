@@ -761,3 +761,75 @@ msgstr "پایان تخفیف"
 
 msgid "cost price"
 msgstr "قیمت خرید"
+
+msgid "uses per customer"
+msgstr "سقف استفاده هر مشتری"
+
+msgid "first order only"
+msgstr "فقط خرید اول"
+
+msgid "customer club enabled"
+msgstr "باشگاه مشتریان فعال"
+
+msgid "Toman per point"
+msgstr "مبلغ خرید برای هر امتیاز (تومان)"
+
+msgid "point value"
+msgstr "ارزش هر امتیاز (تومان)"
+
+msgid "minimum points to redeem"
+msgstr "حداقل امتیاز برای تبدیل"
+
+msgid "referrer reward points"
+msgstr "امتیاز پاداش معرف"
+
+msgid "new customer reward points"
+msgstr "امتیاز هدیه مشتری معرفی‌شده"
+
+msgid "referral minimum order"
+msgstr "حداقل خرید برای پاداش معرفی"
+
+msgid "club points"
+msgstr "تبدیل امتیاز باشگاه"
+
+msgid "points"
+msgstr "امتیاز"
+
+msgid "referral code"
+msgstr "کد معرف"
+
+msgid "referred by"
+msgstr "معرف"
+
+msgid "referral rewarded"
+msgstr "پاداش معرفی داده شد"
+
+msgid "club member"
+msgstr "عضو باشگاه"
+
+msgid "club members"
+msgstr "اعضای باشگاه"
+
+msgid "purchase"
+msgstr "خرید"
+
+msgid "returned goods"
+msgstr "مرجوعی کالا"
+
+msgid "converted to wallet credit"
+msgstr "تبدیل به اعتبار کیف پول"
+
+msgid "friend referral"
+msgstr "معرفی دوست"
+
+msgid "referred customer gift"
+msgstr "هدیه عضویت با معرف"
+
+msgid "manual adjustment"
+msgstr "اصلاح دستی"
+
+msgid "point transaction"
+msgstr "تراکنش امتیاز"
+
+msgid "point transactions"
+msgstr "تراکنش‌های امتیاز"

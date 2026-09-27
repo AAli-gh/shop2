@@ -13,6 +13,7 @@ PERMISSIONS = {
         "discounts": ["view", "add", "change"],
         "wallet": ["view"],
         "reviews": ["view"],
+        "loyalty": ["view"],
     },
     "انبار": {
         "catalog": ["view", "change"],          # stock updates

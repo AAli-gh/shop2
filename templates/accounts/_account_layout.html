@@ -26,6 +26,7 @@
             <li><a href="{% url 'accounts:address_list' %}" class="acc-link {% if vn == 'accounts:address_list' or vn == 'accounts:address_create' or vn == 'accounts:address_edit' %}is-active{% endif %}">{% include "partials/icon.html" with name="pin" %}آدرس‌ها</a></li>
             <li><a href="{% url 'wishlist:list' %}" class="acc-link {% if vn == 'wishlist:list' %}is-active{% endif %}">{% include "partials/icon.html" with name="heart" %}علاقه‌مندی‌ها</a></li>
             <li><a href="{% url 'wallet:page' %}" class="acc-link {% if vn == 'wallet:page' %}is-active{% endif %}">{% include "partials/icon.html" with name="wallet" %}کیف پول</a></li>
+            {% if site_settings.loyalty_enabled %}<li><a href="{% url 'loyalty:club' %}" class="acc-link {% if vn == 'loyalty:club' %}is-active{% endif %}">{% include "partials/icon.html" with name="gift" %}باشگاه مشتریان</a></li>{% endif %}
             <li><a href="{% url 'accounts:password_change' %}" class="acc-link {% if vn == 'accounts:password_change' %}is-active{% endif %}">{% include "partials/icon.html" with name="key" %}تغییر گذرواژه</a></li>
             <li class="lg:mt-2 lg:border-t lg:border-gray-100 lg:pt-2 lg:dark:border-cedar/60">
                 <form method="post" action="{% url 'accounts:logout' %}">

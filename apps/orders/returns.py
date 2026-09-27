@@ -133,6 +133,9 @@ def complete_return(*, return_request: ReturnRequest, refund_to_wallet: bool, re
         if staff_note is not None:
             current.staff_note = staff_note
         current.save(update_fields=["status", "refund_amount", "restocked", "staff_note", "updated_at"])
+        from apps.loyalty.services import goods_returned
+
+        goods_returned(current)
 
     from apps.common import shoplog
     from apps.orders.emails import return_status_changed

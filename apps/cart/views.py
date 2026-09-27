@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from apps.cart import services
 from apps.cart.services import CartError
@@ -18,6 +19,7 @@ def _cart_page_response(request, summary, template="cart/partials/cart_with_badg
     return render(request, template, {"summary": summary})
 
 
+@require_POST
 def htmx_add(request, product_id):
     try:
         quantity = int(request.POST.get("quantity", 1))
@@ -42,15 +44,21 @@ def htmx_add(request, product_id):
         return render(request, "cart/partials/add_feedback.html", {"summary": summary, "error": str(exc)})
 
 
+@require_POST
 def htmx_update(request, item_id):
     try:
         quantity = int(request.POST.get("quantity", 1))
     except (TypeError, ValueError):
         quantity = 1
-    summary = services.update_item_quantity(request, item_id=item_id, quantity=quantity)
+    try:
+        summary = services.update_item_quantity(request, item_id=item_id, quantity=quantity)
+    except CartError:
+        # the row is already gone (removed in another tab, or a double click): show the cart as it is
+        summary = services.cart_summary(services.get_or_create_cart(request))
     return _cart_page_response(request, summary)
 
 
+@require_POST
 def htmx_remove(request, item_id):
     summary = services.remove_item(request, item_id=item_id)
     return _cart_page_response(request, summary)

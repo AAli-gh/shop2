@@ -166,8 +166,13 @@ document.addEventListener("change", (e) => {
     overlay = document.createElement("div");
     overlay.dataset.lightbox = "";
     overlay.className = "fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4";
-    overlay.innerHTML = `<img src="${src}" alt="${alt || ""}" class="max-h-full max-w-full cursor-zoom-in rounded-xl transition-transform duration-200">
-      <button type="button" data-lightbox-close aria-label="بستن" class="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-2xl text-white">×</button>`;
+    // src and alt come from the page (the alt is the product name), so set them as properties, never as HTML
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = alt || "";
+    img.className = "max-h-full max-w-full cursor-zoom-in rounded-xl transition-transform duration-200";
+    overlay.innerHTML = `<button type="button" data-lightbox-close aria-label="بستن" class="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-2xl text-white">×</button>`;
+    overlay.prepend(img);
     document.body.appendChild(overlay);
     document.body.style.overflow = "hidden";
   }
@@ -196,3 +201,22 @@ document.addEventListener("change", (e) => {
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 })();
+
+// Copy buttons: data-copy="#id" copies that element's text; with data-share-title it opens the phone's share sheet when there is one
+document.addEventListener("click", async (e) => {
+  const button = e.target.closest("[data-copy]");
+  if (!button) return;
+  const text = document.querySelector(button.dataset.copy)?.textContent.trim();
+  if (!text) return;
+  if (button.dataset.shareTitle && navigator.share) {
+    try { await navigator.share({ title: button.dataset.shareTitle, url: text }); return; } catch (err) { if (err.name === "AbortError") return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    const label = button.textContent;
+    button.textContent = "کپی شد ✓";
+    setTimeout(() => { button.textContent = label; }, 1500);
+  } catch (err) {
+    window.prompt("کپی کنید:", text);
+  }
+});

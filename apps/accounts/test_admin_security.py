@@ -119,3 +119,55 @@ def test_deploy_check_flags_the_default_admin_path(settings):
     assert "shop.W001" in [m.id for m in run_checks(include_deployment_checks=True)]
     settings.ADMIN_URL = "panel-7fk2q/"
     assert "shop.W001" not in [m.id for m in run_checks(include_deployment_checks=True)]
+
+
+@pytest.fixture
+def support(django_user_model):
+    from django.contrib.auth.models import Group
+
+    from apps.common.groups import setup_groups
+
+    setup_groups()
+    user = django_user_model.objects.create_user(email="support@example.com", password=PASSWORD, is_staff=True)
+    user.groups.add(Group.objects.get(name="پشتیبانی"))
+    return user
+
+
+def _user_form(user, **changes):
+    data = {"email": user.email or "", "phone": user.phone or "", "name": user.name, "is_active": "on"}
+    if user.phone_verified:
+        data["phone_verified"] = "on"
+    data.update(changes)
+    return data
+
+
+@pytest.mark.django_db
+def test_support_cannot_make_itself_superuser(client, support):
+    client.force_login(support)
+    response = client.post(
+        f"/admin/accounts/user/{support.pk}/change/",
+        _user_form(support, is_superuser="on", is_staff="on"),
+    )
+    assert response.status_code == 302
+    support.refresh_from_db()
+    assert not support.is_superuser
+
+
+@pytest.mark.django_db
+def test_support_cannot_take_over_a_manager(client, support, staff):
+    client.force_login(support)
+    assert client.get(f"/admin/accounts/user/{staff.pk}/password/").status_code == 403
+    response = client.post(f"/admin/accounts/user/{staff.pk}/change/", _user_form(staff, phone="09350000000"))
+    assert response.status_code == 403
+    staff.refresh_from_db()
+    assert staff.phone == "09121112233"
+
+
+@pytest.mark.django_db
+def test_support_still_edits_customers(client, support, django_user_model):
+    customer = django_user_model.objects.create_user(phone="09125556677", phone_verified=True)
+    client.force_login(support)
+    response = client.post(f"/admin/accounts/user/{customer.pk}/change/", _user_form(customer, name="سارا"))
+    assert response.status_code == 302
+    customer.refresh_from_db()
+    assert customer.name == "سارا"

@@ -14,7 +14,7 @@ class CouponAdmin(admin.ModelAdmin):
     )
 
     valid_to_jalali = jalali_column("valid_to", "پایان اعتبار")
-    list_filter = ("kind", "is_active")
+    list_filter = ("kind", "is_active", "first_order_only")
     search_fields = ("code",)
     readonly_fields = ("used_count",)
 

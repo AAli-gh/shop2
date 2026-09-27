@@ -1,0 +1,111 @@
+{% extends "accounts/_account_layout.html" %}
+{% load persian %}
+{% block title %}باشگاه مشتریان | {{ site_settings.store_name }}{% endblock %}
+
+{% block breadcrumb_tail %}
+<span aria-hidden="true">‹</span><span class="text-gray-600 dark:text-glacier">باشگاه مشتریان</span>
+{% endblock %}
+
+{% block account_content %}
+<div class="space-y-5">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 p-6 text-white sm:p-8 dark:from-cedar dark:via-river-deep dark:to-midnight">
+        <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 22px 22px;"></div>
+        <div class="relative flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm opacity-80">امتیاز شما</p>
+                <p class="mt-2 text-3xl font-bold sm:text-4xl"><bdi>{{ account.points|price|fa_digits }}</bdi> <span class="text-base font-medium opacity-80">امتیاز</span></p>
+                <p class="mt-2 text-sm opacity-80">معادل <bdi>{{ points_value|toman|fa_digits }}</bdi> اعتبار خرید</p>
+            </div>
+            <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15">{% include "partials/icon.html" with name="gift" cls="w-7 h-7" sw="1.5" %}</span>
+        </div>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">تبدیل امتیاز به اعتبار کیف پول</h2>
+        <p class="mb-4 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+            هر امتیاز <bdi>{{ club.loyalty_point_value|toman|fa_digits }}</bdi> اعتبار است؛ اعتبار کیف پول هنگام خرید قابل استفاده است.
+            دست‌کم <bdi>{{ club.loyalty_min_redeem_points|price|fa_digits }}</bdi> امتیاز را می‌توانید یک‌جا تبدیل کنید.
+        </p>
+        {% if can_redeem %}
+        <form method="post" action="{% url 'loyalty:redeem' %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="number" name="points" min="{{ club.loyalty_min_redeem_points }}" max="{{ account.points }}"
+                   value="{{ account.points }}" required dir="ltr" class="input flex-1" aria-label="تعداد امتیاز">
+            <button type="submit" class="btn btn-primary">تبدیل</button>
+        </form>
+        {% else %}
+        <p class="rounded-xl bg-gray-50 p-3 text-sm text-gray-500 dark:bg-ember/60 dark:text-mist-dim">هنوز امتیاز کافی برای تبدیل ندارید.</p>
+        {% endif %}
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">دوستانتان را معرفی کنید</h2>
+        <p class="mb-4 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+            وقتی دوستتان با لینک یا کد شما عضو شود و اولین خریدش (دست‌کم <bdi>{{ club.referral_min_order_amount|toman|fa_digits }}</bdi>) به دستش برسد،
+            شما <bdi>{{ club.referral_referrer_points|price|fa_digits }}</bdi> امتیاز و دوستتان <bdi>{{ club.referral_friend_points|price|fa_digits }}</bdi> امتیاز هدیه می‌گیرید.
+        </p>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-xl border border-gray-200 p-3 dark:border-cedar/60">
+                <p class="text-xs text-gray-400 dark:text-mist-dim">کد معرف شما</p>
+                <div class="mt-1 flex items-center justify-between gap-2">
+                    <span id="referral-code" class="text-lg font-bold tracking-widest" dir="ltr">{{ account.referral_code }}</span>
+                    <button type="button" data-copy="#referral-code" class="btn btn-outline h-9 px-3 text-xs">کپی</button>
+                </div>
+            </div>
+            <div class="rounded-xl border border-gray-200 p-3 dark:border-cedar/60">
+                <p class="text-xs text-gray-400 dark:text-mist-dim">لینک دعوت</p>
+                <div class="mt-1 flex items-center justify-between gap-2">
+                    <span id="referral-link" class="min-w-0 truncate text-sm" dir="ltr">{{ share_url }}</span>
+                    <button type="button" data-copy="#referral-link" data-share-title="{{ site_settings.store_name }}" class="btn btn-outline h-9 shrink-0 px-3 text-xs">اشتراک</button>
+                </div>
+            </div>
+        </div>
+        <p class="mt-4 text-sm text-gray-500 dark:text-mist-dim">
+            دوستانی که معرفی کرده‌اید: <strong><bdi>{{ referral_count|fa_digits }}</bdi></strong>
+            {% if referral_count %}— خرید تحویل‌شده: <strong><bdi>{{ rewarded_count|fa_digits }}</bdi></strong>{% endif %}
+        </p>
+    </div>
+
+    {% if can_enter_code %}
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">کد معرف دارید؟</h2>
+        <p class="mb-4 text-sm text-gray-500 dark:text-mist-dim">پیش از اولین خرید، کد دوستی که شما را معرفی کرده وارد کنید.</p>
+        <form method="post" action="{% url 'loyalty:enter_code' %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="مثلاً K7M2QPX" required dir="ltr" maxlength="12" class="input flex-1" aria-label="کد معرف">
+            <button type="submit" class="btn btn-primary">ثبت</button>
+        </form>
+    </div>
+    {% elif account.referred_by %}
+    <p class="text-sm text-gray-500 dark:text-mist-dim">معرف شما ثبت شده است{% if not account.referral_rewarded %}؛ هدیه پس از تحویل اولین خرید واجد شرایط شما می‌رسد{% endif %}.</p>
+    {% endif %}
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">چطور امتیاز بگیرم؟</h2>
+        <p class="text-sm leading-7 text-gray-500 dark:text-mist-dim">
+            به ازای هر <bdi>{{ club.loyalty_toman_per_point|toman|fa_digits }}</bdi> خرید کالا یک امتیاز می‌گیرید. امتیاز پس از تحویل سفارش ثبت می‌شود
+            و هزینه ارسال و نصب در آن حساب نمی‌شود. اگر کالایی مرجوع شود، امتیاز همان مبلغ کم می‌شود.
+        </p>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">تاریخچه امتیاز</h2>
+        {% if transactions %}
+            <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+                {% for t in transactions %}
+                    <li class="flex items-center gap-3 py-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-bold {% if t.points >= 0 %}bg-green-50 text-green-600 dark:bg-ember dark:text-green-300{% else %}bg-red-50 text-red-600 dark:bg-ember dark:text-red-300{% endif %}">{% if t.points >= 0 %}+{% else %}−{% endif %}</span>
+                        <span class="min-w-0 flex-1 text-gray-600 dark:text-mist-dim">
+                            {{ t.get_kind_display }}{% if t.order and t.kind != "referral" %} — سفارش <bdi dir="ltr">{{ t.order.order_number }}</bdi>{% endif %}
+                            <span class="block text-xs text-gray-400"><bdi>{{ t.created_at|jalali|fa_digits }}</bdi></span>
+                        </span>
+                        <span class="font-bold {% if t.points >= 0 %}text-green-600 dark:text-green-300{% else %}text-red-600 dark:text-red-300{% endif %}"><bdi>{{ t.points|absval|price|fa_digits }}</bdi></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="py-4 text-center text-sm text-gray-400 dark:text-mist-dim">هنوز امتیازی نگرفته‌اید؛ با اولین خرید شروع کنید.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

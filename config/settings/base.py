@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.newsletter",
     "apps.blog",
     "apps.wishlist",
+    "apps.loyalty",
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.loyalty.middleware.ReferralMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

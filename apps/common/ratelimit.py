@@ -6,6 +6,7 @@ per-process LocMem cache each worker would count on its own.
 """
 import functools
 import hashlib
+import ipaddress
 import time
 
 from django.conf import settings
@@ -15,12 +16,23 @@ from django.shortcuts import render
 
 
 def client_ip(request) -> str:
-    """Client address; behind a reverse proxy set RATELIMIT_IP_HEADER (e.g. HTTP_X_REAL_IP)."""
+    """Client address; behind a reverse proxy set RATELIMIT_IP_HEADER (e.g. HTTP_X_REAL_IP).
+
+    In an X-Forwarded-For chain the leftmost entries are whatever the client sent, so the
+    client is the rightmost public address: the one our edge proxy appended. Internal hops
+    after it (private addresses) are skipped.
+    """
     header = getattr(settings, "RATELIMIT_IP_HEADER", "")
     if header:
-        value = request.META.get(header, "")
-        if value:
-            return value.split(",")[0].strip()
+        parts = [part.strip() for part in request.META.get(header, "").split(",") if part.strip()]
+        for part in reversed(parts):
+            try:
+                if ipaddress.ip_address(part).is_global:
+                    return part
+            except ValueError:
+                continue
+        if parts:
+            return parts[-1]
     return request.META.get("REMOTE_ADDR") or "unknown"
 
 

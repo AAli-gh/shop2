@@ -184,3 +184,64 @@ def test_zarinpal_verify_success_and_failure(order, monkeypatch):
     assert gateway.verify(payment, Status="OK").success is False
     assert gateway.verify(payment, Status="NOK").success is False  # user abandoned at the bank
     assert len(fake.calls) == 2  # NOK never reaches the verify endpoint
+
+
+class DownRequests:
+    """ZarinPal unreachable: every call times out."""
+
+    def post(self, url, json=None, timeout=None):
+        import requests
+
+        raise requests.Timeout("read timed out")
+
+
+class HtmlResponse(FakeResponse):
+    def json(self):
+        raise ValueError("Expecting value")  # an HTML error page instead of JSON
+
+
+@override_settings(PAYMENT_GATEWAY="apps.payments.gateways.ZarinPalGateway",
+                   ZARINPAL={"MERCHANT_ID": "m-123", "SANDBOX": True})
+def test_zarinpal_outage_while_verifying_leaves_the_payment_open(order, monkeypatch):
+    payment = Payment.objects.create(order=order, provider="zarinpal", amount_toman=order.total, authority="A0001")
+    monkeypatch.setattr(ZarinPalGateway, "_client", lambda self: DownRequests())
+
+    with pytest.raises(PaymentError):
+        complete_payment(payment=payment, Status="OK")
+
+    payment.refresh_from_db()
+    order.refresh_from_db()
+    # not FAILED: the bank may have taken the money, so the next visit must verify again
+    assert payment.status == Payment.Status.CREATED
+    assert order.status == Order.Status.PENDING_PAYMENT
+
+    ok = FakeRequests(FakeResponse({"data": {"code": 101, "ref_id": 5}, "errors": []}))
+    monkeypatch.setattr(ZarinPalGateway, "_client", lambda self: ok)
+    complete_payment(payment=payment, Status="OK")
+    order.refresh_from_db()
+    assert order.status == Order.Status.PAID
+
+
+@override_settings(PAYMENT_GATEWAY="apps.payments.gateways.ZarinPalGateway",
+                   ZARINPAL={"MERCHANT_ID": "m-123", "SANDBOX": True})
+def test_zarinpal_error_page_on_start_shows_a_message(client, user, order, monkeypatch):
+    fake = FakeRequests(HtmlResponse({}, status_code=502))
+    monkeypatch.setattr(ZarinPalGateway, "_client", lambda self: fake)
+    client.force_login(user)
+    resp = client.get(f"/checkout/pay/{order.order_number}/")
+    assert resp.status_code == 302 and resp.url == f"/orders/{order.order_number}/"
+
+
+@override_settings(ZARINPAL={"MERCHANT_ID": "m-123", "SANDBOX": True})
+def test_zarinpal_error_message_is_shown(order, monkeypatch):
+    fake = FakeRequests(FakeResponse({"data": [], "errors": {"code": -9, "message": "Amount is too low"}}))
+    monkeypatch.setattr(ZarinPalGateway, "_client", lambda self: fake)
+    assert ZarinPalGateway().create(order).result.message == "Amount is too low"
+
+
+def test_callback_cannot_settle_mock_payments(client, order):
+    start_payment(order=order)
+    resp = client.get(f"/payments/callback/{order.order_number}/?outcome=success")
+    assert resp.status_code == 404
+    order.refresh_from_db()
+    assert order.status == Order.Status.PENDING_PAYMENT

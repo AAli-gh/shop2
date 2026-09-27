@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.core.validators import RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -55,6 +55,38 @@ class SiteSettings(models.Model):
         _("live chat code"), blank=True,
         help_text="کد ابزار گفتگوی آنلاین (مثلاً گفتینو یا رایچت) را دقیقاً همان‌طور که سرویس می‌دهد اینجا بچسبانید؛ "
                   "در انتهای همه صفحات قرار می‌گیرد.",
+    )
+
+    # customer club (apps.loyalty): points for delivered orders, turned into wallet credit; referral rewards
+    loyalty_enabled = models.BooleanField(
+        _("customer club enabled"), default=True,
+        help_text="امتیاز خرید و معرفی دوستان. با خاموش کردن، امتیاز جدیدی داده نمی‌شود و صفحه باشگاه پنهان می‌شود.",
+    )
+    loyalty_toman_per_point = models.PositiveIntegerField(
+        _("Toman per point"), default=10_000,
+        validators=[MinValueValidator(1)],
+        help_text="به ازای هر چند تومان خرید (مبلغ کالاها پس از تخفیف، بدون هزینه ارسال و نصب) یک امتیاز داده شود. "
+                  "امتیاز پس از تحویل سفارش ثبت می‌شود.",
+    )
+    loyalty_point_value = models.PositiveIntegerField(
+        _("point value"), default=100,
+        help_text="ارزش هر امتیاز به تومان هنگام تبدیل به اعتبار کیف پول. با مقادیر پیش‌فرض، مشتری ۱٪ خریدش را پس می‌گیرد.",
+    )
+    loyalty_min_redeem_points = models.PositiveIntegerField(
+        _("minimum points to redeem"), default=500,
+        help_text="کمترین امتیازی که یک‌جا به اعتبار تبدیل می‌شود.",
+    )
+    referral_referrer_points = models.PositiveIntegerField(
+        _("referrer reward points"), default=2_000,
+        help_text="امتیاز معرف، وقتی اولین خرید دوستش تحویل شود.",
+    )
+    referral_friend_points = models.PositiveIntegerField(
+        _("new customer reward points"), default=1_000,
+        help_text="امتیاز هدیه مشتری تازه‌واردی که با کد معرف آمده، پس از تحویل اولین خریدش.",
+    )
+    referral_min_order_amount = models.BigIntegerField(
+        _("referral minimum order"), default=1_000_000,
+        help_text="پاداش معرفی فقط وقتی داده می‌شود که مبلغ کالاهای آن خرید دست‌کم این مقدار (تومان) باشد.",
     )
 
     class Meta:

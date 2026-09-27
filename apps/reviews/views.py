@@ -8,9 +8,28 @@ from apps.reviews import services
 
 MAX_IMAGE_MB = 3
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+
+def _is_real_image(upload) -> bool:
+    """The browser's content type is whatever the sender says; check the bytes and the name we'd save.
+
+    Otherwise e.g. an .html or .svg file labelled image/png lands in /media/ and runs as a page on our domain.
+    """
+    from django import forms
+
+    if upload.name.rsplit(".", 1)[-1].lower() not in ALLOWED_EXTENSIONS:
+        return False
+    try:
+        cleaned = forms.ImageField().clean(upload)
+    except forms.ValidationError:
+        return False
+    upload.seek(0)
+    return getattr(cleaned.image, "format", "") in {"JPEG", "PNG", "WEBP"}
 
 
 @login_required
+@require_POST
 @ratelimit("review", limit=10, window=3600)
 def htmx_submit(request, product_id):
     product = get_object_or_404(Product, pk=product_id, is_active=True)
@@ -29,7 +48,7 @@ def htmx_submit(request, product_id):
     elif image:
         if image.size > MAX_IMAGE_MB * 1024 * 1024:
             error = f"حجم عکس حداکثر {MAX_IMAGE_MB} مگابایت است."
-        elif image.content_type not in ALLOWED_IMAGE_TYPES:
+        elif image.content_type not in ALLOWED_IMAGE_TYPES or not _is_real_image(image):
             error = "فرمت عکس باید JPG، PNG یا WebP باشد."
 
     review = None

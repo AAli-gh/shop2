@@ -86,8 +86,9 @@ def update_item_quantity(request, *, item_id: int, quantity: int) -> dict:
     if not item:
         raise CartError("ردیف سبد یافت نشد")
 
-    quantity = max(0, quantity)
-    if quantity == 0 or quantity > item.offer.stock:
+    # asking for more than is in stock (e.g. "+" on the last unit) keeps what is available, not nothing
+    quantity = min(max(0, quantity), item.offer.stock)
+    if quantity == 0:
         item.delete()
     else:
         item.quantity = quantity

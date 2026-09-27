@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.orders.models import Order
 from apps.payments import services
+from apps.payments.gateways import get_gateway
 from apps.payments.models import Payment
 from apps.payments.services import PaymentError
 
@@ -19,6 +20,10 @@ def callback(request, order_number):
     user refreshing or replaying this URL can never double-settle an order —
     complete_payment() is idempotent.
     """
+    if get_gateway().name == "mock":
+        # the simulated bank settles on its own pay page, for the signed-in owner only;
+        # here anyone holding an order number could mark it paid
+        raise Http404("درگاه شبیه‌ساز از این مسیر پشتیبانی نمی‌کند")
     authority = request.GET.get("Authority") or request.GET.get("authority") or ""
     order = get_object_or_404(Order, order_number=order_number)
     payment = None

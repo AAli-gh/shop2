@@ -18,10 +18,11 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ["id", "product", "product_id", "quantity", "line_total"]
 
     def get_product(self, obj):
-        return {"slug": obj.product.slug, "name": obj.product.name, "price": obj.product.price}
+        # the price actually charged: the chosen variant's, sale price included
+        return {"slug": obj.product.slug, "name": obj.product.name, "price": obj.offer.effective_price}
 
     def get_line_total(self, obj):
-        return obj.product.price * obj.quantity
+        return obj.offer.effective_price * obj.quantity
 
 
 class CartSerializer(serializers.Serializer):
@@ -42,7 +43,7 @@ def _summary_json(summary: dict) -> dict:
             {
                 "product_id": row["product"].pk,
                 "name": row["product"].name,
-                "price": row["product"].price,
+                "price": row["unit_price"],
                 "quantity": row["item"].quantity,
                 "line_total": row["line_total"],
             }

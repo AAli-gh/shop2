@@ -32,6 +32,7 @@ from apps.common.text import normalize_search
 
 MAX_ROWS = 5000
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 FA_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 SEP_RE = re.compile(r"[,،٬\s]")
@@ -344,6 +345,9 @@ class _Images:
             raise RowError(f"تصویر «{name}» در فایل ZIP نیست.")
         if info.file_size > MAX_IMAGE_BYTES:
             raise RowError(f"تصویر «{name}» بزرگ‌تر از ۵ مگابایت است.")
+        # the file keeps this name under /media/, so e.g. image bytes named .html would be served as a page
+        if PurePosixPath(info.filename).suffix.lower() not in IMAGE_SUFFIXES:
+            raise RowError(f"«{name}» باید JPG، PNG، WebP یا GIF باشد.")
         data = self.archive.read(info)
         try:
             with Image.open(io.BytesIO(data)) as image:

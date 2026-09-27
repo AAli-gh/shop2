@@ -28,7 +28,10 @@ def logs_view(request):
 
     from django.conf import settings
 
-    n = min(int(request.GET.get("n", 200)), 1000)
+    try:
+        n = min(max(int(request.GET.get("n", 200)), 1), 1000)
+    except (TypeError, ValueError):
+        n = 200
     which = request.GET.get("file", "shop")
     name = "error.log" if which == "error" else "shop.log"
     path = Path(settings.LOG_DIR) / name

@@ -11,10 +11,17 @@ def get_slugs(request) -> list:
 
 
 def toggle(request, slug: str) -> dict:
-    slugs = get_slugs(request)
+    from apps.catalog.models import Product
+
+    # drop products that were since hidden or deleted: they no longer show in the table, so
+    # they could never be removed and would hold a place towards the limit forever
+    live = set(Product.objects.filter(slug__in=get_slugs(request), is_active=True).values_list("slug", flat=True))
+    slugs = [s for s in get_slugs(request) if s in live]
     if slug in slugs:
         slugs.remove(slug)
         added = False
+    elif not Product.objects.filter(slug=slug, is_active=True).exists():
+        raise CompareError("این محصول در دسترس نیست.")
     else:
         if len(slugs) >= COMPARE_LIMIT:
             raise CompareError(f"حداکثر {COMPARE_LIMIT} محصول قابل مقایسه است.")

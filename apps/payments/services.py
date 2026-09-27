@@ -3,12 +3,15 @@ import json
 from django.db import transaction
 
 from apps.orders.models import Order
-from apps.payments.gateways import get_gateway
+from apps.payments.gateways import GatewayUnavailable, get_gateway
 from apps.payments.models import Payment
 
 
 class PaymentError(Exception):
     pass
+
+
+GATEWAY_DOWN = "ارتباط با درگاه پرداخت برقرار نشد؛ چند دقیقه بعد دوباره تلاش کنید."
 
 
 @transaction.atomic
@@ -25,7 +28,10 @@ def start_payment(*, order: Order) -> Payment:
         payment = existing
     else:
         gateway = get_gateway()
-        intent = gateway.create(order)
+        try:
+            intent = gateway.create(order)
+        except GatewayUnavailable as exc:
+            raise PaymentError(GATEWAY_DOWN) from exc
         payment = Payment.objects.create(
             order=order,
             provider=gateway.name,
@@ -46,7 +52,11 @@ def complete_payment(*, payment: Payment, **callback_params) -> Order:
     The failure is raised only after the transaction commits, so a FAILED payment
     stays recorded and the next attempt starts a fresh one.
     """
-    order, error = _settle_payment(payment=payment, **callback_params)
+    try:
+        order, error = _settle_payment(payment=payment, **callback_params)
+    except GatewayUnavailable as exc:
+        # nothing was saved: the payment stays open, so reopening the return link verifies it again
+        raise PaymentError(GATEWAY_DOWN) from exc
     if error:
         raise PaymentError(error)
     return order

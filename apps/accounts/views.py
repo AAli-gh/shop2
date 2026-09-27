@@ -64,11 +64,14 @@ class RegisterView(FormView):
     success_url = reverse_lazy("accounts:verification_sent")
 
     def form_valid(self, form):
-        services.register_user(
+        user = services.register_user(
             email=form.cleaned_data["email"],
             password=form.cleaned_data["password1"],
             name=form.cleaned_data["name"],
         )
+        from apps.loyalty.services import attach_referral_from_session
+
+        attach_referral_from_session(self.request, user)
         messages.success(self.request, "ثبت‌نام انجام شد؛ لطفاً ایمیل خود را برای تأیید بررسی کنید.")
         return super().form_valid(form)
 
@@ -205,6 +208,9 @@ class PhoneLoginVerifyView(FormView):
 
         cart_services.merge_carts(self.request, user)
         if created:
+            from apps.loyalty.services import attach_referral_from_session
+
+            attach_referral_from_session(self.request, user)
             messages.success(self.request, "حساب شما ساخته شد؛ خوش آمدید! نام خود را در پروفایل کامل کنید.")
             return redirect(next_url or "accounts:profile")
         messages.success(self.request, "خوش آمدید!")

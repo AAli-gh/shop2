@@ -78,7 +78,19 @@ def test_quantity_update_clamps_to_stock(product):
     services.add_to_cart(request, product_id=product.pk, quantity=1)
     item = CartItem.objects.first()
     services.update_item_quantity(request, item_id=item.pk, quantity=99)
-    assert not CartItem.objects.filter(pk=item.pk).exists()  # > stock → removed
+    item.refresh_from_db()
+    assert item.quantity == product.stock  # > stock → capped, the row stays
+
+
+def test_quantity_update_of_missing_row_keeps_cart_page(client, product):
+    # a row removed in another tab (or a double click) must not break the cart page
+    response = client.post("/cart/htmx/item/999999/update/", {"quantity": 2})
+    assert response.status_code == 200
+
+
+def test_cart_changes_need_post(client, product):
+    assert client.get(f"/cart/htmx/add/{product.pk}/").status_code == 405
+    assert not CartItem.objects.exists()
 
 
 def test_review_upsert_resets_approval(user, product, db):

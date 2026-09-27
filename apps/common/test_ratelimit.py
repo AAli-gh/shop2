@@ -80,3 +80,15 @@ def test_proxy_header_identifies_the_client(client):
         client.post("/accounts/register/", {}, REMOTE_ADDR="127.0.0.1", HTTP_X_REAL_IP="1.1.1.1")
     assert client.post("/accounts/register/", {}, REMOTE_ADDR="127.0.0.1", HTTP_X_REAL_IP="1.1.1.1").status_code == 429
     assert client.post("/accounts/register/", {}, REMOTE_ADDR="127.0.0.1", HTTP_X_REAL_IP="2.2.2.2").status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(RATELIMIT_IP_HEADER="HTTP_X_FORWARDED_FOR")
+def test_forged_forwarded_for_does_not_reset_the_limit(client):
+    # the client controls the left of X-Forwarded-For; the proxy appends the real address
+    for i in range(5):
+        client.post("/accounts/register/", {}, HTTP_X_FORWARDED_FOR=f"9.9.9.{i}, 1.1.1.1, 10.0.0.5")
+    forged = client.post("/accounts/register/", {}, HTTP_X_FORWARDED_FOR="9.9.9.99, 1.1.1.1, 10.0.0.5")
+    assert forged.status_code == 429
+    other = client.post("/accounts/register/", {}, HTTP_X_FORWARDED_FOR="9.9.9.99, 2.2.2.2, 10.0.0.5")
+    assert other.status_code == 200

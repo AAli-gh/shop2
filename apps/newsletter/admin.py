@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
-from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.urls import path
 
@@ -51,7 +52,9 @@ class CampaignAdmin(admin.ModelAdmin):
         return custom + urls
 
     def preview(self, request, pk):
-        campaign = Campaign.objects.get(pk=pk)
+        campaign = get_object_or_404(Campaign, pk=pk)
+        if not self.has_view_permission(request, campaign):
+            raise PermissionDenied
         return render(
             request,
             "admin/newsletter/campaign_preview.html",

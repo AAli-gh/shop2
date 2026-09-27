@@ -2,6 +2,7 @@ import uuid
 from datetime import timedelta
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F, Q
 from django.utils import timezone
@@ -77,6 +78,8 @@ def checkout_context_data(user, cart_summary: dict, coupon_result=None, *,
 
         wallet = Wallet.objects.filter(user=user).first()
         balance = wallet.balance if wallet else 0
+    from apps.loyalty.services import points_for_amount
+
     return {
         "subtotal": subtotal,
         "discount": discount,
@@ -84,11 +87,12 @@ def checkout_context_data(user, cart_summary: dict, coupon_result=None, *,
         "install": install,
         "total": total,
         "wallet_balance": balance,
+        "club_points": points_for_amount(subtotal - discount),
     }
 
 
 def apply_coupon_to_session(request, *, code: str, subtotal: int):
-    result = discount_services.validate_coupon(code=code, subtotal=subtotal)
+    result = discount_services.validate_coupon(code=code, subtotal=subtotal, user=request.user)
     if result.error:
         request.session.pop("coupon_code", None)
     else:
@@ -102,6 +106,8 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
     from apps.wallet.services import WalletError, debit_for_order, get_wallet
 
     with transaction.atomic():
+        # one checkout at a time per customer, so per-customer coupon limits can't be raced
+        get_user_model().objects.select_for_update().filter(pk=user.pk).first()
         items = list(cart.items.select_related("product", "variant"))
         if not items:
             raise EmptyCartError()
@@ -153,7 +159,7 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
         coupon = None
         coupon_code = (coupon_code or "").strip().upper()
         if coupon_code:
-            result = discount_services.validate_coupon(code=coupon_code, subtotal=subtotal)
+            result = discount_services.validate_coupon(code=coupon_code, subtotal=subtotal, user=user)
             if result.error:
                 raise InvalidCouponError(discount_services.error_message(result.error))
             coupon = result.coupon
@@ -219,6 +225,14 @@ def place_order(*, user, cart, address_data: dict, coupon_code: str = "",
             order.status = Order.Status.PAID
             order.payment_ref = "WALLET"
             order.save(update_fields=["wallet_used", "status", "payment_ref"])
+            from apps.orders.emails import order_paid_staff
+
+            transaction.on_commit(lambda: order_paid_staff(order))
+        elif total <= 0:
+            # a full-value coupon with free shipping: nothing to pay, and a gateway refuses a zero amount
+            order.status = Order.Status.PAID
+            order.payment_ref = "FREE"
+            order.save(update_fields=["status", "payment_ref"])
             from apps.orders.emails import order_paid_staff
 
             transaction.on_commit(lambda: order_paid_staff(order))
@@ -342,6 +356,10 @@ def transition_status(*, order: Order, new_status: str) -> Order:
         update_fields.append("delivered_at")
     order.status = new_status
     order.save(update_fields=update_fields)
+    if new_status == Order.Status.DELIVERED:
+        from apps.loyalty.services import order_delivered
+
+        order_delivered(order)
 
     from apps.common import shoplog
     from apps.orders.emails import order_status_changed

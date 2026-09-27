@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from apps.wishlist import services
 from apps.wishlist.services import WishlistError
@@ -14,6 +15,7 @@ def wishlist_page(request):
     )
 
 
+@require_POST
 def htmx_toggle(request, product_id):
     try:
         result = services.toggle(request, product_id=product_id)

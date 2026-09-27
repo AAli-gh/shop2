@@ -20,6 +20,14 @@ class Coupon(models.Model):
     valid_to = models.DateTimeField(_("valid to"))
     usage_limit = models.PositiveIntegerField(_("usage limit"), null=True, blank=True)
     used_count = models.PositiveIntegerField(_("used count"), default=0)
+    per_user_limit = models.PositiveIntegerField(
+        _("uses per customer"), null=True, blank=True,
+        help_text="هر مشتری چند بار می‌تواند از این کد استفاده کند؛ خالی = بدون محدودیت. سفارش لغوشده حساب نمی‌شود.",
+    )
+    first_order_only = models.BooleanField(
+        _("first order only"), default=False,
+        help_text="فقط برای مشتری‌ای که تا حالا سفارشی ثبت نکرده (سفارش‌های لغوشده حساب نمی‌شوند).",
+    )
     is_active = models.BooleanField(_("active"), default=True)
 
     class Meta:

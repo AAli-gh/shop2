@@ -31,7 +31,7 @@ class CheckoutView(LoginRequiredMixin, TemplateView):
             from apps.discounts import services as discount_services
 
             coupon_result = discount_services.validate_coupon(
-                code=coupon_code, subtotal=summary["subtotal"]
+                code=coupon_code, subtotal=summary["subtotal"], user=self.request.user
             )
             if coupon_result.error:
                 coupon_code = ""
@@ -74,45 +74,38 @@ class CouponApplyView(LoginRequiredMixin, View):
         )
 
 
+ADDRESS_FIELDS = ("full_name", "phone", "province", "city", "postal_code", "address_line")
+
+
+def _posted_id(request, name: str) -> int | None:
+    value = (request.POST.get(name) or "").strip()
+    return int(value) if value.isdigit() else None
+
+
 class PlaceOrderView(LoginRequiredMixin, View):
     def post(self, request):
+        from apps.accounts.forms import AddressForm
+
         cart = cart_services.get_or_create_cart(request)
-        address_id = request.POST.get("address_id")
-        address_data = {}
+        save_address = False
 
-        if address_id:
-            address = get_object_or_404(Address, pk=address_id, user=request.user)
-            address_data = {
-                "full_name": address.full_name,
-                "phone": address.phone,
-                "province": address.province,
-                "city": address.city,
-                "postal_code": address.postal_code,
-                "address_line": address.address_line,
-            }
+        if request.POST.get("address_id"):
+            address = get_object_or_404(Address, pk=_posted_id(request, "address_id"), user=request.user)
+            address_data = {field: getattr(address, field) for field in ADDRESS_FIELDS}
         else:
-            address_data = {
-                "full_name": request.POST.get("full_name", "").strip(),
-                "phone": request.POST.get("phone", "").strip(),
-                "province": request.POST.get("province", "").strip(),
-                "city": request.POST.get("city", "").strip(),
-                "postal_code": request.POST.get("postal_code", "").strip(),
-                "address_line": request.POST.get("address_line", "").strip(),
-            }
-            if not all(address_data.values()):
-                messages.error(request, "لطفاً اطلاعات آدرس را کامل وارد کنید.")
+            # same rules as the address book: required fields, lengths the columns can hold
+            form = AddressForm({field: request.POST.get(field, "").strip() for field in ADDRESS_FIELDS})
+            if not form.is_valid():
+                messages.error(request, "لطفاً اطلاعات آدرس را کامل و درست وارد کنید.")
                 return redirect("orders:checkout")
-
-            if request.POST.get("save_address") == "on":
-                from apps.accounts import services as account_services
-
-                account_services.create_address(user=request.user, is_default=False, **address_data)
+            address_data = {field: form.cleaned_data[field] for field in ADDRESS_FIELDS}
+            save_address = request.POST.get("save_address") == "on"
 
         try:
             from apps.orders.models import Order, ShippingMethod
 
             shipping_method = None
-            method_id = request.POST.get("shipping_method")
+            method_id = _posted_id(request, "shipping_method")
             if method_id:
                 shipping_method = ShippingMethod.objects.filter(pk=method_id, is_active=True).first()
             order = services.place_order(
@@ -122,13 +115,17 @@ class PlaceOrderView(LoginRequiredMixin, View):
                 coupon_code=request.session.get("coupon_code", ""),
                 shipping_method=shipping_method,
                 install_requested=request.POST.get("install_requested") == "on",
-                install_date=request.POST.get("install_date", "").strip(),
+                install_date=request.POST.get("install_date", "").strip()[:30],
                 pay_with_wallet=request.POST.get("pay_with_wallet") == "on",
             )
         except OrderError as exc:
             messages.error(request, str(exc))
             return redirect("orders:checkout")
 
+        if save_address:
+            from apps.accounts import services as account_services
+
+            account_services.create_address(user=request.user, is_default=False, **address_data)
         request.session.pop("coupon_code", None)
         if order.status == Order.Status.PAID:
             return redirect("orders:success", order_number=order.order_number)

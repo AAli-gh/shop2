@@ -55,6 +55,7 @@ class WalletTransaction(models.Model):
         ORDER_PAYMENT = "order_payment", _("order payment")
         ORDER_REFUND = "order_refund", _("order refund")
         ADMIN_ADJUST = "admin_adjust", _("admin adjust")
+        LOYALTY = "loyalty", _("club points")
 
     wallet = models.ForeignKey(
         Wallet, related_name="transactions", on_delete=models.CASCADE, verbose_name=_("wallet"),
