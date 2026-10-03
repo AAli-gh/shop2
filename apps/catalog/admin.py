@@ -27,6 +27,7 @@ from apps.catalog.models import (
     ProductImage,
     ProductVariant,
     RestockNotification,
+    SearchSynonym,
     SearchTerm,
 )
 
@@ -351,14 +352,23 @@ class ResultsFilter(admin.SimpleListFilter):
 class SearchTermAdmin(admin.ModelAdmin):
     """What customers look for: popular terms, and the ones that found nothing (products to add?)."""
 
-    list_display = ("display", "count", "results_count", "is_hidden", "last_searched_jalali")
-    list_editable = ("is_hidden",)
-    list_filter = (ResultsFilter, "is_hidden")
+    list_display = ("display", "count", "results_count", "is_hidden", "dismissed", "last_searched_jalali")
+    list_editable = ("is_hidden", "dismissed")
+    list_filter = (ResultsFilter, "is_hidden", "dismissed")
     search_fields = ("display", "term")
     readonly_fields = ("term", "display", "count", "results_count", "last_searched_jalali")
-    fields = ("display", "term", "count", "results_count", "last_searched_jalali", "is_hidden")
+    fields = ("display", "term", "count", "results_count", "last_searched_jalali", "is_hidden", "dismissed")
 
     last_searched_jalali = jalali_column("last_searched_at", "آخرین جستجو")
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(SearchSynonym)
+class SearchSynonymAdmin(admin.ModelAdmin):
+    """Words customers search with that the product names don't use; most are added from /dashboard/searches/."""
+
+    list_display = ("term", "replacement", "created_jalali")
+    search_fields = ("term", "replacement")
+    created_jalali = jalali_column("created_at", "تاریخ")

@@ -11,7 +11,9 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def admin_pending_items(context):
     """Only items the signed-in staff member is allowed to view; each links to the filtered list."""
+    from apps.catalog.forecast import at_risk_count
     from apps.catalog.models import Product
+    from apps.catalog.search_report import missed_count
     from apps.common.models import ContactMessage
     from apps.orders.models import Order, ReturnRequest
     from apps.reviews.models import ProductQuestion, Review
@@ -47,6 +49,12 @@ def admin_pending_items(context):
         ("catalog.view_product", "محصول فعالِ ناموجود",
          lambda: Product.objects.filter(is_active=True, stock=0).count(),
          reverse("admin:catalog_product_changelist") + "?is_active__exact=1"),
+        ("catalog.view_product", "رو به اتمام (پیش‌بینی)",
+         lambda: at_risk_count(),
+         reverse("common:stock_forecast")),
+        ("catalog.view_searchterm", "جستجوی بی‌نتیجه",
+         lambda: missed_count(),
+         reverse("common:missed_searches")),
     ]
     return [
         {"label": label, "count": count(), "url": url}

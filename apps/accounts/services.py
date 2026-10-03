@@ -51,9 +51,13 @@ def verify_token(token_str: str) -> bool:
     return True
 
 
-def update_profile(*, user: User, name: str) -> User:
+def update_profile(*, user: User, name: str, accepts_marketing: bool | None = None) -> User:
     user.name = name
-    user.save(update_fields=["name"])
+    fields = ["name"]
+    if accepts_marketing is not None:
+        user.accepts_marketing = accepts_marketing
+        fields.append("accepts_marketing")
+    user.save(update_fields=fields)
     return user
 
 

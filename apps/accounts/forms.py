@@ -74,6 +74,10 @@ class ProfileForm(forms.Form):
         label="نام و نام خانوادگی", max_length=120, required=False,
         widget=forms.TextInput(attrs={"class": INPUT}),
     )
+    accepts_marketing = forms.BooleanField(
+        label="کد تخفیف و پیشنهادهای ویژه را برایم پیامک یا ایمیل کنید", required=False,
+        widget=forms.CheckboxInput(attrs={"class": "h-4 w-4"}),
+    )
 
 
 class PhoneForm(forms.Form):

@@ -34,6 +34,8 @@ class User(AbstractUser):
     phone = models.CharField(_("phone number"), max_length=15, unique=True, null=True, blank=True)
     phone_verified = models.BooleanField(_("phone verified"), default=False)
     email_verified = models.BooleanField(_("email verified"), default=False)
+    # promotional messages such as the win-back coupon (apps.crm); order and account texts are always sent
+    accepts_marketing = models.BooleanField(_("accepts offers"), default=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

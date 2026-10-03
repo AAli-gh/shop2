@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}جستجوهای بی‌نتیجه | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+        <h1 class="page-title">چیزهایی که مشتری‌ها جستجو کردند و پیدا نکردند</h1>
+        <p class="mt-1 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+            جستجوهای ۹۰ روز اخیر که هیچ کالایی پیدا نکردند، پرتکرارترها اول. برای هرکدام یا کالایش را اضافه کنید،
+            یا اگر همان کالا را با اسم دیگری دارید، یک <strong>مترادف</strong> تعریف کنید تا جستجو دفعه بعد نتیجه بدهد.
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'admin:catalog_searchsynonym_changelist' %}" class="btn btn-sm btn-ghost">همه مترادف‌ها</a>
+        <a href="{% url 'common:dashboard' %}" class="btn btn-sm btn-ghost">داشبورد</a>
+    </div>
+</div>
+
+{% if rows %}
+<div class="card divide-y divide-gray-100 p-0 dark:divide-cedar/60">
+    {% for row in rows %}
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <div class="min-w-0 flex-1">
+            <p class="font-bold">«{{ row.term.display }}»</p>
+            <p class="mt-0.5 text-xs text-gray-400 dark:text-mist-dim">
+                {{ row.term.count|fa_digits }} بار جستجو — آخرین بار <bdi>{{ row.term.last_searched_at|jalali|fa_digits }}</bdi>
+            </p>
+            {% if row.found_now %}
+                <p class="mt-1 text-xs font-bold text-green-600 dark:text-green-300">✓ حل شد: الان {{ row.found_now|fa_digits }} کالا پیدا می‌کند.</p>
+            {% elif row.suggestions %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-mist-dim">شبیه: {% for s in row.suggestions %}<bdi>{{ s }}</bdi>{% if not forloop.last %}، {% endif %}{% endfor %}</p>
+            {% endif %}
+        </div>
+        {% if not row.found_now %}
+        <div class="flex flex-wrap items-center gap-2">
+            <form method="post" class="flex gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="term_id" value="{{ row.term.pk }}">
+                <input type="text" name="replacement" value="{{ row.suggestions.0|default:'' }}" placeholder="کلمه‌ای که شما دارید" maxlength="100" required class="input h-9 w-44 text-sm" aria-label="مترادف برای {{ row.term.display }}">
+                <button type="submit" class="btn btn-sm btn-primary">ثبت مترادف</button>
+            </form>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="term_id" value="{{ row.term.pk }}">
+                <input type="hidden" name="action" value="dismiss">
+                <button type="submit" class="btn btn-sm btn-ghost" title="در این گزارش دیگر نشان داده نشود">نادیده بگیر</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="card p-8 text-center text-sm text-gray-500 dark:text-mist-dim">در ۹۰ روز اخیر جستجوی بی‌نتیجه‌ای ثبت نشده است. 👌</div>
+{% endif %}
+{% endblock %}

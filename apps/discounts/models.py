@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -23,6 +24,11 @@ class Coupon(models.Model):
     per_user_limit = models.PositiveIntegerField(
         _("uses per customer"), null=True, blank=True,
         help_text="هر مشتری چند بار می‌تواند از این کد استفاده کند؛ خالی = بدون محدودیت. سفارش لغوشده حساب نمی‌شود.",
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="personal_coupons",
+        verbose_name=_("only for customer"),
+        help_text="کد شخصی: فقط همین مشتری می‌تواند از آن استفاده کند (مثلاً کدهای کمپین بازگرداندن مشتری).",
     )
     first_order_only = models.BooleanField(
         _("first order only"), default=False,

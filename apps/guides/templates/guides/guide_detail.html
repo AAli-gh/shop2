@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}{{ guide.title }} | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <a href="{% url 'guides:list' %}">راهنمای انتخاب</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">{{ guide.category.name }}</span>
+</nav>
+
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+    <form method="get" class="card space-y-6 p-5 sm:p-6 lg:sticky lg:top-6" action="#guide-results">
+        <div>
+            <h1 class="page-title text-lg sm:text-xl">{{ guide.title }}</h1>
+            {% if guide.intro %}<p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">{{ guide.intro }}</p>{% endif %}
+        </div>
+
+        {% for question in guide.questions.all %}
+            <fieldset>
+                <legend class="mb-2 text-sm font-bold">{{ forloop.counter|fa_digits }}. {{ question.text }}</legend>
+                {% if question.hint %}<p class="mb-2 text-xs text-gray-400 dark:text-mist-dim">{{ question.hint }}</p>{% endif %}
+                <div class="flex flex-wrap gap-2">
+                    {% for answer in question.answers.all %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="q{{ question.pk }}" value="{{ answer.pk }}" class="peer sr-only"
+                                   {% for qid, aid in chosen.items %}{% if qid == question.pk and aid == answer.pk %}checked{% endif %}{% endfor %}>
+                            <span class="inline-block rounded-xl border border-gray-200 px-3 py-2 text-sm transition-colors peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:font-bold peer-checked:text-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-400 dark:border-cedar/60 dark:peer-checked:border-river dark:peer-checked:bg-ember dark:peer-checked:text-river">{{ answer.label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+        {% endfor %}
+
+        <div class="flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">پیشنهاد بده</button>
+            {% if answered %}<a href="{{ guide.get_absolute_url }}" class="btn btn-ghost">از نو</a>{% endif %}
+        </div>
+        <p class="text-xs text-gray-400 dark:text-mist-dim">به هر سؤالی که برایتان مهم نیست جواب ندهید.</p>
+    </form>
+
+    <section id="guide-results" class="min-w-0 lg:col-span-2" aria-live="polite">
+        {% if not answered %}
+            <div class="card p-8 text-center">
+                <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="check" cls="w-7 h-7" %}</span>
+                <p class="mt-4 font-bold">به سؤال‌ها جواب دهید</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-mist-dim">مناسب‌ترین کالاهای «{{ guide.category.name }}» را با دلیلش همین‌جا نشان می‌دهیم.</p>
+            </div>
+        {% elif not result.matches %}
+            <div class="card p-8 text-center text-sm text-gray-500 dark:text-mist-dim">
+                فعلاً کالایی در این دسته نداریم. <a href="{{ guide.category.get_absolute_url }}" class="font-bold text-brand-600 dark:text-river">دسته «{{ guide.category.name }}»</a> را ببینید.
+            </div>
+        {% else %}
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-lg font-bold">پیشنهاد ما برای شما</h2>
+                <a href="{{ guide.category.get_absolute_url }}" class="text-sm text-brand-600 hover:underline dark:text-river">همه {{ guide.category.name }}‌ها ←</a>
+            </div>
+            {% if result.relaxed %}
+                <p class="alert-warning mb-4 text-sm">کالایی با همه شرط‌های شما پیدا نشد؛ این‌ها نزدیک‌ترین گزینه‌ها هستند.</p>
+            {% endif %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {% for match in result.matches %}
+                    <div class="flex flex-col gap-2">
+                        {% if forloop.first and match.percent >= 50 %}<span class="self-start rounded-lg bg-brand-600 px-2.5 py-1 text-xs font-bold text-white dark:bg-river dark:text-midnight">بهترین انتخاب</span>{% endif %}
+                        {% include "catalog/partials/product_card.html" with product=match.product %}
+                        {% if match.rules %}
+                            <div class="rounded-xl border border-gray-100 p-3 text-xs leading-6 dark:border-cedar/60">
+                                <p class="mb-1 font-bold">تطابق با خواسته شما: <bdi>{{ match.percent|fa_digits }}٪</bdi></p>
+                                <ul>
+                                    {% for reason in match.reasons %}<li class="text-green-700 dark:text-green-300">✓ {{ reason|fa_digits }}</li>{% endfor %}
+                                    {% for miss in match.misses %}<li class="text-gray-400 dark:text-mist-dim">✗ {{ miss|fa_digits }}</li>{% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

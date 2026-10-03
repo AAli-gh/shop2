@@ -6,5 +6,5 @@
 {% if order.shipping_note %}
 توضیح ارسال: {{ order.shipping_note }}{% endif %}
 
-مشاهده سفارش: http://127.0.0.1:8000/orders/{{ order.order_number }}/
+مشاهده سفارش: {{ site_url }}/orders/{{ order.order_number }}/
 {% endautoescape %}

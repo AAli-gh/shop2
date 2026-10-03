@@ -17,6 +17,8 @@ class CouponAdmin(admin.ModelAdmin):
     list_filter = ("kind", "is_active", "first_order_only")
     search_fields = ("code",)
     readonly_fields = ("used_count",)
+    autocomplete_fields = ("owner",)
+    list_select_related = ("owner",)
 
     @admin.display(description="ظرفیت")
     def usage_display(self, obj):

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}راهنمای انتخاب کالا | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb mb-5" aria-label="مسیر صفحه">
+    <a href="/">خانه</a>
+    <span aria-hidden="true">‹</span>
+    <span class="text-gray-600 dark:text-glacier">راهنمای انتخاب</span>
+</nav>
+
+<div class="mb-6">
+    <h1 class="page-title">راهنمای انتخاب کالا</h1>
+    <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">نمی‌دانید کدام مدل به کارتان می‌آید؟ دسته را انتخاب کنید و به چند سؤال کوتاه جواب دهید.</p>
+</div>
+
+{% if guides %}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {% for guide in guides %}
+            <a href="{{ guide.get_absolute_url }}" class="card flex items-start gap-4 p-5 hover:border-brand-300 dark:hover:border-river">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="check" %}</span>
+                <span class="min-w-0">
+                    <span class="block font-bold">{{ guide.title }}</span>
+                    <span class="mt-1 block text-xs text-gray-500 dark:text-mist-dim">{{ guide.intro|default:guide.category.name }}</span>
+                </span>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card p-8 text-center text-sm text-gray-500 dark:text-mist-dim">
+        هنوز راهنمایی آماده نشده است. <a href="{% url 'catalog:product_list' %}" class="font-bold text-brand-600 dark:text-river">همه محصولات را ببینید</a>.
+    </div>
+{% endif %}
+{% endblock %}

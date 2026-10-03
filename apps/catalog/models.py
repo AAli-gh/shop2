@@ -437,6 +437,10 @@ class SearchTerm(models.Model):
         _("hidden"), default=False,
         help_text="از فهرست «جستجوهای پرطرفدار» حذف شود (مثلاً عبارت نامناسب یا تبلیغاتی).",
     )
+    dismissed = models.BooleanField(
+        _("dismissed"), default=False,
+        help_text="در گزارش «جستجوهای بی‌نتیجه» دیگر نمایش داده نشود (مثلاً کالایی که قرار نیست بفروشید).",
+    )
 
     class Meta:
         verbose_name = _("search term")
@@ -445,3 +449,44 @@ class SearchTerm(models.Model):
 
     def __str__(self):
         return self.display
+
+
+class SearchSynonym(models.Model):
+    """A word customers use for something the shop names differently, e.g. «ماکروفر» → «مایکروویو».
+
+    Searches for the term (the whole query, or any word of it) look for the replacement instead.
+    """
+
+    term = models.CharField(
+        _("customer word"), max_length=100, unique=True,
+        help_text="کلمه‌ای که مشتری جستجو می‌کند؛ مثلاً ماکروفر",
+    )
+    replacement = models.CharField(
+        _("shop word"), max_length=100,
+        help_text="کلمه‌ای که در نام محصولات شماست؛ مثلاً مایکروویو",
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("search synonym")
+        verbose_name_plural = _("search synonyms")
+        ordering = ["term"]
+
+    def __str__(self):
+        return f"{self.term} ← {self.replacement}"
+
+    def save(self, *args, **kwargs):
+        # stored folded, so «ماكروفر» typed on an Arabic keyboard matches too
+        self.term = normalize_search(self.term)
+        self.replacement = normalize_search(self.replacement)
+        super().save(*args, **kwargs)
+        from apps.catalog.synonyms import forget
+
+        forget()
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        from apps.catalog.synonyms import forget
+
+        forget()
+        return result

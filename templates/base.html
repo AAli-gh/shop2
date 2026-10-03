@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=16">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=17">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {
@@ -173,7 +173,8 @@
                 <a href="{{ category.get_absolute_url }}"
                    class="shrink-0 text-gray-600 dark:text-glacier/80 hover:text-brand-600 dark:hover:text-river {% if request.resolver_match.kwargs.category_slug == category.slug %}text-brand-600 dark:text-river font-medium{% endif %}">{{ category.name }}</a>
             {% endfor %}
-            <a href="{% url 'blog:list' %}" class="shrink-0 mr-auto text-gray-600 dark:text-glacier/80 hover:text-brand-600 dark:hover:text-river">راهنمای خرید</a>
+            {% if has_buying_guides %}<a href="{% url 'guides:list' %}" class="shrink-0 mr-auto font-medium text-brand-600 hover:text-brand-700 dark:text-river">کمکم کن انتخاب کنم</a>{% endif %}
+            <a href="{% url 'blog:list' %}" class="shrink-0 {% if not has_buying_guides %}mr-auto {% endif %}text-gray-600 dark:text-glacier/80 hover:text-brand-600 dark:hover:text-river">راهنمای خرید</a>
         </div>
     </nav>
 </header>
@@ -220,6 +221,7 @@
             <ul class="space-y-2.5">
                 <li><a href="{% url 'common:about' %}" class="hover:text-white dark:hover:text-river">درباره ما</a></li>
                 <li><a href="{% url 'common:contact' %}" class="hover:text-white dark:hover:text-river">تماس با ما</a></li>
+                {% if has_buying_guides %}<li><a href="{% url 'guides:list' %}" class="hover:text-white dark:hover:text-river">راهنمای انتخاب کالا</a></li>{% endif %}
                 <li><a href="{% url 'blog:list' %}" class="hover:text-white dark:hover:text-river">راهنمای خرید</a></li>
                 <li><a href="{% url 'catalog:compare' %}" class="hover:text-white dark:hover:text-river">مقایسه محصولات</a></li>
             </ul>

@@ -86,6 +86,13 @@ def product_list(request, category_slug=None, brand_slug=None):
     brand_obj = None
     if brand:
         brand_obj = services.get_brand(brand)
+    buying_guide = None
+    if current_category_obj is not None and not query:
+        from apps.guides.models import BuyingGuide
+
+        buying_guide = BuyingGuide.objects.filter(
+            is_active=True, category_id__in=[current_category_obj.pk, current_category_obj.parent_id],
+        ).select_related("category").first()
     # build spec filter groups with checked flags (avoid dict lookups by Persian keys in templates)
     spec_filters = []
     for group in services.filterable_attributes(current_category_obj):
@@ -105,6 +112,7 @@ def product_list(request, category_slug=None, brand_slug=None):
             "current_category": category,
             "current_brand": brand,
             "current_brand_name": brand_obj.name if brand_obj else "",
+            "buying_guide": buying_guide,
             "current_sort": request.GET.get("sort") or services.default_sort(query),
             "did_you_mean": search_suggest.suggest(query) if query and not products.paginator.count else [],
             "fallback_products": services.best_sellers(4) if query and not products.paginator.count else [],

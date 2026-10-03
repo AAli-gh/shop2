@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}پیش‌بینی موجودی | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+        <h1 class="page-title">پیش‌بینی تمام شدن موجودی</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-mist-dim">
+            بر اساس سرعت فروش {{ forecast.window_days|fa_digits }} روز اخیر. زمان تأمین کالا: {{ forecast.lead_days|fa_digits }} روز
+            (<a href="{% url 'admin:common_sitesettings_changelist' %}" class="link">تغییر در تنظیمات سایت</a>)؛
+            پیشنهاد سفارش برای {{ forecast.cover_days|fa_digits }} روز فروش پس از رسیدن کالا است.
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% if show_all %}?{% else %}?all=1{% endif %}" class="btn btn-sm btn-ghost">{% if show_all %}فقط کالاهای در خطر{% else %}همه کالاهای فروش‌رفته{% endif %}</a>
+        <a href="{% url 'common:dashboard' %}" class="btn btn-sm btn-ghost">داشبورد</a>
+    </div>
+</div>
+
+<div class="mb-6 grid grid-cols-3 gap-4">
+    <div class="card p-5"><p class="text-xs text-gray-500 dark:text-mist-dim">تمام شده (با تقاضا)</p><p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-300">{{ forecast.counts.out|fa_digits }}</p></div>
+    <div class="card p-5"><p class="text-xs text-gray-500 dark:text-mist-dim">فوری — قبل از رسیدن سفارش تمام می‌شود</p><p class="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-300">{{ forecast.counts.urgent|fa_digits }}</p></div>
+    <div class="card p-5"><p class="text-xs text-gray-500 dark:text-mist-dim">به‌زودی</p><p class="mt-1 text-2xl font-bold">{{ forecast.counts.soon|fa_digits }}</p></div>
+</div>
+
+<div class="card overflow-x-auto p-0">
+    {% if forecast.rows %}
+    <table class="w-full min-w-[640px] text-sm">
+        <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-ember/60 dark:text-mist-dim">
+            <tr>
+                <th class="p-3 text-start">کالا</th>
+                <th class="p-3">وضعیت</th>
+                <th class="p-3">موجودی</th>
+                <th class="p-3">فروش روزانه</th>
+                <th class="p-3">روز باقی‌مانده</th>
+                <th class="p-3">تمام می‌شود</th>
+                <th class="p-3">پیشنهاد سفارش</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for row in forecast.rows %}
+            <tr>
+                <td class="p-3">
+                    <a href="{% url 'admin:catalog_product_change' row.product.pk %}" class="font-medium hover:text-brand-600 dark:hover:text-river">{{ row.product.name }}</a>
+                    {% if row.variant %}<span class="block text-xs text-gray-400 dark:text-mist-dim">{{ row.variant.label }}</span>{% endif %}
+                </td>
+                <td class="p-3 text-center">
+                    <span class="chip {% if row.status == 'out' %}bg-red-50 text-red-700 dark:bg-ember dark:text-red-300{% elif row.status == 'urgent' %}bg-amber-50 text-amber-700 dark:bg-ember dark:text-amber-300{% elif row.status == 'soon' %}bg-brand-50 text-brand-700 dark:bg-ember dark:text-river{% else %}bg-green-50 text-green-700 dark:bg-ember dark:text-green-300{% endif %}">{{ row.status_label }}</span>
+                </td>
+                <td class="p-3 text-center">{{ row.stock|fa_digits }}</td>
+                <td class="p-3 text-center"><bdi>{{ row.per_day|fa_digits }}</bdi></td>
+                <td class="p-3 text-center font-bold">{% if row.stock %}{{ row.days_left|fa_digits }}{% else %}—{% endif %}</td>
+                <td class="p-3 text-center"><bdi>{{ row.runs_out_on|jalali|fa_digits }}</bdi></td>
+                <td class="p-3 text-center font-bold text-brand-700 dark:text-river">{% if row.reorder %}{{ row.reorder|fa_digits }} عدد{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="p-8 text-center text-sm text-gray-500 dark:text-mist-dim">
+            {% if show_all %}در {{ forecast.window_days|fa_digits }} روز اخیر فروشی ثبت نشده است.{% else %}هیچ کالایی در خطر تمام شدن نیست. 👌{% endif %}
+        </p>
+    {% endif %}
+</div>
+<p class="mt-3 text-xs text-gray-400 dark:text-mist-dim">کالاهایی که در این مدت فروشی نداشته‌اند قابل پیش‌بینی نیستند؛ «کالاهای راکد» در داشبورد آن‌ها را نشان می‌دهد.</p>
+{% endblock %}

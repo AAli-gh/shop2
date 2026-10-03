@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     "apps.blog",
     "apps.wishlist",
     "apps.loyalty",
+    "apps.guides",
+    "apps.crm",
 ]
 
 MIDDLEWARE = [
@@ -183,7 +185,7 @@ SMSIR = {
         event: env.int(f"SMSIR_TEMPLATE_{event.upper()}", default=0)
         for event in (
             "order_placed", "order_status", "return_status", "order_paid_staff", "low_stock",
-            "cart_reminder", "price_drop", "question_answered", "review_request",
+            "cart_reminder", "price_drop", "question_answered", "review_request", "winback",
         )
     },
 }

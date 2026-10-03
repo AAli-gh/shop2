@@ -44,8 +44,10 @@ def _active_qs():
 
 
 def _search(qs, q):
-    """Every word of the query must appear somewhere (any order), after folding spelling variants."""
-    for term in normalize_search(q).split():
+    """Every word of the query must appear somewhere (any order), after folding spelling variants and synonyms."""
+    from apps.catalog.synonyms import expand
+
+    for term in expand(q).split():
         qs = qs.filter(search_text__contains=term)
     return qs
 
@@ -79,7 +81,9 @@ def list_products(*, category_slug=None, brand_slug=None, q=None, sort=None, pag
     sort = sort if sort in SORT_CHOICES or sort == RELEVANCE else default_sort(q)
     if sort == RELEVANCE and q:
         # a name that starts with the search beats one that merely mentions it; then best sellers
-        folded = normalize_search(q)
+        from apps.catalog.synonyms import expand
+
+        folded = expand(q)
         qs = qs.annotate(match_score=Case(
             When(search_text__startswith=folded, then=Value(2)),
             When(search_text__contains=folded, then=Value(1)),
@@ -199,6 +203,11 @@ def quick_search(q, limit=6):
     if len(normalize_search(q)) < 2:
         return []
     return list(_search(_active_qs(), q).order_by("-sold_count")[:limit])
+
+
+def search_count(q) -> int:
+    """How many products a search finds right now (e.g. to see whether a missed search is fixed)."""
+    return _search(Product.objects.filter(is_active=True), q).count()
 
 
 def related_products(product, limit=4):

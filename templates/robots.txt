@@ -4,8 +4,11 @@ Disallow: /checkout/
 Disallow: /orders/
 Disallow: /accounts/
 Disallow: /wishlist/
+Disallow: /wallet/
+Disallow: /club/
+Disallow: /dashboard/
 Disallow: /api/
 Disallow: /newsletter/verify/
 Disallow: /newsletter/unsubscribe/
 
-Sitemap: http://127.0.0.1:8000/sitemap.xml
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

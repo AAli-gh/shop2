@@ -15,6 +15,12 @@
             گزارش فروش
             <strong>←</strong>
         </a>
+        {% if perms.accounts.view_user %}
+        <a href="/dashboard/customers/" class="pending-card">
+            دسته‌بندی مشتریان
+            <strong>←</strong>
+        </a>
+        {% endif %}
     </div>
 {% endif %}
 {{ block.super }}

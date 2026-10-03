@@ -12,6 +12,9 @@ urlpatterns = [
     path("privacy/", views.static_page, {"key": "privacy"}, name="privacy"),
     path("contact/", views.contact, name="contact"),
     path("dashboard/", views_staff.dashboard, name="dashboard"),
+    path("dashboard/stock/", views_staff.stock_forecast_view, name="stock_forecast"),
+    path("dashboard/searches/", views_staff.missed_searches_view, name="missed_searches"),
+    path("dashboard/customers/", views_staff.customer_segments_view, name="customer_segments"),
     path("logs/", views_staff.logs_view, name="logs"),
     path("logs/download/", views_staff.logs_download, name="logs_download"),
 ]

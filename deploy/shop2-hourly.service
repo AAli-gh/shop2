@@ -12,3 +12,5 @@ EnvironmentFile=/srv/shop2/.env
 ExecStart=/srv/shop2/.venv/bin/python manage.py remind_abandoned_carts
 ExecStart=/srv/shop2/.venv/bin/python manage.py send_price_alerts
 ExecStart=/srv/shop2/.venv/bin/python manage.py request_reviews
+# one offer per quiet customer, so running hourly never repeats; does nothing until switched on in site settings
+ExecStart=/srv/shop2/.venv/bin/python manage.py send_winback

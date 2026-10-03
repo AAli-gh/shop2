@@ -14,9 +14,11 @@ PERMISSIONS = {
         "wallet": ["view"],
         "reviews": ["view"],
         "loyalty": ["view"],
+        "crm": ["view"],
     },
     "انبار": {
         "catalog": ["view", "change"],          # stock updates
+        "guides": ["view", "add", "change"],    # buying guide questions
         "orders": ["view", "change"],           # mark shipped
     },
 }

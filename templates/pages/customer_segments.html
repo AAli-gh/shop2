@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}دسته‌بندی مشتریان | {{ site_settings.store_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+        <h1 class="page-title">دسته‌بندی مشتریان</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-mist-dim">
+            بر اساس خریدهای پرداخت‌شده. «خوابیده» یعنی بیش از {{ report.dormant_days|fa_digits }} روز از آخرین خرید گذشته.
+        </p>
+    </div>
+    <a href="{% url 'common:dashboard' %}" class="btn btn-sm btn-ghost">داشبورد</a>
+</div>
+
+<div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    {% for item in report.summary %}
+        <a href="?segment={{ item.segment.key }}" class="card p-5 hover:border-brand-300 dark:hover:border-river {% if report.selected.key == item.segment.key %}border-brand-500 dark:border-river{% endif %}">
+            <p class="text-sm font-bold">{{ item.segment.label }}</p>
+            <p class="mt-1 text-2xl font-bold">{{ item.customers|fa_digits }} <span class="text-xs font-normal text-gray-400">({{ item.share|fa_digits }}٪)</span></p>
+            <p class="mt-1 text-xs text-gray-500 dark:text-mist-dim">{{ item.segment.description }}</p>
+            <p class="mt-2 text-xs text-gray-400 dark:text-mist-dim">کل خرید: <bdi>{{ item.spent|toman|fa_digits }}</bdi></p>
+        </a>
+    {% endfor %}
+</div>
+<p class="-mt-3 mb-6 text-xs text-gray-400 dark:text-mist-dim">{{ report.never_bought|fa_digits }} نفر ثبت‌نام کرده‌اند ولی هنوز خریدی نداشته‌اند.</p>
+
+<div class="card mb-6 p-5 sm:p-6">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="card-title mb-0">کمپین بازگرداندن مشتریان خوابیده</h2>
+        <span class="chip {% if site_settings.winback_enabled %}bg-green-50 text-green-700 dark:bg-ember dark:text-green-300{% else %}bg-gray-100 text-gray-600 dark:bg-ember dark:text-mist-dim{% endif %}">
+            {% if site_settings.winback_enabled %}روشن{% else %}خاموش{% endif %}
+        </span>
+    </div>
+    <p class="mb-4 text-sm leading-7 text-gray-500 dark:text-mist-dim">
+        به هر مشتری خوابیده یک بار یک کد {{ site_settings.winback_percent|fa_digits }}٪ شخصی با {{ site_settings.winback_valid_days|fa_digits }} روز اعتبار پیامک (یا ایمیل) می‌شود.
+        {% if not site_settings.winback_enabled %}برای شروع، آن را در <a href="{% url 'admin:common_sitesettings_changelist' %}" class="link">تنظیمات سایت</a> روشن کنید.{% endif %}
+    </p>
+    <dl class="grid grid-cols-2 gap-4 text-sm sm:grid-cols-5">
+        <div><dt class="text-xs text-gray-500 dark:text-mist-dim">منتظر پیشنهاد</dt><dd class="mt-1 text-lg font-bold">{{ campaign.due_now|fa_digits }}</dd></div>
+        <div><dt class="text-xs text-gray-500 dark:text-mist-dim">پیام ارسال‌شده</dt><dd class="mt-1 text-lg font-bold">{{ campaign.sent|fa_digits }} <span class="text-xs font-normal text-gray-400">({{ campaign.sent_30_days|fa_digits }} در ۳۰ روز)</span></dd></div>
+        <div><dt class="text-xs text-gray-500 dark:text-mist-dim">برگشتند و خرید کردند</dt><dd class="mt-1 text-lg font-bold text-green-600 dark:text-green-300">{{ campaign.returned|fa_digits }} <span class="text-xs font-normal">({{ campaign.return_rate|fa_digits }}٪)</span></dd></div>
+        <div><dt class="text-xs text-gray-500 dark:text-mist-dim">کد استفاده‌شده</dt><dd class="mt-1 text-lg font-bold">{{ campaign.codes_used|fa_digits }}</dd></div>
+        <div><dt class="text-xs text-gray-500 dark:text-mist-dim">فروش با این کدها</dt><dd class="mt-1 text-lg font-bold"><bdi>{{ campaign.revenue|toman|fa_digits }}</bdi></dd></div>
+    </dl>
+</div>
+
+{% if report.selected %}
+<div class="card overflow-x-auto p-0">
+    <h2 class="card-title p-5 pb-0">مشتریان «{{ report.selected.label }}» <span class="text-xs font-normal text-gray-400">(پرخریدترها اول)</span></h2>
+    {% if report.customers %}
+    <table class="mt-3 w-full min-w-[640px] text-sm">
+        <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-ember/60 dark:text-mist-dim">
+            <tr>
+                <th class="p-3 text-start">مشتری</th>
+                <th class="p-3">تعداد خرید</th>
+                <th class="p-3">جمع خرید</th>
+                <th class="p-3">آخرین خرید</th>
+                <th class="p-3">پیشنهاد بازگشت</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for c in report.customers %}
+            <tr>
+                <td class="p-3">
+                    <a href="{% url 'admin:accounts_user_change' c.user.pk %}" class="font-medium hover:text-brand-600 dark:hover:text-river">{{ c.user.name|default:c.user }}</a>
+                    <span class="block text-xs text-gray-400 dark:text-mist-dim" dir="ltr">{{ c.user.phone|default:c.user.email|default:"" }}</span>
+                </td>
+                <td class="p-3 text-center">{{ c.orders|fa_digits }}</td>
+                <td class="p-3 text-center"><bdi>{{ c.spent|toman|fa_digits }}</bdi></td>
+                <td class="p-3 text-center"><bdi>{{ c.last_purchase|jalali|fa_digits }}</bdi> <span class="block text-xs text-gray-400">{{ c.days|fa_digits }} روز پیش</span></td>
+                <td class="p-3 text-center text-xs">{% if c.offer %}<bdi>{{ c.offer.sent_at|jalali|fa_digits }}</bdi>{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="p-8 text-center text-sm text-gray-500 dark:text-mist-dim">مشتری‌ای در این دسته نیست.</p>
+    {% endif %}
+</div>
+{% else %}
+    <p class="text-center text-sm text-gray-500 dark:text-mist-dim">برای دیدن فهرست مشتریان، روی یکی از دسته‌ها کلیک کنید.</p>
+{% endif %}
+{% endblock %}

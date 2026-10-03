@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -87,6 +87,33 @@ class SiteSettings(models.Model):
     referral_min_order_amount = models.BigIntegerField(
         _("referral minimum order"), default=1_000_000,
         help_text="پاداش معرفی فقط وقتی داده می‌شود که مبلغ کالاهای آن خرید دست‌کم این مقدار (تومان) باشد.",
+    )
+
+    # stock forecast (apps.catalog.forecast)
+    restock_lead_days = models.PositiveIntegerField(
+        _("supplier lead time (days)"), default=7,
+        help_text="از سفارش به تأمین‌کننده تا رسیدن کالا به انبار معمولاً چند روز طول می‌کشد؛ "
+                  "کالایی که زودتر از این تمام شود «فوری» علامت می‌خورد.",
+    )
+    # win-back campaign (apps.crm): a personal coupon for customers who stopped buying
+    winback_enabled = models.BooleanField(
+        _("win-back campaign enabled"), default=False,
+        help_text="با روشن کردن، به مشتریانی که مدتی خرید نکرده‌اند خودکار یک کد تخفیف شخصی پیامک یا ایمیل می‌شود. "
+                  "مشتریانی که در پروفایل، دریافت پیشنهادها را خاموش کرده‌اند پیامی نمی‌گیرند.",
+    )
+    winback_after_days = models.PositiveIntegerField(
+        _("inactive after (days)"), default=120, validators=[MinValueValidator(30)],
+        help_text="مشتری‌ای که این مدت از آخرین خریدش گذشته «خوابیده» حساب می‌شود و پیشنهاد می‌گیرد.",
+    )
+    winback_percent = models.PositiveIntegerField(
+        _("win-back discount (%)"), default=10, validators=[MinValueValidator(1), MaxValueValidator(100)],
+    )
+    winback_max_discount = models.BigIntegerField(
+        _("win-back discount cap"), null=True, blank=True, default=1_000_000,
+        help_text="سقف تخفیف به تومان؛ خالی = بدون سقف",
+    )
+    winback_valid_days = models.PositiveIntegerField(
+        _("win-back code valid for (days)"), default=14, validators=[MinValueValidator(1)],
     )
 
     class Meta:

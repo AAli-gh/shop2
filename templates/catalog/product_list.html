@@ -143,6 +143,17 @@
             </form>
         </div>
 
+        {% if buying_guide %}
+            <a href="{{ buying_guide.get_absolute_url }}" class="card mb-5 flex items-center gap-3 border-brand-100 bg-brand-50 p-4 hover:border-brand-300 dark:border-cedar/60 dark:bg-ember/60 dark:hover:border-river">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 dark:bg-midnight dark:text-river">{% include "partials/icon.html" with name="check" %}</span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-bold">نمی‌دانید کدام را بخرید؟</span>
+                    <span class="block text-xs text-gray-500 dark:text-mist-dim">{{ buying_guide.title }} — به چند سؤال کوتاه جواب دهید تا مناسب‌ترین‌ها را پیشنهاد کنیم.</span>
+                </span>
+                <span class="shrink-0 text-sm font-bold text-brand-600 dark:text-river">شروع ←</span>
+            </a>
+        {% endif %}
+
         {% if products.object_list %}
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 {% for product in products %}

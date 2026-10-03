@@ -83,6 +83,7 @@ python -c "import secrets; print(secrets.token_urlsafe(50))"
 | `SMSIR_TEMPLATE_PRICE_DROP` | `#PRODUCT#` `#PRICE#` | قیمت «#PRODUCT#» به #PRICE# تومان کاهش یافت |
 | `SMSIR_TEMPLATE_QUESTION_ANSWERED` | `#PRODUCT#` | به پرسش شما درباره «#PRODUCT#» پاسخ داده شد |
 | `SMSIR_TEMPLATE_REVIEW_REQUEST` | `#PRODUCT#` | از «#PRODUCT#» راضی بودید؟ نظرتان را در سایت ثبت کنید |
+| `SMSIR_TEMPLATE_WINBACK` | `#CODE#` `#PERCENT#` `#DAYS#` | دلمان برایتان تنگ شده! با کد #CODE# تا #DAYS# روز #PERCENT# درصد تخفیف بگیرید |
 
 - نام پارامترها باید دقیقاً همین‌ها باشد (حروف بزرگ). نام فروشگاه و آدرس سایت را در خود متن قالب بنویسید.
 - مقدار هر پارامتر حداکثر ۲۵ نویسه فرستاده می‌شود؛ نام‌های طولانی محصول کوتاه می‌شوند.
@@ -116,7 +117,7 @@ python manage.py createsuperuser
 
 ## ۵. زمان‌بندی کارها (Cron)
 
-در **تنظیمات برنامه ← Cron Job** این سه مورد را اضافه کنید:
+در **تنظیمات برنامه ← Cron Job** این موارد را اضافه کنید:
 
 | زمان‌بندی | دستور | کار |
 |---|---|---|
@@ -124,6 +125,7 @@ python manage.py createsuperuser
 | `15 9-21 * * *` | `python manage.py remind_abandoned_carts` | یادآوری سبد رهاشده |
 | `20 9-21 * * *` | `python manage.py send_price_alerts` | خبر کاهش قیمت |
 | `25 9-21 * * *` | `python manage.py request_reviews` | درخواست نظر از مشتریانی که سفارششان تحویل شده |
+| `0 11 * * *` | `python manage.py send_winback` | کد تخفیف برای مشتریان خوابیده (فقط وقتی در تنظیمات سایت روشن باشد) |
 
 ## ۶. دامنه و پشتیبان‌گیری
 

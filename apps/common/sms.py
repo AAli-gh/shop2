@@ -30,6 +30,7 @@ EVENT_PARAMETERS = {
     "price_drop": ("PRODUCT", "PRICE"),
     "question_answered": ("PRODUCT",),
     "review_request": ("PRODUCT",),
+    "winback": ("CODE", "PERCENT", "DAYS"),
 }
 # template parameter values are kept short (long product names are cut)
 PARAM_MAX_LENGTH = 25

@@ -833,3 +833,105 @@ msgstr "تراکنش امتیاز"
 
 msgid "point transactions"
 msgstr "تراکنش‌های امتیاز"
+
+msgid "dismissed"
+msgstr "کنار گذاشته شده"
+
+msgid "customer word"
+msgstr "کلمه مشتری"
+
+msgid "shop word"
+msgstr "کلمه فروشگاه"
+
+msgid "search synonym"
+msgstr "مترادف جستجو"
+
+msgid "search synonyms"
+msgstr "مترادف‌های جستجو"
+
+msgid "accepts offers"
+msgstr "دریافت پیشنهادهای تخفیف"
+
+msgid "only for customer"
+msgstr "فقط برای مشتری"
+
+msgid "supplier lead time (days)"
+msgstr "زمان تأمین کالا (روز)"
+
+msgid "win-back campaign enabled"
+msgstr "کمپین بازگرداندن مشتری فعال"
+
+msgid "inactive after (days)"
+msgstr "خوابیده پس از (روز)"
+
+msgid "win-back discount (%)"
+msgstr "درصد تخفیف بازگشت"
+
+msgid "win-back discount cap"
+msgstr "سقف تخفیف بازگشت (تومان)"
+
+msgid "win-back code valid for (days)"
+msgstr "اعتبار کد بازگشت (روز)"
+
+msgid "SMS"
+msgstr "پیامک"
+
+msgid "channel"
+msgstr "روش ارسال"
+
+msgid "last purchase"
+msgstr "آخرین خرید"
+
+msgid "win-back message"
+msgstr "پیام بازگرداندن مشتری"
+
+msgid "win-back messages"
+msgstr "پیام‌های بازگرداندن مشتری"
+
+msgid "introduction"
+msgstr "توضیح کوتاه"
+
+msgid "buying guide"
+msgstr "راهنمای انتخاب"
+
+msgid "buying guides"
+msgstr "راهنماهای انتخاب"
+
+msgid "hint"
+msgstr "راهنمایی"
+
+msgid "guide question"
+msgstr "سؤال راهنما"
+
+msgid "guide questions"
+msgstr "سؤال‌های راهنما"
+
+msgid "spec"
+msgstr "مشخصه فنی"
+
+msgid "from"
+msgstr "از"
+
+msgid "to"
+msgstr "تا"
+
+msgid "contains"
+msgstr "شامل کلمه"
+
+msgid "price from"
+msgstr "قیمت از (تومان)"
+
+msgid "price to"
+msgstr "قیمت تا (تومان)"
+
+msgid "required"
+msgstr "شرط اجباری"
+
+msgid "reason shown"
+msgstr "دلیل نمایشی"
+
+msgid "guide option"
+msgstr "گزینه راهنما"
+
+msgid "guide options"
+msgstr "گزینه‌های راهنما"

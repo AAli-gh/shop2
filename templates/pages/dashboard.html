@@ -6,6 +6,9 @@
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <h1 class="page-title">داشبورد مدیریت</h1>
     <div class="flex flex-wrap gap-2">
+        <a href="{% url 'common:stock_forecast' %}" class="btn btn-sm btn-ghost">پیش‌بینی موجودی</a>
+        <a href="{% url 'common:missed_searches' %}" class="btn btn-sm btn-ghost">جستجوهای بی‌نتیجه</a>
+        <a href="{% url 'common:customer_segments' %}" class="btn btn-sm btn-ghost">مشتریان</a>
         <a href="/logs/" class="btn btn-sm btn-ghost">لاگ رویدادها</a>
         <a href="{% url 'admin:catalog_product_import' %}" class="btn btn-sm btn-ghost">ورود گروهی محصولات</a>
         <a href="{% url 'admin:index' %}" class="btn btn-sm btn-primary">پنل مدیریت</a>

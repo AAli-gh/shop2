@@ -334,10 +334,13 @@ class ProfileView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy("accounts:profile")
 
     def get_initial(self):
-        return {"name": self.request.user.name}
+        return {"name": self.request.user.name, "accepts_marketing": self.request.user.accepts_marketing}
 
     def form_valid(self, form):
-        services.update_profile(user=self.request.user, name=form.cleaned_data["name"])
+        services.update_profile(
+            user=self.request.user, name=form.cleaned_data["name"],
+            accepts_marketing=form.cleaned_data["accepts_marketing"],
+        )
         messages.success(self.request, "پروفایل به‌روزرسانی شد.")
         return super().form_valid(form)
 

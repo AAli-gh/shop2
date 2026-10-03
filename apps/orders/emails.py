@@ -8,7 +8,8 @@ from apps.common.lastvisited import LAST_VISITED_LIMIT  # noqa: F401  (keep modu
 def _send(user_email: str, subject: str, template: str, context: dict) -> None:
     if not user_email:
         return  # phone-login accounts have no email; they get the SMS instead
-    body = render_to_string(template, context)
+    # links in emails must point at the live site, whatever host rendered them
+    body = render_to_string(template, {"site_url": settings.SITE_URL.rstrip("/"), **context})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
 
 

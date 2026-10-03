@@ -3,5 +3,5 @@
 
 محصول «{{ product.name }}» که درخواست خبر دادید اکنون موجود است:
 
-http://127.0.0.1:8000{{ product.get_absolute_url }}
+{{ site_url }}{{ product.get_absolute_url }}
 {% endautoescape %}

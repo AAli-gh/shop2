@@ -22,6 +22,7 @@ ERROR_MESSAGES = {
     "login_required": "برای استفاده از این کد ابتدا وارد حساب خود شوید.",
     "per_user_limit_reached": "سهم شما از این کد تخفیف قبلاً استفاده شده است.",
     "first_order_only": "این کد تخفیف فقط برای اولین خرید است.",
+    "not_yours": "این کد تخفیف مخصوص حساب دیگری است.",
 }
 
 
@@ -49,9 +50,11 @@ def validate_coupon(*, code: str, subtotal: int, user=None) -> CouponResult:
         return CouponResult(None, 0, "usage_limit_reached")
     if subtotal < coupon.min_order_amount:
         return CouponResult(None, 0, "min_order_not_met")
-    if coupon.per_user_limit is not None or coupon.first_order_only:
+    if coupon.per_user_limit is not None or coupon.first_order_only or coupon.owner_id:
         if not getattr(user, "is_authenticated", False):
             return CouponResult(None, 0, "login_required")
+        if coupon.owner_id and coupon.owner_id != user.pk:
+            return CouponResult(None, 0, "not_yours")
         if coupon.first_order_only and _customer_orders(user).exists():
             return CouponResult(None, 0, "first_order_only")
         if coupon.per_user_limit is not None and _customer_orders(user).filter(coupon=coupon).count() >= coupon.per_user_limit:

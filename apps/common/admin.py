@@ -23,6 +23,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             "loyalty_enabled", "loyalty_toman_per_point", "loyalty_point_value", "loyalty_min_redeem_points",
             "referral_referrer_points", "referral_friend_points", "referral_min_order_amount",
         )}),
+        ("پیش‌بینی موجودی", {"fields": ("restock_lead_days",)}),
+        ("بازگرداندن مشتریان خوابیده", {"fields": (
+            "winback_enabled", "winback_after_days", "winback_percent", "winback_max_discount", "winback_valid_days",
+        )}),
         ("ارتباط با مشتری", {"fields": ("contact_phone", "about_text")}),
         ("اطلاعات فروشنده (روی فاکتور)", {"fields": ("legal_name", "national_id", "economic_code", "address", "postal_code")}),
         ("نمادهای اعتماد", {"fields": ("trust_badges_html",)}),
