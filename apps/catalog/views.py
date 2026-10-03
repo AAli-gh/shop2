@@ -14,7 +14,9 @@ def home(request):
         "catalog/home.html",
         {
             "banners": services.active_banners()[:2],
-            "home_categories": services.home_categories(),
+            "home_categories": services.home_categories(limit=8),
+            "home_guides": _home_guides(),
+            "home_posts": _home_posts(),
             "product_total": services.active_product_count(),
             "featured": services.featured_products(),
             "on_sale": services.on_sale_products(),
@@ -25,6 +27,18 @@ def home(request):
             "recently_viewed": lastvisited.get_viewed_products(request),
         },
     )
+
+
+def _home_guides():
+    from apps.guides.models import BuyingGuide
+
+    return list(BuyingGuide.objects.filter(is_active=True, category__is_active=True).select_related("category")[:8])
+
+
+def _home_posts():
+    from apps.blog.models import Post
+
+    return list(Post.objects.filter(is_published=True)[:3])
 
 
 def live_search(request):

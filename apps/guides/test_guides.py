@@ -136,4 +136,4 @@ def test_seed_command_builds_guides_from_existing_specs(db):
     call_command("seed_buying_guides")  # safe to re-run
     guide = BuyingGuide.objects.get(category__name="یخچال و فریزر")
     assert guide.questions.count() == 3
-    assert BuyingGuide.objects.count() == 2
+    assert BuyingGuide.objects.count() == 6  # every seeded category that has the specs

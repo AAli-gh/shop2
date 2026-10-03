@@ -69,7 +69,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         </a>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
         {% for category in home_categories %}
             <a href="{{ category.get_absolute_url }}"
                class="group rounded-2xl border border-gray-100 dark:border-cedar/60 bg-white dark:bg-cedar/40 p-2 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5">
@@ -210,6 +210,56 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
         {% for product in featured %}
             {% include "catalog/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Buying guides: «help me choose» -->
+{% if home_guides %}
+<section class="max-w-7xl mx-auto px-4 mt-14">
+    <div class="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white sm:p-8 dark:from-cedar dark:to-midnight">
+        <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-bold sm:text-2xl">نمی‌دانید کدام را بخرید؟</h2>
+                <p class="mt-2 text-sm opacity-80">به چند سؤال کوتاه جواب دهید؛ مناسب‌ترین کالا را با دلیلش پیشنهاد می‌کنیم.</p>
+            </div>
+            <a href="{% url 'guides:list' %}" class="text-sm font-bold hover:underline">همه راهنماها ←</a>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {% for guide in home_guides %}
+                <a href="{{ guide.get_absolute_url }}" class="rounded-2xl bg-white/10 p-4 text-sm font-bold backdrop-blur transition hover:bg-white/20">
+                    {{ guide.category.name }}
+                    <span class="mt-1 block text-xs font-normal opacity-75">کمکم کن انتخاب کنم ←</span>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Articles and buying advice -->
+{% if home_posts %}
+<section class="max-w-7xl mx-auto px-4 mt-14">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="flex items-center gap-3 text-xl sm:text-2xl font-bold">
+            <span class="w-1.5 h-7 rounded-full bg-brand-500 dark:bg-river"></span>
+            مقاله‌ها و راهنمای خرید
+        </h2>
+        <a href="{% url 'blog:list' %}" class="text-sm font-medium text-brand-600 dark:text-river hover:underline">همه مقاله‌ها ←</a>
+    </div>
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {% for post in home_posts %}
+            <a href="{{ post.get_absolute_url }}" class="card group overflow-hidden p-0">
+                <div class="aspect-video overflow-hidden bg-gray-100 dark:bg-ember">
+                    {% if post.cover %}<img src="{{ post.cover.url }}" alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">{% endif %}
+                </div>
+                <div class="p-4">
+                    <span class="chip bg-brand-50 text-brand-700 dark:bg-ember dark:text-river">{{ post.get_kind_display }}</span>
+                    <h3 class="mt-2 font-bold leading-7 group-hover:text-brand-600 dark:group-hover:text-river">{{ post.title }}</h3>
+                    {% if post.excerpt %}<p class="mt-1 line-clamp-2 text-xs leading-6 text-gray-500 dark:text-mist-dim">{{ post.excerpt }}</p>{% endif %}
+                </div>
+            </a>
         {% endfor %}
     </div>
 </section>
