@@ -39,3 +39,17 @@ def test_password_reset_flow(client, django_user_model):
     django_user_model.objects.create_user(email="reset@example.com", password="old12345")
     resp = client.post("/accounts/password-reset/", {"email": "reset@example.com"})
     assert resp.status_code == 302
+
+
+@pytest.mark.django_db
+def test_contact_message_is_emailed_to_the_shop(client, mailoutbox, settings):
+    settings.ADMINS = [("Shop", "owner@example.com")]
+    client.post("/contact/", {
+        "name": "سارا", "email": "sara@example.com",
+        "subject": "سؤال\nدرباره ارسال", "body": "سفارشم کی می‌رسد؟",
+    })
+    mail = mailoutbox[-1]
+    assert mail.to == ["owner@example.com"]
+    assert mail.reply_to == ["sara@example.com"]  # «Reply» answers the customer
+    assert mail.subject == "پیام تماس: سؤال درباره ارسال"
+    assert "سفارشم کی می‌رسد؟" in mail.body and "sara@example.com" in mail.body
