@@ -71,6 +71,7 @@ class OrderNoteInline(admin.TabularInline):
 
 
 STATUS_COLORS = {
+    Order.Status.AWAITING_APPROVAL: "#a16207",
     Order.Status.PENDING_PAYMENT: "#b45309",
     Order.Status.PAID: "#1d4ed8",
     Order.Status.PROCESSING: "#7c3aed",
@@ -86,7 +87,7 @@ class OrderAdmin(admin.ModelAdmin):
         "order_number", "user_link", "customer_name", "status_badge", "total",
         "coupon_code", "created_jalali",
     )
-    list_filter = ("status", jalali_date_filter("created_at", "تاریخ ثبت"))
+    list_filter = ("status", ("sales_rep", admin.RelatedOnlyFieldListFilter), jalali_date_filter("created_at", "تاریخ ثبت"))
     # order number, customer email/mobile/name, or the name/phone on the shipping address
     search_fields = (
         "order_number", "user__email", "user__phone", "user__name",
@@ -97,6 +98,7 @@ class OrderAdmin(admin.ModelAdmin):
         "order_number", "user", "items_subtotal", "discount_amount",
         "shipping_cost", "total", "coupon", "coupon_code", "payment_ref",
         "created_jalali", "updated_jalali", "delivered_jalali", "invoice_link",
+        "sales_rep", "rep_customer", "payment_terms",
     )
     inlines = [OrderNoteInline, OrderItemInline, ShippingAddressInline]
 
@@ -128,9 +130,16 @@ class OrderAdmin(admin.ModelAdmin):
         return address.full_name if address else "—"
     actions = ["mark_shipped", "mark_processing", "mark_delivered", "export_excel"]
 
+    def get_fieldsets(self, request, obj=None):
+        # the rep section only for orders a rep placed
+        fieldsets = super().get_fieldsets(request, obj)
+        return fieldsets if obj is not None and obj.sales_rep_id else [f for f in fieldsets if f[0] != "سفارش ویزیتور"]
+
     fieldsets = (
         ("وضعیت (طبق چرخه: پردازش ← پرداخت‌شده، ارسال ← پردازش، تحویل ← ارسال)", {"fields": ("status",)}),
         ("مشخصات سفارش", {"fields": ("order_number", "user", "payment_ref", "invoice_link")}),
+        ("سفارش ویزیتور", {"fields": ("sales_rep", "rep_customer", "payment_terms"),
+                            "description": "سفارش ویزیتور با «در حال پردازش» تأیید می‌شود؛ لغو آن موجودی را آزاد می‌کند."}),
         ("ارسال بار", {"fields": ("tracking_code", "shipping_note"), "description": "کد رهگیری مرسوله — پس از ثبت، وضعیت را به «ارسال شد» تغییر دهید تا به مشتری ایمیل شود."}),
         ("مالی (فقط‌خواندنی)", {"fields": ("items_subtotal", "discount_amount", "shipping_cost", "total", "coupon", "coupon_code")}),
         ("تاریخ‌ها", {"fields": ("created_jalali", "updated_jalali", "delivered_jalali")}),
@@ -200,7 +209,7 @@ class OrderAdmin(admin.ModelAdmin):
             )
         self._transition_many(request, queryset, Order.Status.SHIPPED)
 
-    @admin.action(description="🔨 در حال پردازش (processing)")
+    @admin.action(description="🔨 در حال پردازش (processing) — تأیید سفارش ویزیتور")
     def mark_processing(self, request, queryset):
         self._transition_many(request, queryset, Order.Status.PROCESSING)
 

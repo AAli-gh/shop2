@@ -1,0 +1,47 @@
+{% extends "reps/_layout.html" %}
+{% load persian %}
+{% block title %}سفارش {{ order.order_number }} | پنل ویزیتور{% endblock %}
+
+{% block rep_content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+        <h1 class="page-title">سفارش <bdi dir="ltr">{{ order.order_number }}</bdi></h1>
+        {% include "orders/partials/status_chip.html" %}
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'orders:invoice' order.order_number %}" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">پیش‌فاکتور / چاپ</a>
+        <form method="post" action="{% url 'reps:order_reorder' order.order_number %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">سفارش دوباره</button></form>
+        {% if order.status == 'approval' %}
+        <form method="post" action="{% url 'reps:order_cancel' order.order_number %}" onsubmit="return confirm('این سفارش لغو شود؟')">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">لغو سفارش</button></form>
+        {% endif %}
+    </div>
+</div>
+
+{% include "orders/partials/progress.html" %}
+
+<div class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3">
+    <div class="card p-5 md:col-span-2">
+        <h2 class="card-title">اقلام</h2>
+        <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+            {% for item in order.items.all %}
+            <li class="flex justify-between gap-3 py-2.5">
+                <span>{{ item.product_name }} <span class="text-gray-400">× {{ item.quantity|fa_digits }}</span></span>
+                <span class="shrink-0 font-medium"><bdi>{{ item.line_total|price|fa_digits }}</bdi></span>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="mt-3 flex justify-between border-t border-gray-100 pt-3 font-bold dark:border-cedar/60"><span>جمع کل</span><span class="text-brand-700 dark:text-river"><bdi>{{ order.total|toman|fa_digits }}</bdi></span></div>
+    </div>
+    <div class="card space-y-2 p-5 text-sm">
+        <h2 class="card-title">مشتری</h2>
+        <p class="font-bold">{{ order.rep_customer.shop_name }}</p>
+        {% if order.rep_customer.owner_name %}<p>{{ order.rep_customer.owner_name }}</p>{% endif %}
+        <p dir="ltr" class="text-right">{{ order.rep_customer.phone }}</p>
+        <p class="text-gray-500 dark:text-mist-dim">{{ order.rep_customer.province }}، {{ order.rep_customer.city }}، {{ order.rep_customer.address }}</p>
+        <p class="pt-2"><span class="text-gray-500 dark:text-mist-dim">پرداخت:</span> {{ order.get_payment_terms_display }}</p>
+        {% if order.shipping_note %}<p><span class="text-gray-500 dark:text-mist-dim">توضیح:</span> {{ order.shipping_note }}</p>{% endif %}
+        {% if order.tracking_code %}<p><span class="text-gray-500 dark:text-mist-dim">کد رهگیری:</span> {{ order.tracking_code }}</p>{% endif %}
+        <p class="text-xs text-gray-400"><bdi>{{ order.created_at|jalali:"%Y/%m/%d %H:%M"|fa_digits }}</bdi></p>
+    </div>
+</div>
+{% endblock %}

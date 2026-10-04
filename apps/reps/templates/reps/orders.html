@@ -1,0 +1,40 @@
+{% extends "reps/_layout.html" %}
+{% load persian %}
+{% block title %}سفارش‌ها | پنل ویزیتور{% endblock %}
+
+{% block rep_content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="page-title">سفارش‌ها{% if customer %} — {{ customer.shop_name }}{% endif %}</h1>
+    <form method="get" class="flex items-center gap-2">
+        {% if customer %}<input type="hidden" name="customer" value="{{ customer.pk }}">{% endif %}
+        <select name="status" onchange="this.form.submit()" class="input h-10 w-auto" aria-label="وضعیت">
+            <option value="">همه وضعیت‌ها</option>
+            {% for value, label in statuses %}{% if value != 'pending_payment' and value != 'paid' %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
+        </select>
+    </form>
+</div>
+
+{% if page_obj.object_list %}
+<div class="card overflow-x-auto p-0">
+    <table class="w-full min-w-[600px] text-sm">
+        <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-ember/60 dark:text-mist-dim">
+            <tr><th class="p-3 text-start">سفارش</th><th class="p-3 text-start">مشتری</th><th class="p-3">تاریخ</th><th class="p-3">وضعیت</th><th class="p-3">مبلغ</th></tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for order in page_obj %}
+            <tr>
+                <td class="p-3"><a href="{% url 'reps:order_detail' order.order_number %}" class="font-medium text-brand-600 hover:underline dark:text-river" dir="ltr">{{ order.order_number }}</a></td>
+                <td class="p-3">{{ order.rep_customer.shop_name|default:"—" }}</td>
+                <td class="p-3 text-center"><bdi>{{ order.created_at|jalali|fa_digits }}</bdi></td>
+                <td class="p-3 text-center">{% include "orders/partials/status_chip.html" %}</td>
+                <td class="p-3 text-center font-bold"><bdi>{{ order.total|price|fa_digits }}</bdi></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+    <div class="card p-8 text-center text-sm text-gray-500 dark:text-mist-dim">سفارشی پیدا نشد.</div>
+{% endif %}
+{% endblock %}

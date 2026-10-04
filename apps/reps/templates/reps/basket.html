@@ -1,0 +1,65 @@
+{% extends "reps/_layout.html" %}
+{% load persian images %}
+{% block title %}سبد سفارش | پنل ویزیتور{% endblock %}
+
+{% block rep_content %}
+<h1 class="page-title mb-5">سبد سفارش</h1>
+
+{% if basket.lines %}
+<form method="post" class="card mb-5 overflow-x-auto p-0">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update">
+    <table class="w-full min-w-[560px] text-sm">
+        <thead class="bg-gray-50 text-xs text-gray-500 dark:bg-ember/60 dark:text-mist-dim">
+            <tr><th class="p-3 text-start">کالا</th><th class="p-3">قیمت عمده</th><th class="p-3">تعداد</th><th class="p-3">جمع</th></tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-cedar/60">
+            {% for line in basket.lines %}
+            <tr>
+                <td class="p-3">
+                    <span class="font-medium">{{ line.product.name }}</span>
+                    {% if line.variant %}<span class="block text-xs text-gray-400">{{ line.variant.label }}</span>{% endif %}
+                    {% if line.short %}<span class="block text-xs font-bold text-red-600 dark:text-red-300">فقط {{ line.stock|fa_digits }} عدد موجود است</span>{% endif %}
+                </td>
+                <td class="p-3 text-center"><bdi>{{ line.unit_price|price|fa_digits }}</bdi></td>
+                <td class="p-3 text-center"><input type="number" name="qty_{{ line.key }}" value="{{ line.quantity }}" min="0" max="999" class="input h-9 w-20 text-center" aria-label="تعداد {{ line.product.name }}"></td>
+                <td class="p-3 text-center font-bold"><bdi>{{ line.line_total|price|fa_digits }}</bdi></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="border-t border-gray-100 dark:border-cedar/60">
+                <td class="p-3"><button type="submit" class="btn btn-sm btn-ghost">به‌روزرسانی تعدادها</button> <span class="text-xs text-gray-400">(۰ = حذف)</span></td>
+                <td colspan="2" class="p-3 text-left font-bold">جمع کل:</td>
+                <td class="p-3 text-center text-base font-bold text-brand-700 dark:text-river"><bdi>{{ basket.total|toman|fa_digits }}</bdi></td>
+            </tr>
+        </tfoot>
+    </table>
+</form>
+
+<form method="post" class="card space-y-4 p-5 sm:p-6">
+    {% csrf_token %}
+    <h2 class="card-title">ثبت سفارش</h2>
+    {% if not form.fields.customer.queryset.exists %}
+        <p class="alert-warning">هنوز مشتری‌ای ثبت نکرده‌اید. <a href="{% url 'reps:customer_new' %}?then=basket" class="font-bold underline">اول مشتری را اضافه کنید</a>.</p>
+    {% endif %}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+            <label class="label" for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>
+            {{ form.customer }}
+            {% if form.customer.errors %}<p class="field-error">{{ form.customer.errors.0 }}</p>{% endif %}
+            <a href="{% url 'reps:customer_new' %}?then=basket" class="mt-1 inline-block text-xs text-brand-600 hover:underline dark:text-river">+ مشتری جدید</a>
+        </div>
+        {% include "partials/field.html" with field=form.payment_terms %}
+    </div>
+    {% include "partials/field.html" with field=form.note %}
+    <button type="submit" class="btn btn-primary h-12 w-full">ثبت سفارش و ارسال برای تأیید شرکت</button>
+    <p class="text-xs text-gray-400 dark:text-mist-dim">موجودی کالاها با ثبت سفارش برای شما رزرو می‌شود. تا پیش از تأیید شرکت می‌توانید سفارش را لغو کنید.</p>
+</form>
+{% else %}
+    <div class="card p-8 text-center">
+        <p class="text-sm text-gray-500 dark:text-mist-dim">سبد سفارش خالی است.</p>
+        <a href="{% url 'reps:products' %}" class="btn btn-primary mt-4">رفتن به کاتالوگ</a>
+    </div>
+{% endif %}
+{% endblock %}

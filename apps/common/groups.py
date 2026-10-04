@@ -10,6 +10,7 @@ PERMISSIONS = {
     },
     "مالی": {
         "orders": ["view", "change"],
+        "reps": ["view"],
         "discounts": ["view", "add", "change"],
         "wallet": ["view"],
         "reviews": ["view"],

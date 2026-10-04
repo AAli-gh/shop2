@@ -3,26 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خطای سرور | فروشگاه</title>
-    <style>
-        /* standalone: rendered without template context, so the storefront palette is inlined */
-        @font-face { font-family: Vazirmatn; src: url("/static/fonts/Vazirmatn-Regular.woff2") format("woff2"); font-weight: 400; }
-        @font-face { font-family: Vazirmatn; src: url("/static/fonts/Vazirmatn-Bold.woff2") format("woff2"); font-weight: 700; }
-        body { margin:0; font-family: Vazirmatn, Tahoma, sans-serif; background:#f2f9fb; color:#111827; padding: 0 1rem; }
-        .card { max-width:32rem; margin:5rem auto; padding:3rem 2rem; background:#fff; border:1px solid #f3f4f6; border-radius:1rem; text-align:center; }
-        .code { font-size:4.5rem; font-weight:700; color:#ef4444; line-height:1; }
-        h1 { font-size:1.25rem; margin:1.25rem 0 .5rem; }
-        p { font-size:.875rem; color:#6b7280; line-height:1.8; margin:0; }
-        a { display:inline-flex; margin-top:2rem; height:2.75rem; align-items:center; padding:0 1.25rem; background:#0d5c75; color:#fff; border-radius:.75rem; font-size:.875rem; font-weight:700; text-decoration:none; }
-        a:hover { background:#0b4e63; }
-    </style>
+    <meta name="robots" content="noindex">
+    <title>خطای داخلی سرور</title>
+    {# standalone: Django renders this without the site's context, so nothing here may need the database #}
+    {% include "partials/states/standalone_style.html" %}
 </head>
 <body>
-    <div class="card">
-        <div class="code">۵۰۰</div>
-        <h1>خطایی در سرور رخ داد</h1>
-        <p>مشکلی در سمت ما پیش آمده است. لطفاً چند لحظه دیگر دوباره تلاش کنید.</p>
-        <a href="/">صفحه اصلی</a>
-    </div>
+    <main class="wrap">
+        <div class="art">{% include "partials/states/art_500.html" %}</div>
+        <div class="text">
+            <h1>خطای داخلی سرور</h1>
+            <p>متأسفانه مشکلی در سرورهای ما به وجود آمده است.<br>لطفاً چند دقیقه دیگر دوباره تلاش کنید.</p>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" onclick="location.reload()">↻ تلاش مجدد</button>
+                <a href="/" class="btn btn-outline">← بازگشت به صفحه اصلی</a>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

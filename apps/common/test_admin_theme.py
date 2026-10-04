@@ -63,8 +63,8 @@ def test_admin_home_shows_pending_work(admin_client, django_user_model):
 
     assert "نظر در انتظار تأیید" in body
     assert "/admin/reviews/review/?is_approved__exact=0" in body
-    assert "pending-card is-hot" in body
-    assert "سفارش‌ها" in body  # app list model names are translated
+    assert "dash-tasks__badge" in body  # the review counter is lit
+    assert "سفارش‌ها" in body  # the menu groups are in Persian
 
 
 @pytest.mark.django_db
@@ -79,3 +79,59 @@ def test_counters_respect_staff_permissions(client, django_user_model):
 
     assert "نظر در انتظار تأیید" in body
     assert "آماده پردازش" not in body  # no order permission
+
+
+# ---------------------------------------------------------------- shell and dashboard
+
+@pytest.mark.django_db
+def test_menu_shows_only_permitted_sections(client, django_user_model):
+    from django.contrib.auth.models import Permission
+
+    clerk = django_user_model.objects.create_user(email="warehouse@example.com", password="x", is_staff=True)
+    clerk.user_permissions.add(Permission.objects.get(codename="view_product"))
+    client.force_login(clerk)
+    body = client.get("/admin/").content.decode()
+
+    assert 'class="shop-nav"' in body and 'href="/admin/catalog/product/"' in body
+    assert "/admin/orders/order/" not in body  # no orders section, card or table
+    assert "/admin/accounts/user/" not in body
+    assert "گزارش فروش" not in body  # no sales chart without order permission
+    assert "وضعیت موجودی" in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("days", ["7", "30", "90", "abc"])
+def test_dashboard_with_sales(admin_client, django_user_model, days):
+    from apps.catalog.models import Category, Product
+    from apps.orders.models import Order, OrderItem
+
+    product = Product.objects.create(category=Category.objects.create(name="یخچال", slug="c"), name="یخچال ساید",
+                                     slug="p", price=1000, cost_price=700, stock=5)
+    buyer = django_user_model.objects.create_user(email="b@x.com", password="x")
+    order = Order.objects.create(order_number="SH-00000001", user=buyer, status=Order.Status.PAID, items_subtotal=2000, total=2000)
+    OrderItem.objects.create(order=order, product=product, product_name=product.name, unit_price=1000, unit_cost=700,
+                             quantity=2, line_total=2000)
+
+    body = admin_client.get(f"/admin/?days={days}").content.decode()
+    assert "گزارش فروش" in body and "<polyline" in body
+    assert "سهم فروش بر اساس دسته‌بندی" in body and "یخچال" in body
+    assert "SH-00000001" in body and "پرفروش‌ترین محصولات" in body
+
+
+@pytest.mark.django_db
+def test_admin_search(admin_client, django_user_model):
+    from apps.catalog.models import Category, Product
+
+    Product.objects.create(category=Category.objects.create(name="c", slug="c"), name="مایکروویو سامسونگ", slug="m", price=1, stock=1)
+    django_user_model.objects.create_user(phone="09121112222", phone_verified=True, name="سارا")
+
+    body = admin_client.get("/admin/search/", {"q": "مایکروویو"}).content.decode()
+    assert "مایکروویو سامسونگ" in body
+    assert "سارا" in admin_client.get("/admin/search/", {"q": "۰۹۱۲۱۱۱۲۲۲۲"}).content.decode()
+
+
+@pytest.mark.django_db
+def test_export_all_products(admin_client):
+    response = admin_client.get("/admin/catalog/product/export/")
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("application/vnd.openxmlformats")

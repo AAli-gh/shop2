@@ -1,0 +1,33 @@
+{% comment %}
+Full-width «something went wrong / nothing here» panel over the soft room backdrop.
+  {% include "partials/state_page.html" with art="404" tone="teal" layout="stack" title="..." text="..."
+     primary_label="..." primary_url="/" primary_icon="home" secondary_label="..." secondary_url="back" secondary_icon="arrow-left" %}
+  art: 404 | 403 | 500 | search | cart | offline     tone: teal | red     layout: stack (art above) | split (art beside)
+  code: optional big number shown above the title (e.g. 403)     heading="h2" when the page already has its h1
+  a url of "back" goes to the previous page, "reload" tries again, "search" puts the cursor in the header search box
+{% endcomment %}
+<section class="state-hero state-hero--{{ tone|default:'teal' }} state-hero--{{ layout|default:'stack' }}">
+    <div class="state-hero__inner">
+        <div class="state-hero__art">{% include "partials/states/art_"|add:art|add:".html" %}</div>
+        <div class="state-hero__text">
+            {% if code %}<p class="state-hero__code">{{ code }}</p>{% endif %}
+            {% if heading == "h2" %}<h2 class="state-hero__title">{{ title }}</h2>{% else %}<h1 class="state-hero__title">{{ title }}</h1>{% endif %}
+            {% if text %}<p class="state-hero__lead">{{ text }}</p>{% endif %}
+            <div class="state-hero__actions">
+                {% if primary_label %}
+                    {% if primary_url == "reload" %}<button type="button" onclick="location.reload()" class="btn btn-primary state-btn">
+                    {% elif primary_url == "search" %}<button type="button" data-focus-search class="btn btn-primary state-btn">
+                    {% else %}<a href="{{ primary_url }}" class="btn btn-primary state-btn">{% endif %}
+                        {% if primary_icon %}{% include "partials/icon.html" with name=primary_icon cls="w-5 h-5" %}{% endif %}{{ primary_label }}
+                    {% if primary_url == "reload" or primary_url == "search" %}</button>{% else %}</a>{% endif %}
+                {% endif %}
+                {% if secondary_label %}
+                    {% if secondary_url == "back" %}<button type="button" onclick="history.length > 1 ? history.back() : location.assign('/')" class="btn btn-outline state-btn">
+                    {% else %}<a href="{{ secondary_url }}" class="btn btn-outline state-btn">{% endif %}
+                        {% if secondary_icon %}{% include "partials/icon.html" with name=secondary_icon cls="w-5 h-5" %}{% endif %}{{ secondary_label }}
+                    {% if secondary_url == "back" %}</button>{% else %}</a>{% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% comment %}Shell of the sales-rep panel: rep card + menu, then the page.{% endcomment %}
+{% load persian %}
+
+{% block content %}
+{% with vn=request.resolver_match.view_name %}
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
+    <aside class="card p-3 lg:sticky lg:top-6 lg:p-4">
+        <div class="mb-3 hidden items-center gap-3 border-b border-gray-100 pb-4 lg:flex dark:border-cedar/60">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white dark:bg-river dark:text-midnight">{{ rep.user.name|default:rep.code|first }}</span>
+            <div class="min-w-0">
+                <p class="truncate text-sm font-bold">{{ rep.user.name|default:"ویزیتور" }}</p>
+                <p class="truncate text-xs text-gray-400 dark:text-mist-dim">کد {{ rep.code }}{% if rep.region %} — {{ rep.region }}{% endif %}</p>
+            </div>
+        </div>
+        <ul class="no-scrollbar flex gap-1 overflow-x-auto text-sm lg:flex-col">
+            <li><a href="{% url 'reps:dashboard' %}" class="acc-link {% if vn == 'reps:dashboard' %}is-active{% endif %}">{% include "partials/icon.html" with name="chart" %}داشبورد</a></li>
+            <li><a href="{% url 'reps:products' %}" class="acc-link {% if vn == 'reps:products' or vn == 'reps:product' %}is-active{% endif %}">{% include "partials/icon.html" with name="book" %}کاتالوگ و ثبت سفارش</a></li>
+            <li><a href="{% url 'reps:basket' %}" class="acc-link {% if vn == 'reps:basket' %}is-active{% endif %}">{% include "partials/icon.html" with name="cart" %}سبد سفارش{% if basket_count %} <span class="chip bg-brand-600 text-white dark:bg-river dark:text-midnight">{{ basket_count|fa_digits }}</span>{% endif %}</a></li>
+            <li><a href="{% url 'reps:orders' %}" class="acc-link {% if 'reps:order' in vn %}is-active{% endif %}">{% include "partials/icon.html" with name="bag" %}سفارش‌ها</a></li>
+            <li><a href="{% url 'reps:customers' %}" class="acc-link {% if 'reps:customer' in vn %}is-active{% endif %}">{% include "partials/icon.html" with name="user" %}مشتری‌ها (مغازه‌ها)</a></li>
+        </ul>
+    </aside>
+
+    <div class="min-w-0 lg:col-span-3">
+        {% block rep_content %}{% endblock %}
+    </div>
+</div>
+{% endwith %}
+{% endblock %}

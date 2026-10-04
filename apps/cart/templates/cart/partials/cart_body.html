@@ -75,10 +75,5 @@
     </aside>
 </div>
 {% else %}
-<div class="empty-state">
-    <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="cart" cls="w-8 h-8" sw="1.5" %}</div>
-    <h1 class="mt-5 text-lg font-bold">سبد خرید شما خالی است</h1>
-    <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">محصولات موردنظرتان را پیدا کنید و به سبد اضافه کنید.</p>
-    <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">مشاهده محصولات</a>
-</div>
+{% include "partials/state_page.html" with art="cart" tone="teal" layout="split" title="سبد خرید شما خالی است!" text="هنوز محصولی به سبد خرید خود اضافه نکرده‌اید. محصولات مورد علاقه خود را انتخاب کنید و خریدی لذت‌بخش را تجربه کنید." primary_label="مشاهده محصولات" primary_url="/products/" primary_icon="home" secondary_label="بازگشت به صفحه قبل" secondary_url="back" secondary_icon="arrow-left" %}
 {% endif %}

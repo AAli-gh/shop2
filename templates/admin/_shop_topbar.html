@@ -1,0 +1,56 @@
+{% load persian %}
+<div class="shop-top">
+    <label for="shop-nav-toggle" class="shop-top__icon shop-top__menu" title="منو">{% include "partials/icon.html" with name="menu" %}</label>
+
+    <form action="{% url 'admin:shop_search' %}" method="get" class="shop-top__search" role="search">
+        {% include "partials/icon.html" with name="search" cls="shop-top__search-icon" %}
+        <input type="search" name="q" value="{{ q|default:'' }}" placeholder="جستجو در سفارش‌ها، محصولات، مشتری‌ها و ..." aria-label="جستجو در پنل">
+    </form>
+
+    <a href="/" target="_blank" rel="noopener" class="shop-top__view-site">{% include "partials/icon.html" with name="external" cls="w-4 h-4" %}<span>مشاهده فروشگاه</span></a>
+
+    <div class="shop-top__actions">
+        {% if shop_topbar.messages %}
+        <a href="{{ shop_topbar.messages.url }}" class="shop-top__icon" title="پیام‌های تماس">
+            {% include "partials/icon.html" with name="chat" %}
+            {% if shop_topbar.messages.count %}<span class="shop-top__dot">{{ shop_topbar.messages.count|fa_digits }}</span>{% endif %}
+        </a>
+        {% endif %}
+
+        <details class="shop-top__menu-wrap">
+            <summary class="shop-top__icon" title="اعلان‌ها">
+                {% include "partials/icon.html" with name="bell" %}
+                {% if shop_topbar.notifications %}<span class="shop-top__dot">{{ shop_topbar.notifications|fa_digits }}</span>{% endif %}
+            </summary>
+            <div class="shop-top__dropdown">
+                <p class="shop-top__dropdown-title">کارهای منتظر</p>
+                {% for task in shop_topbar.tasks %}
+                    <a href="{{ task.url }}" class="shop-top__task">
+                        <span class="shop-chip shop-chip--{{ task.colour }}">{% include "partials/icon.html" with name=task.icon cls="w-4 h-4" %}</span>
+                        <span>{{ task.label }}</span>
+                        <b>{{ task.count|fa_digits }}</b>
+                    </a>
+                {% empty %}
+                    <p class="shop-top__empty">کار منتظری نیست 👌</p>
+                {% endfor %}
+            </div>
+        </details>
+
+        <details class="shop-top__menu-wrap">
+            <summary class="shop-top__user">
+                <span class="shop-avatar">{{ user.name|default:user.email|default:"م"|first|upper }}</span>
+                <span class="shop-top__user-text">
+                    <strong>{{ user.name|default:user.email|default:user.phone }}</strong>
+                    <small>{{ shop_topbar.role }}</small>
+                </span>
+                {% include "partials/icon.html" with name="chevron-left" cls="w-4 h-4 shop-top__caret" %}
+            </summary>
+            <div class="shop-top__dropdown shop-top__dropdown--user">
+                <a href="/" target="_blank" rel="noopener">مشاهده فروشگاه</a>
+                {% if user.has_usable_password %}<a href="{% url 'admin:password_change' %}">تغییر گذرواژه</a>{% endif %}
+                <div class="shop-top__theme">{% include "admin/color_theme_toggle.html" %} <span>تغییر پوسته</span></div>
+                <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}<button type="submit">خروج</button></form>
+            </div>
+        </details>
+    </div>
+</div>

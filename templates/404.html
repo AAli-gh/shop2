@@ -2,13 +2,5 @@
 {% block title %}صفحه پیدا نشد | {{ site_settings.store_name }}{% endblock %}
 
 {% block content %}
-<div class="card mx-auto max-w-xl p-8 text-center sm:p-12">
-    <p class="text-7xl font-bold text-brand-600 dark:text-river">۴۰۴</p>
-    <h1 class="mt-5 text-xl font-bold">صفحه موردنظر پیدا نشد</h1>
-    <p class="mt-2 text-sm leading-7 text-gray-500 dark:text-mist-dim">آدرسی که وارد کرده‌اید وجود ندارد یا منتقل شده است.</p>
-    <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="/" class="btn btn-primary">صفحه اصلی</a>
-        <a href="/products/" class="btn btn-ghost">مشاهده محصولات</a>
-    </div>
-</div>
+{% include "partials/state_page.html" with art="404" tone="teal" layout="stack" title="صفحه مورد نظر پیدا نشد!" text="ممکن است آدرس وارد شده اشتباه باشد یا صفحه حذف شده باشد." primary_label="بازگشت به صفحه اصلی" primary_url="/" primary_icon="home" secondary_label="مشاهده همه محصولات" secondary_url="/products/" secondary_icon="arrow-left" %}
 {% endblock %}

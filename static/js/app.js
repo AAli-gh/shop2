@@ -220,3 +220,15 @@ document.addEventListener("click", async (e) => {
     window.prompt("کپی کنید:", text);
   }
 });
+
+// «جستجوی مجدد» on an empty result: back to the header search box
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-focus-search]")) return;
+  const box = document.querySelector('#live-search-wrap input[name="q"]');
+  if (box) { window.scrollTo({ top: 0, behavior: "smooth" }); box.select(); box.focus(); }
+});
+
+// offline fallback page (templates/sw.js); skipped where service workers aren't available
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}

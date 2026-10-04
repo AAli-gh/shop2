@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.loyalty",
     "apps.guides",
     "apps.crm",
+    "apps.reps",
 ]
 
 MIDDLEWARE = [

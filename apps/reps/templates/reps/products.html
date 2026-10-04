@@ -1,0 +1,56 @@
+{% extends "reps/_layout.html" %}
+{% load persian images %}
+{% block title %}کاتالوگ ویزیتور | {{ site_settings.store_name }}{% endblock %}
+
+{% block rep_content %}
+<div class="card mb-5 p-4">
+    <form method="get" class="flex flex-wrap items-center gap-2">
+        <input type="search" name="q" value="{{ q }}" placeholder="جستجوی نام کالا یا برند" class="input h-10 min-w-0 flex-1" aria-label="جستجو">
+        <select name="category" class="input h-10 w-auto" aria-label="دسته">
+            <option value="">همه دسته‌ها</option>
+            {% for cat in categories %}<option value="{{ cat.slug }}" {% if cat.slug == category %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}
+        </select>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="stock" value="1" class="h-4 w-4" {% if in_stock %}checked{% endif %}>فقط موجود</label>
+        <button type="submit" class="btn btn-primary h-10">جستجو</button>
+    </form>
+</div>
+
+{% if page_obj.object_list %}
+<div class="space-y-3">
+    {% for product in page_obj %}
+    <div class="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
+        <a href="{% url 'reps:product' product.pk %}" class="flex min-w-0 flex-1 items-center gap-3">
+            <span class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-ember">
+                {% if product.image %}<img src="{{ product.image|thumb:200 }}" alt="" loading="lazy" class="h-full w-full object-cover">{% endif %}
+            </span>
+            <span class="min-w-0">
+                <span class="block truncate font-bold">{{ product.name }}</span>
+                <span class="mt-0.5 block text-xs text-gray-400 dark:text-mist-dim">{{ product.category.name }}{% if product.brand %} — {{ product.brand.name }}{% endif %} — موجودی: {{ product.stock|fa_digits }}</span>
+            </span>
+        </a>
+        <div class="shrink-0 text-sm sm:w-40 sm:text-left">
+            <span class="block font-bold text-brand-700 dark:text-river">عمده: <bdi>{{ product.rep_price|toman|fa_digits }}</bdi></span>
+            <span class="block text-xs text-gray-400 dark:text-mist-dim">قیمت سایت: <bdi>{{ product.effective_price|toman|fa_digits }}</bdi></span>
+        </div>
+        <form method="post" action="{% url 'reps:basket_add' %}" class="flex shrink-0 items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="product" value="{{ product.pk }}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            {% with variants=product.variants.all %}
+            {% if variants %}
+                <select name="variant" required class="input h-10 w-32 text-sm" aria-label="رنگ یا مدل">
+                    {% for v in variants %}{% if v.is_active %}<option value="{{ v.pk }}">{{ v.label }} ({{ v.stock|fa_digits }})</option>{% endif %}{% endfor %}
+                </select>
+            {% endif %}
+            {% endwith %}
+            <input type="number" name="quantity" value="1" min="1" max="999" class="input h-10 w-20 text-center" aria-label="تعداد">
+            <button type="submit" class="btn btn-primary h-10" {% if not product.stock %}disabled title="ناموجود"{% endif %}>افزودن</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+    <div class="card p-8 text-center text-sm text-gray-500 dark:text-mist-dim">کالایی پیدا نشد.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "reps/_layout.html" %}
+{% load persian %}
+{% block title %}پنل ویزیتور | {{ site_settings.store_name }}{% endblock %}
+
+{% block rep_content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <h1 class="page-title">سلام {{ rep.user.name|default:"" }} 👋</h1>
+    <a href="{% url 'reps:products' %}" class="btn btn-primary">{% include "partials/icon.html" with name="plus" cls="w-4 h-4" sw="2" %}ثبت سفارش جدید</a>
+</div>
+
+<div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="card p-5"><p class="text-xs text-gray-500 dark:text-mist-dim">فروش این ماه</p><p class="mt-1 text-lg font-bold"><bdi>{{ stats.month_total|toman|fa_digits }}</bdi></p></div>
+    <div class="card p-5"><p class="text-xs text-gray-500 dark:text-mist-dim">سفارش‌های این ماه</p><p class="mt-1 text-2xl font-bold">{{ stats.month_count|fa_digits }}</p></div>
+    <a href="{% url 'reps:orders' %}?status=approval" class="card p-5 hover:border-brand-300"><p class="text-xs text-gray-500 dark:text-mist-dim">در انتظار تأیید شرکت</p><p class="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-300">{{ stats.awaiting|fa_digits }}</p></a>
+    <a href="{% url 'reps:customers' %}" class="card p-5 hover:border-brand-300"><p class="text-xs text-gray-500 dark:text-mist-dim">مشتری‌های فعال</p><p class="mt-1 text-2xl font-bold">{{ stats.customers|fa_digits }}</p></a>
+</div>
+
+<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+    <div class="card p-5 sm:p-6">
+        <h2 class="card-title">آخرین سفارش‌ها</h2>
+        {% if stats.recent %}
+        <ul class="divide-y divide-gray-100 text-sm dark:divide-cedar/60">
+            {% for order in stats.recent %}
+            <li class="flex items-center gap-3 py-3">
+                <a href="{% url 'reps:order_detail' order.order_number %}" class="min-w-0 flex-1">
+                    <span class="block truncate font-medium">{{ order.rep_customer.shop_name|default:"—" }}</span>
+                    <span class="block text-xs text-gray-400 dark:text-mist-dim"><bdi dir="ltr">{{ order.order_number }}</bdi> — <bdi>{{ order.created_at|jalali|fa_digits }}</bdi></span>
+                </a>
+                {% include "orders/partials/status_chip.html" %}
+                <span class="w-28 text-left font-bold"><bdi>{{ order.total|price|fa_digits }}</bdi></span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            <p class="py-6 text-center text-sm text-gray-400 dark:text-mist-dim">هنوز سفارشی ثبت نکرده‌اید.</p>
+        {% endif %}
+    </div>
+
+    <div class="space-y-5">
+        <div class="card p-5 sm:p-6">
+            <h2 class="card-title">پرفروش‌های شما (۳۰ روز)</h2>
+            {% for row in stats.top_products %}
+                <div class="flex justify-between gap-3 py-1.5 text-sm"><span class="truncate">{{ row.product_name }}</span><span class="shrink-0 text-gray-500 dark:text-mist-dim">{{ row.units|fa_digits }} عدد</span></div>
+            {% empty %}<p class="text-sm text-gray-400 dark:text-mist-dim">—</p>{% endfor %}
+        </div>
+        <div class="card p-5 sm:p-6">
+            <h2 class="card-title">بهترین مشتری‌ها (۳۰ روز)</h2>
+            {% for shop in stats.top_customers %}
+                <div class="flex justify-between gap-3 py-1.5 text-sm"><span class="truncate">{{ shop.shop_name }}</span><span class="shrink-0 font-medium"><bdi>{{ shop.revenue|toman|fa_digits }}</bdi></span></div>
+            {% empty %}<p class="text-sm text-gray-400 dark:text-mist-dim">—</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

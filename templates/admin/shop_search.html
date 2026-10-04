@@ -1,0 +1,28 @@
+{% extends "admin/base_site.html" %}
+{# Results of the top bar's search (apps.common.admin_home.global_search). #}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">داشبورد</a> › جستجو</div>{% endblock %}
+{% block content_title %}<h1>جستجو{% if q %}: «{{ q }}»{% endif %}</h1>{% endblock %}
+
+{% block content %}
+<div class="dash">
+    {% if not q or q|length < 2 %}
+        <p class="dash-empty">دست‌کم دو حرف از شماره سفارش، نام کالا، نام یا موبایل مشتری بنویسید.</p>
+    {% elif not sections %}
+        <p class="dash-empty">نتیجه‌ای پیدا نشد.</p>
+    {% else %}
+        <div class="dash-search">
+            {% for title, rows in sections %}
+            <section class="dash-card">
+                <header class="dash-card__head"><h2>{{ title }}</h2></header>
+                <ul class="dash-search__list">
+                    {% for label, detail, url in rows %}
+                        <li><a href="{{ url }}"><b>{{ label }}</b>{% if detail %}<small>{{ detail }}</small>{% endif %}</a></li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

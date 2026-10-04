@@ -1,27 +1,203 @@
-{% extends "admin/index.html" %}
-{% load admin_dashboard %}
+{% extends "admin/base_site.html" %}
+{% load persian images %}
+{# The admin home: what needs doing, sales at a glance, latest orders and shortcuts (apps.common.admin_home.dashboard). #}
+
+{% block bodyclass %}{{ block.super }} dashboard shop-dash{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block coltype %}colM{% endblock %}
 
 {% block content %}
-{% admin_pending_items as pending %}
-{% if pending %}
-    <div class="pending-grid" aria-label="کارهای در انتظار">
-        {% for item in pending %}
-            <a href="{{ item.url }}" class="pending-card{% if item.count %} is-hot{% endif %}">
-                {{ item.label }}
-                <strong>{{ item.count }}</strong>
-            </a>
+{% with d=dash %}
+<div class="dash">
+
+    {# ---- what needs doing #}
+    {% if d.first_row %}
+    <div class="dash-kpis dash-kpis--4">
+        {% for card in d.first_row %}
+        <a href="{{ card.url }}" class="dash-card dash-kpi">
+            <div>
+                <p class="dash-kpi__label">{{ card.label }}</p>
+                <p class="dash-kpi__value">{{ card.count|fa_digits }}</p>
+                <p class="dash-kpi__more">
+                    {% if card.key == "orders_today" and d.orders_trend is not None %}
+                        <span class="dash-trend {% if d.orders_trend >= 0 %}is-up{% else %}is-down{% endif %}">{% if d.orders_trend >= 0 %}↑ +{% else %}↓ {% endif %}{{ d.orders_trend|fa_digits }}٪</span>
+                    {% endif %}
+                    {% if card.key == "rep_awaiting" %}منتظر تأیید{% else %}مشاهده{% endif %}
+                </p>
+            </div>
+            <span class="shop-chip shop-chip--{{ card.colour }} shop-chip--lg">{% include "partials/icon.html" with name=card.icon cls="w-7 h-7" %}</span>
+        </a>
         {% endfor %}
-        <a href="/dashboard/" class="pending-card">
-            گزارش فروش
-            <strong>←</strong>
+    </div>
+    {% endif %}
+    {% if d.second_row %}
+    <div class="dash-kpis dash-kpis--6">
+        {% for card in d.second_row %}
+        <a href="{{ card.url }}" class="dash-card dash-kpi dash-kpi--sm">
+            <div>
+                <p class="dash-kpi__label">{{ card.label }}</p>
+                <p class="dash-kpi__value">{{ card.count|fa_digits }}</p>
+                <p class="dash-kpi__more">مشاهده</p>
+            </div>
+            <span class="shop-chip shop-chip--{{ card.colour }} shop-chip--lg">{% include "partials/icon.html" with name=card.icon cls="w-6 h-6" %}</span>
         </a>
-        {% if perms.accounts.view_user %}
-        <a href="/dashboard/customers/" class="pending-card">
-            دسته‌بندی مشتریان
-            <strong>←</strong>
-        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ---- sales, categories, stock #}
+    {% if d.chart or d.stock %}
+    <div class="dash-row dash-row--charts">
+        {% if d.chart %}
+        <section class="dash-card dash-chart">
+            <header class="dash-card__head">
+                <h2>گزارش فروش</h2>
+                <div class="dash-legend">
+                    <span><i class="dot dot--sales"></i>فروش</span>
+                    <span><i class="dot dot--profit"></i>سود خالص</span>
+                </div>
+                <form method="get" class="dash-period">
+                    <select name="days" onchange="this.form.submit()" aria-label="بازه">
+                        <option value="7" {% if d.days == 7 %}selected{% endif %}>۷ روز اخیر</option>
+                        <option value="30" {% if d.days == 30 %}selected{% endif %}>۳۰ روز اخیر</option>
+                        <option value="90" {% if d.days == 90 %}selected{% endif %}>۹۰ روز اخیر</option>
+                    </select>
+                </form>
+            </header>
+            <p class="dash-chart__totals">فروش: <b><bdi>{{ d.chart.total_sales|toman|fa_digits }}</bdi></b> — سود: <b><bdi>{{ d.chart.total_profit|toman|fa_digits }}</bdi></b></p>
+            <svg viewBox="0 0 {{ d.chart.width }} {{ d.chart.height }}" class="dash-svg" dir="ltr" role="img" aria-label="نمودار فروش و سود روزانه">
+                {% for t in d.chart.ticks %}
+                    <line x1="{{ d.chart.left }}" x2="{{ d.chart.right }}" y1="{{ t.y }}" y2="{{ t.y }}" class="grid"/>
+                    <text x="{{ d.chart.left|add:-6 }}" y="{{ t.y }}" class="tick" text-anchor="end" dominant-baseline="middle">{{ t.label|fa_digits }}</text>
+                {% endfor %}
+                {% for p in d.chart.points %}
+                    <rect x="{{ p.bar_x }}" y="{{ p.bar_y }}" width="{{ d.chart.bar_w }}" height="{{ p.bar_h }}" rx="2" class="bar"><title>{{ p.label }} — سود {{ p.profit|toman }}</title></rect>
+                {% endfor %}
+                <polygon points="{{ d.chart.area }}" class="area"/>
+                <polyline points="{{ d.chart.line }}" class="line"/>
+                {% for p in d.chart.points %}
+                    <circle cx="{{ p.x }}" cy="{{ p.y }}" r="3.5" class="pt"><title>{{ p.label }} — فروش {{ p.sales|toman }}</title></circle>
+                {% endfor %}
+                {% for p in d.chart.x_labels %}
+                    <text x="{{ p.x }}" y="{{ d.chart.baseline|add:18 }}" class="tick" text-anchor="middle">{{ p.label|fa_digits }}</text>
+                {% endfor %}
+            </svg>
+        </section>
+        {% endif %}
+
+        {% if d.donut %}
+        <section class="dash-card dash-donut">
+            <header class="dash-card__head"><h2>سهم فروش بر اساس دسته‌بندی</h2></header>
+            {% if d.donut.slices %}
+            <div class="dash-donut__body">
+                <ul class="dash-donut__legend">
+                    {% for s in d.donut.slices %}<li><i class="dot" style="background:{{ s.colour }}"></i><span>{{ s.name }}</span><b>{{ s.percent|fa_digits }}٪</b></li>{% endfor %}
+                </ul>
+                <svg viewBox="0 0 160 160" class="dash-donut__svg" role="img" aria-label="سهم فروش دسته‌ها">
+                    <circle cx="80" cy="80" r="60" class="track"/>
+                    {% for s in d.donut.slices %}
+                        <circle cx="80" cy="80" r="60" fill="none" stroke="{{ s.colour }}" stroke-width="22" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}" transform="rotate(-90 80 80)"><title>{{ s.name }}: {{ s.value|toman }}</title></circle>
+                    {% endfor %}
+                    <text x="80" y="78" text-anchor="middle" class="centre">{{ d.donut.centre|fa_digits }}</text>
+                    <text x="80" y="98" text-anchor="middle" class="unit">{{ d.donut.unit }}</text>
+                </svg>
+            </div>
+            {% else %}
+                <p class="dash-empty">در این بازه فروشی ثبت نشده است.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if d.stock %}
+        <section class="dash-card dash-stock">
+            <header class="dash-card__head"><h2>وضعیت موجودی</h2><a href="{% url 'common:stock_forecast' %}" class="dash-pill">مشاهده همه</a></header>
+            <dl>
+                <div><dt>کل محصولات</dt><dd>{{ d.stock.total|price|fa_digits }}</dd></div>
+                <div><dt>موجود</dt><dd class="is-green">{{ d.stock.in_stock|price|fa_digits }}</dd></div>
+                <div><dt>رو به اتمام</dt><dd class="is-orange">{{ d.stock.low|price|fa_digits }}</dd></div>
+                <div><dt>ناموجود</dt><dd class="is-red">{{ d.stock.out|price|fa_digits }}</dd></div>
+            </dl>
+        </section>
         {% endif %}
     </div>
-{% endif %}
-{{ block.super }}
+    {% endif %}
+
+    {# ---- latest orders, best sellers, tasks #}
+    <div class="dash-row dash-row--lists">
+        {% if d.latest %}
+        <section class="dash-card dash-orders">
+            <header class="dash-card__head"><h2>آخرین سفارش‌ها</h2><a href="{% url 'admin:orders_order_changelist' %}" class="dash-pill">مشاهده همه</a></header>
+            <div class="dash-table-wrap">
+            <table class="dash-table">
+                <thead><tr><th>#</th><th>مشتری</th><th>محصولات</th><th>مبلغ کل</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+                <tbody>
+                {% for row in d.latest %}
+                    <tr>
+                        <td><a href="{{ row.url }}" dir="ltr">{{ row.order.order_number }}</a></td>
+                        <td><span class="dash-person"><span class="shop-avatar shop-avatar--sm" style="background:{{ row.avatar.colour }}">{{ row.avatar.initial }}</span>{{ row.name|truncatechars:22 }}</span></td>
+                        <td><span class="dash-thumbs">{% for p in row.products %}<img src="{{ p.image|thumb:200 }}" alt="{{ p.name }}" title="{{ p.name }}">{% empty %}—{% endfor %}</span></td>
+                        <td><bdi>{{ row.order.total|price|fa_digits }}</bdi><small> تومان</small></td>
+                        <td><span class="dash-status dash-status--{{ row.order.status }}">{{ row.order.get_status_display }}</span></td>
+                        <td class="dash-date"><bdi>{{ row.order.created_at|jalali:"%m/%d %H:%M"|fa_digits }}</bdi></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if d.best %}
+        <section class="dash-card dash-best">
+            <header class="dash-card__head"><h2>پرفروش‌ترین محصولات</h2><a href="{% url 'admin:catalog_product_changelist' %}" class="dash-pill">مشاهده همه</a></header>
+            <ol>
+                {% for row in d.best %}
+                <li>
+                    <span class="dash-rank{% if forloop.first %} is-first{% endif %}">{{ forloop.counter|fa_digits }}</span>
+                    <span class="dash-best__img">{% if row.product.image %}<img src="{{ row.product.image|thumb:200 }}" alt="">{% endif %}</span>
+                    <a href="{{ row.url }}" class="dash-best__name"><b>{{ row.product.name|truncatechars:34 }}</b><small>{{ row.product.category.name }}</small></a>
+                    <span class="dash-best__units">{{ row.units|fa_digits }} فروش</span>
+                </li>
+                {% endfor %}
+            </ol>
+        </section>
+        {% endif %}
+
+        <section class="dash-card dash-tasks">
+            <header class="dash-card__head"><h2>وظایف و اعلان‌ها</h2></header>
+            <ul>
+                {% for task in d.tasks %}
+                <li>
+                    <a href="{{ task.url }}">
+                        <span class="shop-chip shop-chip--{{ task.colour }}">{% include "partials/icon.html" with name=task.icon cls="w-5 h-5" %}</span>
+                        <span class="dash-tasks__text"><b>{{ task.label }}</b><small>{{ task.count|fa_digits }} مورد</small></span>
+                        {% if task.count %}<span class="dash-tasks__badge">{{ task.count|fa_digits }}</span>{% else %}<span class="dash-tasks__ok">✓</span>{% endif %}
+                    </a>
+                </li>
+                {% empty %}
+                <li class="dash-empty">کاری منتظر نیست.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    {# ---- shortcuts #}
+    {% if d.quick %}
+    <section class="dash-card dash-quick">
+        <h2>دسترسی سریع</h2>
+        <div class="dash-quick__grid">
+            {% for q in d.quick %}
+            <a href="{{ q.url }}" class="dash-quick__item dash-quick__item--{{ q.colour }}">
+                {% include "partials/icon.html" with name=q.icon cls="w-6 h-6" %}
+                <span>{{ q.label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endwith %}
 {% endblock %}
+
+{% block sidebar %}{% endblock %}

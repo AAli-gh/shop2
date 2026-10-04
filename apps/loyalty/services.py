@@ -64,8 +64,8 @@ def order_delivered(order) -> None:
 
     Called inside the delivery transaction; safe to call again for the same order.
     """
-    if not is_enabled():
-        return
+    if not is_enabled() or order.sales_rep_id:
+        return  # a rep's order is the company's sale to a shop, not the rep's own purchase
     account = get_account(order.user)
     account = LoyaltyAccount.objects.select_for_update().get(pk=account.pk)
 

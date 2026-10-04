@@ -4,10 +4,21 @@
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin_theme/theme.css' %}?v=4">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin_theme/theme.css' %}?v=4"><link rel="stylesheet" href="{% static 'admin_theme/shell.css' %}?v=2">{% endblock %}
 
 {# the admin path is kept out of robots.txt, so ask crawlers not to index it here #}
 {% block extrahead %}{{ block.super }}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{# signed-in staff get the shop's shell: right-hand menu + top bar (apps.common.admin_home); the sign-in page keeps the plain header #}
+{% block header %}
+{% if shop_sidebar %}
+    <input type="checkbox" id="shop-nav-toggle" class="shop-nav-toggle" aria-hidden="true">
+    {% include "admin/_shop_sidebar.html" %}
+    {% include "admin/_shop_topbar.html" %}
+{% else %}
+    {{ block.super }}
+{% endif %}
+{% endblock %}
 
 {% block branding %}
 <div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></div>

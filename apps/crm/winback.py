@@ -30,14 +30,15 @@ def candidates(now=None):
 
     now = now or timezone.now()
     cutoff = now - timedelta(days=get_settings().winback_after_days)
+    own_orders = Order.objects.filter(user=OuterRef("pk"), sales_rep__isnull=True)  # not orders placed as a rep
     last_order = (
-        Order.objects.filter(user=OuterRef("pk")).exclude(status=Order.Status.CANCELLED)
+        own_orders.exclude(status=Order.Status.CANCELLED)
         .order_by("-created_at").values("created_at")[:1]
     )
     return (
-        get_user_model().objects.filter(is_active=True, is_staff=False, accepts_marketing=True)
+        get_user_model().objects.filter(is_active=True, is_staff=False, accepts_marketing=True, sales_rep__isnull=True)
         .filter(Q(phone_verified=True, phone__isnull=False) | Q(email_verified=True, email__isnull=False))
-        .filter(Exists(Order.objects.filter(user=OuterRef("pk"), status__in=paid_statuses())))
+        .filter(Exists(own_orders.filter(status__in=paid_statuses())))
         .annotate(last_order=Subquery(last_order))
         .filter(last_order__lt=cutoff)
         # one offer per quiet spell: nothing sent since that last order

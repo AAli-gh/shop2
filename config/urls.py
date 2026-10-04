@@ -16,6 +16,7 @@ urlpatterns = [
     path("wallet/", include("apps.wallet.urls")),
     path("club/", include("apps.loyalty.urls")),
     path("guide/", include("apps.guides.urls")),
+    path("rep/", include("apps.reps.urls")),
     path("newsletter/", include("apps.newsletter.urls")),
     path("blog/", include("apps.blog.urls")),
     path("payments/", include("apps.payments.urls")),
@@ -26,6 +27,9 @@ urlpatterns = [
         "static": StaticViewSitemap,
     }}, name="django.contrib.sitemaps.views.sitemap"),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    # offline fallback: the service worker must live at the root to cover every page
+    path("sw.js", TemplateView.as_view(template_name="sw.js", content_type="application/javascript"), name="service_worker"),
+    path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
     path("", include("apps.common.urls")),
     path("", include("apps.orders.urls")),
     path("api/v1/", include("apps.catalog.api_urls")),

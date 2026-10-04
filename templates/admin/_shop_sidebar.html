@@ -1,0 +1,36 @@
+{% load persian %}
+<aside class="shop-nav" aria-label="منوی مدیریت">
+    <a href="{% url 'admin:index' %}" class="shop-nav__brand">
+        <span class="shop-nav__logo">{% include "partials/icon.html" with name="bag" cls="w-6 h-6" %}</span>
+        <span>
+            <strong>{{ site_settings.store_name|default:"فروشگاه" }}</strong>
+            <small>پنل مدیریت فروشگاه</small>
+        </span>
+    </a>
+    <nav class="shop-nav__groups">
+        {% for group in shop_sidebar %}
+            {% if group.single %}
+                <a href="{{ group.url }}" class="shop-nav__link{% if group.active %} is-active{% endif %}">
+                    {% include "partials/icon.html" with name=group.icon %}
+                    <span class="shop-nav__label">{{ group.title }}</span>
+                    {% if group.badge %}<span class="shop-nav__badge">{{ group.badge|fa_digits }}</span>{% endif %}
+                </a>
+            {% else %}
+                <details class="shop-nav__group"{% if group.active %} open{% endif %}>
+                    <summary class="shop-nav__link{% if group.active %} is-active{% endif %}">
+                        {% include "partials/icon.html" with name=group.icon %}
+                        <span class="shop-nav__label">{{ group.title }}</span>
+                        {% if group.badge %}<span class="shop-nav__badge">{{ group.badge|fa_digits }}</span>{% endif %}
+                        {% include "partials/icon.html" with name="chevron-left" cls="shop-nav__chevron" %}
+                    </summary>
+                    <ul>
+                        {% for item in group.items %}
+                            <li><a href="{{ item.url }}" class="{% if item.active %}is-active{% endif %}">{{ item.label }}{% if item.badge %}<span class="shop-nav__badge shop-nav__badge--sm">{{ item.badge|fa_digits }}</span>{% endif %}</a></li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            {% endif %}
+        {% endfor %}
+    </nav>
+</aside>
+<label for="shop-nav-toggle" class="shop-nav-backdrop" aria-hidden="true"></label>

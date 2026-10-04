@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>اتصال به اینترنت برقرار نیست</title>
+    {# kept by the service worker (static/js/sw.js) and shown when a page can't load: must work with no network at all #}
+    {% include "partials/states/standalone_style.html" %}
+</head>
+<body>
+    <main class="wrap split">
+        <div class="art">{% include "partials/states/art_offline.html" %}</div>
+        <div class="text">
+            <h1>اتصال به اینترنت برقرار نیست!</h1>
+            <p>لطفاً اتصال اینترنت خود را بررسی کنید<br>و دوباره تلاش کنید.</p>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" onclick="location.reload()">↻ تلاش مجدد</button>
+                <details>
+                    <summary class="btn btn-outline">⚙ بررسی تنظیمات شبکه</summary>
+                    <ul>
+                        <li>وای‌فای یا داده تلفن همراه روشن باشد.</li>
+                        <li>حالت پرواز خاموش باشد.</li>
+                        <li>اگر فیلترشکن یا پروکسی روشن است، یک بار خاموش و روشنش کنید.</li>
+                        <li>مودم را چند ثانیه خاموش و دوباره روشن کنید.</li>
+                    </ul>
+                </details>
+            </div>
+        </div>
+    </main>
+    <script>
+        // come back by itself once the connection returns
+        window.addEventListener("online", () => location.reload());
+    </script>
+</body>
+</html>

@@ -162,20 +162,18 @@
             </div>
             {% include "partials/pagination.html" with page_obj=products %}
         {% else %}
-            <div class="empty-state">
-                <div class="icon-tile bg-brand-50 text-brand-600 dark:bg-ember dark:text-river">{% include "partials/icon.html" with name="bag" cls="w-8 h-8" sw="1.5" %}</div>
-                <p class="mt-5 font-bold">{% if current_q %}نتیجه‌ای برای «{{ current_q }}» پیدا نشد{% else %}محصولی یافت نشد{% endif %}</p>
-                {% if did_you_mean %}
-                    <p class="mt-3 text-sm text-gray-600 dark:text-mist-dim">
-                        منظورتان
-                        {% for term in did_you_mean %}<a href="?q={{ term|urlencode }}" class="font-bold text-brand-600 hover:underline dark:text-river">{{ term }}</a>{% if not forloop.last %} یا {% endif %}{% endfor %}
-                        بود؟
-                    </p>
-                {% else %}
-                    <p class="mt-2 text-sm text-gray-500 dark:text-mist-dim">فیلترها را تغییر دهید یا عبارت دیگری جستجو کنید.</p>
-                {% endif %}
-                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary mt-6">مشاهده همه محصولات</a>
-            </div>
+            {% if current_q %}
+                {% include "partials/state_page.html" with art="search" tone="teal" layout="split" heading="h2" title="نتیجه‌ای یافت نشد!" text="متأسفانه محصولی با عبارت جستجوی شما یافت نشد. لطفاً عبارت دیگری را جستجو کنید یا از دسته‌بندی‌ها استفاده کنید." primary_label="جستجوی مجدد" primary_url="search" primary_icon="search" secondary_label="مشاهده دسته‌بندی‌ها" secondary_url="/#categories" secondary_icon="squares" %}
+            {% else %}
+                {% include "partials/state_page.html" with art="search" tone="teal" layout="split" heading="h2" title="محصولی یافت نشد" text="با این فیلترها کالایی پیدا نشد؛ فیلترها را تغییر دهید یا همه محصولات را ببینید." primary_label="مشاهده همه محصولات" primary_url="/products/" primary_icon="cube" %}
+            {% endif %}
+            {% if did_you_mean %}
+                <p class="mt-4 text-center text-sm text-gray-600 dark:text-mist-dim">
+                    منظورتان
+                    {% for term in did_you_mean %}<a href="?q={{ term|urlencode }}" class="font-bold text-brand-600 hover:underline dark:text-river">{{ term }}</a>{% if not forloop.last %} یا {% endif %}{% endfor %}
+                    بود؟
+                </p>
+            {% endif %}
             {% if fallback_products %}
                 <section class="mt-10">
                     <h2 class="page-title mb-6 text-lg">پرفروش‌ترین کالاها</h2>

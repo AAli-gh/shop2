@@ -16,6 +16,7 @@ def orders_to_ask(now=None):
     return (
         Order.objects.filter(
             status=Order.Status.DELIVERED,
+            sales_rep__isnull=True,  # a rep's order went to a shop, not to the account holder
             review_requested_at__isnull=True,
             delivered_at__lte=now - timedelta(days=settings.REVIEW_REQUEST_DAYS),
             delivered_at__gte=now - timedelta(days=settings.REVIEW_REQUEST_MAX_DAYS),

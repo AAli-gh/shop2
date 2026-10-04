@@ -331,6 +331,7 @@ def expire_unpaid_orders(*, older_than_minutes: int | None = None, now=None, dry
 
 
 ALLOWED_TRANSITIONS = {
+    Order.Status.AWAITING_APPROVAL: {Order.Status.PROCESSING, Order.Status.CANCELLED},  # a rep's order
     Order.Status.PENDING_PAYMENT: {Order.Status.PAID, Order.Status.CANCELLED},
     Order.Status.PAID: {Order.Status.PROCESSING, Order.Status.CANCELLED},
     Order.Status.PROCESSING: {Order.Status.SHIPPED},

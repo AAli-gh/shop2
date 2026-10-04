@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>{% if order.status == 'pending_payment' %}پیش‌فاکتور{% else %}فاکتور{% endif %} {{ order.order_number }} | {{ seller.store_name }}</title>
+    <title>{% if order.status == 'pending_payment' or order.status == 'approval' %}پیش‌فاکتور{% else %}فاکتور{% endif %} {{ order.order_number }} | {{ seller.store_name }}</title>
     <link rel="stylesheet" href="{% static 'css/site.css' %}?v=10">
     <style>
         @page { size: A4; margin: 12mm; }
@@ -40,7 +40,7 @@
                 {% if seller.legal_name %}<p class="text-xs text-gray-500">{{ seller.legal_name }}</p>{% endif %}
             </div>
         </div>
-        <h1 class="text-2xl font-bold">{% if order.status == 'pending_payment' %}پیش‌فاکتور{% else %}فاکتور فروش{% endif %}</h1>
+        <h1 class="text-2xl font-bold">{% if order.status == 'pending_payment' or order.status == 'approval' %}پیش‌فاکتور{% else %}فاکتور فروش{% endif %}</h1>
         <dl class="space-y-1 text-xs">
             <div class="flex gap-2"><dt class="text-gray-500">شماره:</dt><dd class="font-bold" dir="ltr">{{ order.order_number }}</dd></div>
             <div class="flex gap-2"><dt class="text-gray-500">تاریخ:</dt><dd>{{ order.created_at|jalali|fa_digits }}</dd></div>

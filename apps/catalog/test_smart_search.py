@@ -64,7 +64,8 @@ def test_earlier_fruitful_searches_join_the_vocabulary(catalog):
 def test_a_fruitless_search_shows_suggestions_and_best_sellers(client, catalog):
     page = client.get("/products/", {"q": "سامسونک"}).content.decode()
 
-    assert "نتیجه‌ای برای «سامسونک» پیدا نشد" in page
+    assert "نتیجه‌ای یافت نشد!" in page and "نتایج «سامسونک»" in page
+    assert "data-focus-search" in page  # «جستجوی مجدد» goes back to the search box
     assert "منظورتان" in page and "سامسونگ" in page
     assert "پرفروش‌ترین کالاها" in page and "یخچال ساید سامسونگ" in page
 

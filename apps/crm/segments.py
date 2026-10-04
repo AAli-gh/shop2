@@ -49,7 +49,8 @@ def _customer_rows():
     from apps.orders.models import Order
 
     return (
-        Order.objects.filter(status__in=paid_statuses())
+        # a rep's orders are sales to shops, not the rep's own buying
+        Order.objects.filter(status__in=paid_statuses(), sales_rep__isnull=True)
         .values("user_id")
         .annotate(orders=Count("id"), spent=Sum("total"), last_purchase=Max("created_at"))
     )
@@ -83,7 +84,7 @@ def segments_report(*, segment: str = "", now=None, limit: int = 100) -> dict:
     ]
     total = sum(item["customers"] for item in summary.values())
     never_bought = (
-        get_user_model().objects.filter(is_active=True, is_staff=False)
+        get_user_model().objects.filter(is_active=True, is_staff=False, sales_rep__isnull=True)
         .exclude(Exists(Order.objects.filter(user=OuterRef("pk"), status__in=paid_statuses())))
         .count()
     )

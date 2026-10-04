@@ -4,7 +4,13 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Order(models.Model):
+    class PaymentTerms(models.TextChoices):
+        CASH = "cash", "نقدی هنگام تحویل"
+        CHEQUE = "cheque", "چک"
+        CREDIT = "credit", "اعتباری (حساب)"
+
     class Status(models.TextChoices):
+        AWAITING_APPROVAL = "approval", "در انتظار تأیید شرکت"  # placed by a sales rep, paid on account
         PENDING_PAYMENT = "pending_payment", "در انتظار پرداخت"
         PAID = "paid", "پرداخت‌شده"
         PROCESSING = "processing", "در حال پردازش"
@@ -48,6 +54,16 @@ class Order(models.Model):
     install_date = models.CharField(_("install date"), max_length=30, blank=True, help_text="ترجیح زمانی نصب")
     wallet_used = models.BigIntegerField(_("paid from wallet"), default=0, help_text=_("مبلغ کسرشده از کیف پول"))
     delivered_at = models.DateTimeField(_("delivered at"), null=True, blank=True)  # starts the return window
+    # orders a sales rep placed for one of their shops (apps.reps); `user` is then the rep's account
+    sales_rep = models.ForeignKey(
+        "reps.SalesRep", null=True, blank=True, related_name="orders", on_delete=models.PROTECT,
+        verbose_name=_("sales rep"),
+    )
+    rep_customer = models.ForeignKey(
+        "reps.RepCustomer", null=True, blank=True, related_name="orders", on_delete=models.PROTECT,
+        verbose_name=_("rep customer"),
+    )
+    payment_terms = models.CharField(_("payment terms"), max_length=10, choices=PaymentTerms.choices, blank=True)
     # set by `manage.py request_reviews`, so a customer is asked for a review only once
     review_requested_at = models.DateTimeField(_("review requested at"), null=True, blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
@@ -65,7 +81,10 @@ class Order(models.Model):
     @property
     def progress_steps(self):
         """Linear fulfilment steps for the order timeline, each marked done/current."""
-        flow = [s for s in self.Status if s != self.Status.CANCELLED]
+        # a rep's order waits for company approval and is paid on account; a shop order is paid online
+        skipped = {self.Status.CANCELLED}
+        skipped |= {self.Status.PENDING_PAYMENT, self.Status.PAID} if self.sales_rep_id else {self.Status.AWAITING_APPROVAL}
+        flow = [s for s in self.Status if s not in skipped]
         current = flow.index(self.status) if self.status in flow else -1
         return [
             {"label": s.label, "done": i < current, "current": i == current}

@@ -1,0 +1,74 @@
+{% extends "reps/_layout.html" %}
+{% load persian images %}
+{% block title %}{{ product.name }} | پنل ویزیتور{% endblock %}
+
+{% block rep_content %}
+<a href="{% url 'reps:products' %}" class="mb-4 inline-block text-sm text-brand-600 hover:underline dark:text-river">→ بازگشت به کاتالوگ</a>
+
+<div class="card p-5 sm:p-6">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+            <div class="aspect-square overflow-hidden rounded-2xl bg-gray-100 dark:bg-ember">
+                {% if product.image %}<img src="{{ product.image|thumb:900 }}" alt="{{ product.name }}" class="h-full w-full object-cover">{% endif %}
+            </div>
+            <div class="mt-3 grid grid-cols-4 gap-2">
+                {% for img in product.images.all %}
+                    <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="aspect-square overflow-hidden rounded-xl bg-gray-100 dark:bg-ember"><img src="{{ img.image|thumb:200 }}" alt="" loading="lazy" class="h-full w-full object-cover"></a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            <p class="text-xs text-gray-400 dark:text-mist-dim">{{ product.category.name }}{% if product.brand %} — {{ product.brand.name }}{% endif %}</p>
+            <h1 class="mt-1 text-xl font-bold leading-9">{{ product.name }}</h1>
+
+            <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl bg-brand-50 p-3 dark:bg-ember"><dt class="text-xs text-gray-500 dark:text-mist-dim">قیمت عمده</dt><dd class="mt-1 font-bold text-brand-700 dark:text-river"><bdi>{{ product.rep_price|toman|fa_digits }}</bdi></dd></div>
+                <div class="rounded-xl bg-gray-50 p-3 dark:bg-ember/60"><dt class="text-xs text-gray-500 dark:text-mist-dim">قیمت مصرف‌کننده</dt><dd class="mt-1 font-bold"><bdi>{{ product.effective_price|toman|fa_digits }}</bdi></dd></div>
+                <div class="rounded-xl bg-gray-50 p-3 dark:bg-ember/60"><dt class="text-xs text-gray-500 dark:text-mist-dim">موجودی انبار</dt><dd class="mt-1 font-bold">{{ product.stock|fa_digits }} عدد</dd></div>
+                <div class="rounded-xl bg-gray-50 p-3 dark:bg-ember/60"><dt class="text-xs text-gray-500 dark:text-mist-dim">گارانتی</dt><dd class="mt-1 text-xs font-bold">{{ product.warranty|default:"—" }}</dd></div>
+            </dl>
+
+            {% if variants %}
+            <table class="mt-4 w-full text-sm">
+                <thead class="text-xs text-gray-500 dark:text-mist-dim"><tr><th class="py-1 text-start">رنگ / مدل</th><th>عمده</th><th>موجودی</th></tr></thead>
+                <tbody>{% for v in variants %}<tr class="border-t border-gray-100 dark:border-cedar/60"><td class="py-2">{{ v.label }}</td><td class="text-center"><bdi>{{ v.rep_price|price|fa_digits }}</bdi></td><td class="text-center">{{ v.stock|fa_digits }}</td></tr>{% endfor %}</tbody>
+            </table>
+            {% endif %}
+
+            <form method="post" action="{% url 'reps:basket_add' %}" class="mt-5 flex flex-wrap items-center gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="product" value="{{ product.pk }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% if variants %}
+                    <select name="variant" required class="input h-11 w-40" aria-label="رنگ یا مدل">{% for v in variants %}<option value="{{ v.pk }}">{{ v.label }}</option>{% endfor %}</select>
+                {% endif %}
+                <input type="number" name="quantity" value="1" min="1" max="999" class="input h-11 w-24 text-center" aria-label="تعداد">
+                <button type="submit" class="btn btn-primary h-11" {% if not product.stock %}disabled{% endif %}>افزودن به سبد سفارش</button>
+            </form>
+
+            <div class="mt-5 rounded-xl border border-gray-100 p-4 dark:border-cedar/60">
+                <p class="mb-2 text-sm font-bold">معرفی به مشتری</p>
+                <p class="mb-3 text-xs text-gray-500 dark:text-mist-dim">لینک صفحه کالا در سایت را برای مشتری بفرستید؛ قیمت عمده در آن صفحه نمایش داده نمی‌شود.</p>
+                <span id="product-link" class="hidden">{{ public_url }}</span>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-copy="#product-link" data-share-title="{{ product.name }}" class="btn btn-sm btn-outline">کپی / اشتراک لینک</button>
+                    <a href="https://wa.me/?text={{ product.name|urlencode }}%20{{ public_url|urlencode }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline">ارسال در واتس‌اپ</a>
+                    <a href="{{ product.get_absolute_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">صفحه کالا در سایت</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if specs %}
+    <h2 class="card-title mt-8">مشخصات فنی</h2>
+    <dl class="grid grid-cols-1 gap-x-6 text-sm sm:grid-cols-2">
+        {% for row in specs %}<div class="flex justify-between gap-3 border-b border-gray-100 py-2 dark:border-cedar/60"><dt class="text-gray-500 dark:text-mist-dim">{{ row.attribute.name }}</dt><dd class="font-medium">{{ row.display }}</dd></div>{% endfor %}
+    </dl>
+    {% endif %}
+    {% if product.description %}
+    <h2 class="card-title mt-8">توضیحات</h2>
+    <p class="text-sm leading-8 whitespace-pre-line text-gray-600 dark:text-mist-dim">{{ product.description }}</p>
+    {% endif %}
+</div>
+{% endblock %}

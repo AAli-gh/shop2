@@ -1,0 +1,21 @@
+{% extends "reps/_layout.html" %}
+{% block title %}{% if instance %}ویرایش مشتری{% else %}مشتری جدید{% endif %} | پنل ویزیتور{% endblock %}
+
+{% block rep_content %}
+<div class="card p-5 sm:p-6">
+    <h1 class="page-title mb-6 text-lg sm:text-xl">{% if instance %}ویرایش «{{ instance.shop_name }}»{% else %}مشتری جدید{% endif %}</h1>
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {% for field in form %}
+                {% if field.name == "address" %}<div class="sm:col-span-2">{% include "partials/field.html" %}</div>
+                {% else %}{% include "partials/field.html" %}{% endif %}
+            {% endfor %}
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="btn btn-primary">ذخیره</button>
+            <a href="{% url 'reps:customers' %}" class="btn btn-ghost">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

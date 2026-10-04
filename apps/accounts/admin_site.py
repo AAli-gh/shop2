@@ -69,6 +69,36 @@ class AdminLoginView(LoginView):
 
 
 class ShopAdminSite(admin.AdminSite):
+    # the shop's own right-hand menu (templates/admin/_shop_sidebar.html) replaces Django's app sidebar
+    enable_nav_sidebar = False
+    index_template = "admin/index.html"
+
+    def each_context(self, request):
+        context = super().each_context(request)
+        if self.has_permission(request):
+            from apps.common import admin_home
+
+            context["shop_sidebar"] = admin_home.sidebar(request)
+            context["shop_topbar"] = admin_home.topbar(request)
+        return context
+
+    def index(self, request, extra_context=None):
+        from apps.common import admin_home
+
+        days = request.GET.get("days", "30")
+        days = int(days) if days in ("7", "30", "90") else 30
+        return super().index(request, {**(extra_context or {}), "dash": admin_home.dashboard(request, days)})
+
+    def search_view(self, request):
+        from apps.common import admin_home
+
+        q = request.GET.get("q", "")
+        request.current_app = self.name
+        return TemplateResponse(request, "admin/shop_search.html", {
+            **self.each_context(request), "title": "جستجو", "q": q,
+            "sections": admin_home.global_search(request, q),
+        })
+
     def has_permission(self, request):
         if not super().has_permission(request):
             return False
@@ -78,6 +108,7 @@ class ShopAdminSite(admin.AdminSite):
         verify = ratelimit("admin_otp_verify", limit=20, window=600)(self.login_verify)
         resend = ratelimit("otp_request", limit=10, window=600)(self.login_resend)
         return [
+            path("search/", self.admin_view(self.search_view), name="shop_search"),
             path("login/verify/", never_cache(csrf_protect(verify)), name="login_verify"),
             path("login/verify/resend/", never_cache(csrf_protect(resend)), name="login_resend"),
         ] + super().get_urls()

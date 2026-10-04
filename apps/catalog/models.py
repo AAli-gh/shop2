@@ -155,6 +155,10 @@ class Product(models.Model):
         _("cost price"), null=True, blank=True,
         help_text="قیمت خرید به تومان؛ فقط برای گزارش سود و هرگز به مشتری نشان داده نمی‌شود",
     )
+    wholesale_price = models.BigIntegerField(
+        _("wholesale price"), null=True, blank=True,
+        help_text="قیمت فروش به مغازه‌ها از طریق ویزیتور، به تومان؛ فقط در پنل ویزیتور دیده می‌شود. خالی = قیمت سایت",
+    )
     stock = models.PositiveIntegerField(_("stock"), default=0)
     sold_count = models.PositiveIntegerField(_("sold count"), default=0)
     is_featured = models.BooleanField(_("featured"), default=False)
@@ -254,6 +258,11 @@ class Product(models.Model):
         return self.sale_price if self.on_sale else self.price
 
     @property
+    def rep_price(self):
+        """What a sales rep's order charges: the wholesale price, or the shop price when none is set."""
+        return self.wholesale_price or self.effective_price
+
+    @property
     def discount_percent(self):
         if not self.on_sale or self.price <= 0:
             return 0
@@ -296,6 +305,10 @@ class ProductVariant(models.Model):
     sale_price = models.BigIntegerField(
         _("sale price"), null=True, blank=True, help_text=_("in Toman, discounted price")
     )
+    wholesale_price = models.BigIntegerField(
+        _("wholesale price"), null=True, blank=True,
+        help_text="قیمت عمده همین رنگ یا مدل؛ خالی = قیمت عمده محصول",
+    )
     stock = models.PositiveIntegerField(_("stock"), default=0)
     image = models.ImageField(_("image"), upload_to="products/variants/", blank=True)
     is_active = models.BooleanField(_("active"), default=True)
@@ -334,6 +347,11 @@ class ProductVariant(models.Model):
     @property
     def effective_price(self):
         return self.sale_price if self.on_sale else self.price
+
+    @property
+    def rep_price(self):
+        """Wholesale price of this colour/option, else the product's, else what the shop charges."""
+        return self.wholesale_price or self.product.wholesale_price or self.effective_price
 
     @property
     def discount_percent(self):

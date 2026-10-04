@@ -1,0 +1,30 @@
+{# styles for the pages that must render without the site (500 and offline): no template context, no site CSS #}
+<style>
+    @font-face { font-family: Vazirmatn; src: url("/static/fonts/Vazirmatn-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url("/static/fonts/Vazirmatn-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: Vazirmatn, Tahoma, sans-serif; color: #111827; background: #eef1f2 url("/static/img/states/room.jpg") center / cover no-repeat; display: grid; place-items: center; padding: 1.25rem; }
+    body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.8), rgba(255,255,255,.3) 60%, transparent 85%), radial-gradient(circle at 50% 35%, rgba(239,68,68,.18), transparent 55%); }
+    .wrap { position: relative; width: 100%; max-width: 60rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
+    .brand { font-weight: 700; color: #0d5c75; text-decoration: none; font-size: 1.25rem; }
+    .art { width: 100%; max-width: 26rem; }
+    .art svg { width: 100%; height: auto; display: block; }
+    .text { display: flex; flex-direction: column; align-items: center; max-width: 30rem; }
+    h1 { margin: 0; font-size: 1.9rem; line-height: 1.6; }
+    p { margin: .5rem 0 0; color: #4b5563; line-height: 2; }
+    .actions { margin-top: 1.75rem; display: flex; flex-direction: column; gap: .75rem; width: 100%; max-width: 18rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; height: 3rem; border-radius: .75rem; font: inherit; font-size: .9rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .btn-primary { background: #0d5c75; color: #fff; border: 0; }
+    .btn-primary:hover { background: #0b4e63; }
+    .btn-outline { background: rgba(255,255,255,.75); color: #0d5c75; border: 1px solid #199fb1; }
+    details { margin-top: 1rem; text-align: right; color: #374151; font-size: .9rem; }
+    details summary { cursor: pointer; }
+    details ul { margin: .5rem 0 0; padding-inline-start: 1.25rem; line-height: 2; }
+    @media (min-width: 768px) { .wrap.split { flex-direction: row-reverse; justify-content: center; gap: 3rem; text-align: right; } .wrap.split .text { align-items: flex-start; } .wrap.split .art { max-width: 20rem; } }
+    @media (prefers-color-scheme: dark) {
+        body { color: #e5eef1; }
+        body::before { background: rgba(6,22,28,.85); }
+        p, details { color: #b7c9cf; }
+        .btn-outline { background: transparent; color: #7ad3df; border-color: #7ad3df; }
+    }
+</style>

@@ -935,3 +935,36 @@ msgstr "گزینه راهنما"
 
 msgid "guide options"
 msgstr "گزینه‌های راهنما"
+
+msgid "wholesale price"
+msgstr "قیمت عمده"
+
+msgid "rep code"
+msgstr "کد ویزیتور"
+
+msgid "region"
+msgstr "منطقه"
+
+msgid "sales rep"
+msgstr "ویزیتور"
+
+msgid "sales reps"
+msgstr "ویزیتورها"
+
+msgid "rep customer"
+msgstr "مشتری ویزیتور"
+
+msgid "rep customers"
+msgstr "مشتریان ویزیتور"
+
+msgid "shop name"
+msgstr "نام مغازه"
+
+msgid "owner name"
+msgstr "نام صاحب مغازه"
+
+msgid "notes"
+msgstr "یادداشت"
+
+msgid "payment terms"
+msgstr "نحوه پرداخت"

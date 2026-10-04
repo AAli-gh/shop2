@@ -150,11 +150,18 @@ class ProductAdmin(admin.ModelAdmin):
         return [
             path("import/", view(self.import_view), name="catalog_product_import"),
             path("import/template/", view(self.import_template_view), name="catalog_product_import_template"),
+            path("export/", view(self.export_all_view), name="catalog_product_export"),
         ] + super().get_urls()
 
     def _check_import_permission(self, request):
         if not (self.has_add_permission(request) and self.has_change_permission(request)):
             raise PermissionDenied
+
+    def export_all_view(self, request):
+        """Every product in one sheet (the dashboard's «خروجی محصولات»); same format the import reads back."""
+        if not self.has_view_permission(request):
+            raise PermissionDenied
+        return _xlsx_response(importer.build_workbook(self.model.objects.all()), f"products-{datetime.now():%Y%m%d}.xlsx")
 
     def import_template_view(self, request):
         self._check_import_permission(request)

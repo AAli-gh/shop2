@@ -13,7 +13,7 @@
     {% if seo_image %}<meta property="og:image" content="{{ seo_image }}">{% endif %}
     <link rel="canonical" href="{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
     {% block seo %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=17">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=19">
     <script>
         // Apply theme before first paint to avoid flash
         (function () {
@@ -23,7 +23,7 @@
         })();
     </script>
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    <script src="{% static 'js/app.js' %}?v=13" defer></script>
+    <script src="{% static 'js/app.js' %}?v=14" defer></script>
     {% include "partials/analytics_head.html" %}
 </head>
 <body class="bg-surface dark:bg-midnight text-gray-900 dark:text-glacier font-sans min-h-screen flex flex-col transition-colors"
@@ -97,6 +97,13 @@
                        class="h-11 rounded-xl bg-brand-600 dark:bg-river-deep px-2.5 sm:px-3.5 flex items-center gap-2 text-sm font-bold text-white hover:bg-brand-700 dark:hover:bg-river">
                         {% include "partials/icon.html" with name="key" %}
                         <span class="hidden sm:block">پنل مدیریت</span>
+                    </a>
+                {% endif %}
+                {% if user.is_authenticated and user.sales_rep.is_active %}
+                    <a href="{% url 'reps:dashboard' %}" title="پنل ویزیتور" data-rep-link
+                       class="h-11 rounded-xl bg-amber-500 px-2.5 sm:px-3.5 flex items-center gap-2 text-sm font-bold text-white hover:bg-amber-600">
+                        {% include "partials/icon.html" with name="truck" %}
+                        <span class="hidden sm:block">پنل ویزیتور</span>
                     </a>
                 {% endif %}
 

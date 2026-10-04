@@ -177,3 +177,48 @@ bdi, .ltr-nums {
   unicode-bidi: isolate;
   display: inline-block;
 }
+
+/* error and empty-state pages (templates/partials/state_page.html): soft room backdrop, tinted light, big art */
+.state-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  min-height: 30rem;
+  display: grid;
+  place-items: center;
+  padding: 2.5rem 1.25rem;
+  background: #eef1f2 url("/static/img/states/room.jpg") center / cover no-repeat;
+}
+.state-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, .75), rgba(255, 255, 255, .25) 60%, transparent 80%);
+}
+.state-hero--teal::after, .state-hero--red::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.state-hero--teal::after { background: radial-gradient(circle at 50% 35%, rgba(25, 159, 177, .16), transparent 55%); }
+.state-hero--red::after { background: radial-gradient(circle at 50% 35%, rgba(239, 68, 68, .2), transparent 55%); }
+.dark .state-hero::before { background: rgba(6, 22, 28, .82); }
+.state-hero__inner { position: relative; z-index: 1; width: 100%; max-width: 64rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
+.state-hero--split .state-hero__inner { flex-direction: column; }
+@media (min-width: 768px) {
+  .state-hero--split .state-hero__inner { flex-direction: row-reverse; justify-content: center; gap: 3rem; text-align: right; }
+  .state-hero--split .state-hero__text { align-items: flex-start; }
+}
+.state-hero__art { width: 100%; max-width: 26rem; }
+.state-hero--split .state-hero__art { max-width: 20rem; }
+.state-art { display: block; width: 100%; height: auto; }
+.state-hero__text { display: flex; flex-direction: column; align-items: center; max-width: 30rem; }
+.state-hero__code { font-size: 4.5rem; line-height: 1; font-weight: 800; color: #dc2626; margin-bottom: .5rem; }
+.state-hero__title { font-size: 1.75rem; font-weight: 800; line-height: 1.6; }
+.state-hero__lead { margin-top: .5rem; font-size: .95rem; line-height: 2; color: #4b5563; }
+.dark .state-hero__lead { color: #b7c9cf; }
+.state-hero__actions { margin-top: 1.75rem; display: flex; flex-direction: column; gap: .75rem; width: 100%; max-width: 18rem; }
+.state-btn { height: 3rem; width: 100%; justify-content: center; gap: .5rem; }
+.state-hero--split .state-hero__actions { max-width: 18rem; }
+@media (min-width: 640px) { .state-hero__title { font-size: 2rem; } }
